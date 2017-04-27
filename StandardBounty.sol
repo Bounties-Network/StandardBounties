@@ -19,10 +19,10 @@ contract StandardBounty{
   bool public fulfillmentApproval; // whether or not a fulfillment must be approved before the bounty can be claimed
 
   Fulfillment[] public fulfillments; // the list of submitted fulfillments
-  uint public numFulfillments;
+  uint public numFulfillments; // the number of submitted fulfillments
 
-  Fulfillment[] public accepted;
-  uint public numAccepted;
+  Fulfillment[] public accepted; // the list of accepted fulfillments
+  uint public numAccepted; // the number of accepted fulfillments
 
 
 
@@ -54,9 +54,9 @@ contract StandardBounty{
     fulfillmentAmount = _fulfillmentAmount;
 
     numFulfillments = 0;
-    numSelected = 0;
+    numAccepted = 0;
 
-    if (msg.value >= (_fulfillmentAmount) && _activateNow){
+    if (msg.value >= _fulfillmentAmount && _activateNow){
         bountyStage = 1; // Sender supplied bounty with sufficient funds
     }
 
@@ -80,12 +80,10 @@ contract StandardBounty{
   function fulfillBounty(string _data, string _dataType){
     if (msg.sender != issuer || block.timestamp > deadline) throw;
 
-      fulfillments[numFulfillments] = Fulfillment({data: _data,
-                                                   dataType: _dataType,
-                                                   fulfuller: msg.sender});
+      fulfillments[numFulfillments] = Fulfillment(msg.sender, _data, _dataType);
       numFulfillments ++;
 
-      if (!fulfillmentApproval){
+      if (!fulfillmentApproval){ //fulfillment doesn't need to be approved to pay out
         if (!msg.sender.send(fulfillmentAmount)) throw;
         if (this.balance < fulfillmentAmount){
           bountyStage = 2;
@@ -103,8 +101,8 @@ contract StandardBounty{
     if (bountyStage != 1) throw;
     if (fulNum >= numFulfillments) throw;
 
-    accepted[numSelected] = fulfillments[fulNum];
-    numSelected ++;
+    accepted[numAccepted] = fulfillments[fulNum];
+    numAccepted ++;
 
     if (!fulfillments[fulNum].fulfiller.send(fulfillmentAmount)) throw;
 
