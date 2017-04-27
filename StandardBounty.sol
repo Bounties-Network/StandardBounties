@@ -120,12 +120,21 @@ contract StandardBounty{
   */
 
   function reclaimBounty(){
-
     if (bountyStage == 0 || bountyStage == 1){
       bountyStage = 3;
     }
     if (!issuer.send(this.balance)) throw;
 
+  }
+  /* extendDeadline():
+  allows the issuer to add more time to the bounty, allowing it to continue accepting fulfillments
+
+  */
+  function extendDeadline(uint _newDeadline){
+    if (msg.sender!= issuer) throw;
+    if (_newDeadline > deadline){
+      deadline = _newDeadline;
+    }
   }
 
 
