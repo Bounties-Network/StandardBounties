@@ -37,6 +37,7 @@ contract StandardBounty{
   /// @param _activateNow Whether the issuer wishes to activate the bounty now (assuming sufficient
   /// funds are held) or wait until a later date to activate it
   function Bounty(uint _deadline, string _data, uint _fulfillmentAmount, bool _fulfillmentApproval, bool _activateNow) payable {
+    if (_deadline <= this.timestamp) throw;
     issuer = msg.sender;
     bountyStage = 0; //automatically in draft stage
 
