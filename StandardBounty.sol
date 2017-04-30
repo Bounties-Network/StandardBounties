@@ -85,7 +85,7 @@ contract StandardBounty{
 
   /// @dev acceptFulfillment(): accept a given fulfillment, and send
   /// the fulfiller their owed funds
-  /// @paramfulNum: the index of the fulfillment being accepted
+  /// @param fulNum the index of the fulfillment being accepted
   function acceptFulfillment(uint fulNum){
     if (msg.sender!= issuer) throw;
     if (bountyStage != 1) throw;
