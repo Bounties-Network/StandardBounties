@@ -44,6 +44,7 @@ contract StandardBounty{
   */
 
   function Bounty(uint _deadline, string _data, uint _fulfillmentAmount, bool _fulfillmentApproval, bool _activateNow) payable {
+    if (_deadline <= this.timestamp) throw;
     issuer = msg.sender;
     bountyStage = 0; //automatically in draft stage
 
