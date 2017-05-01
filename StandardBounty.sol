@@ -147,13 +147,11 @@ contract StandardBounty {
      * Public functions
      */
 
-    /// @dev Bounty(): instantiates a new draft bounty, activating it if sufficient funds exist to pay out the bounty
+    /// @dev StandardBounty(): instantiates a new draft bounty, activating it if sufficient funds exist to pay out the bounty
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
     /// @param _data the requirements of the bounty
     /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
     /// @param _fulfillmentApproval whether or not a fulfillment must be approved for one to claim the reward
-    /// @param _activateNow Whether the issuer wishes to activate the bounty now (assuming sufficient
-    /// funds are held) or wait until a later date to activate it
     function StandardBounty(
         uint _deadline,
         string _data,

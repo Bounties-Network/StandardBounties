@@ -1,5 +1,6 @@
 pragma solidity ^0.4.8;
 
+import "./StandardBounty.sol";
 
 /// @title Bountied
 /// @dev Contract to be tested and that should disburse the 
@@ -41,6 +42,11 @@ contract CodeBugBounty is StandardBounty{
      * Public functions
      */
 
+    /// @dev CodeBugBounty(): instantiates a new draft code bug bounty, activating it if sufficient funds exist to pay out the bounty
+    /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
+    /// @param _data the requirements of the bounty
+    /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
+    /// @param _bountiedContract the address of the contract to be bountied (with invariants check implemented)
 	function CodeBugBounty(
 		uint _deadline,
         string _data,
