@@ -3,8 +3,18 @@ pragma solidity ^0.4.8;
 
 /// @title StandardBounty
 /// @dev can be used to facilitate transactions on qualitative data
-/// @author Mark Beylin <mark.beylin@consensys.net>
+/// @author Mark Beylin <mark.beylin@consensys.net>, Gonçalo Sá <goncalo.sa@consensys.net>
 contract StandardBounty {
+
+    /*
+     * Events
+     */
+
+    event BountyActivated(address indexed issuer);
+    event BountyFulfilled(address indexed fulfiller);
+    event FulfillmentAccepted(address indexed fulfiller, uint256 fulfillmentAmount);
+    event BountyReclaimed();
+    event DeadlineExtended(uint newDeadline);
 
     /*
      * Storage
@@ -71,6 +81,7 @@ contract StandardBounty {
     {
         if (_deadline <= this.timestamp)
             throw;
+
         issuer = msg.sender;
         bountyStage = BountyStages.Draft; //automatically in draft stage
 
@@ -79,9 +90,6 @@ contract StandardBounty {
 
         fulfillmentApproval = _fulfillmentApproval;
         fulfillmentAmount = _fulfillmentAmount;
-
-        numFulfillments = 0;
-        numAccepted = 0;
 
         if (msg.value >= _fulfillmentAmount && _activateNow) {
             bountyStage = BountyStages.Active; // Sender supplied bounty with sufficient funds
@@ -101,6 +109,8 @@ contract StandardBounty {
         if (this.balance >= fulfillmentAmount && msg.sender == issuer) {
             bountyStage = BountyStages.Active;
         }
+
+        BountyActivated(msg.sender);
     }
 
     /// @dev fulfillBounty(): submit a fulfillment for the given bounty,
@@ -123,6 +133,8 @@ contract StandardBounty {
                 bountyStage = BountyStages.Fulfilled;
             }
         }
+
+        BountyFulfilled(msg.sender);
     }
 
     /// @dev acceptFulfillment(): accept a given fulfillment, and send
@@ -150,6 +162,7 @@ contract StandardBounty {
                 throw;
         }
 
+        FulfillmentAccepted(msg.sender, fulfillmentAmount);
     }
 
     /// @dev reclaimBounty(): drains the contract of it's remaining
@@ -163,6 +176,8 @@ contract StandardBounty {
         }
         if (!issuer.send(this.balance))
             throw;
+
+        BountyReclaimed();
     }
 
     /// @dev extendDeadline(): allows the issuer to add more time to the
@@ -176,6 +191,7 @@ contract StandardBounty {
         if (_newDeadline > deadline) {
             deadline = _newDeadline;
         }
+        DeadlineExtended(_newDeadline);
     }
 
 
