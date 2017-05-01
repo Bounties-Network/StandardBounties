@@ -1,3 +1,6 @@
+pragma solidity ^0.4.8;
+
+
 /// @title Contracts' factory
 /// @author Stefan George - <stefan.george@consensys.net>
 contract Factory {
