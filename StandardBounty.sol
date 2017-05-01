@@ -10,7 +10,7 @@ contract StandardBounty {
      * Events
      */
 
-    event BountyActivated(address indexed issuer);
+    event BountyActivated(address issuer);
     event BountyFulfilled(address indexed fulfiller);
     event FulfillmentAccepted(address indexed fulfiller, uint256 fulfillmentAmount);
     event BountyReclaimed();
@@ -34,14 +34,13 @@ contract StandardBounty {
     Fulfillment[] public fulfillments; // the list of submitted fulfillments
     uint public numFulfillments; // the number of submitted fulfillments
 
-    Fulfillment[] public accepted; // the list of accepted fulfillments
+    uint[] public acceptedFulfillmentIndexes; // the list of accepted fulfillments
     uint public numAccepted; // the number of accepted fulfillments
 
     /*
      * Enums
      */
 
-    // The stage of the bounty
     enum BountyStages {
         Draft,
         Active,
@@ -54,9 +53,81 @@ contract StandardBounty {
      */
 
     struct Fulfillment {
+        bool accepted;
         address fulfiller;
         string data;
         string dataType;
+    }
+
+    /*
+     * Modifiers
+     */
+
+    modifier onlyIssuer() {
+        if (msg.sender != issuer)
+            throw;
+        _;
+    }
+
+    modifier onlyFulfiller(uint fulNum) {
+        if (msg.sender != fulfillments[fulNum].fulfiller)
+            throw;
+        _;
+    }
+
+    modifier isBeforeDeadline() {
+        if (now > deadline)
+            throw;
+        _;
+    }
+
+    modifier newDeadlineIsValid(uint newDeadline) {
+        if (newDeadline <= deadline)
+            throw;
+        _;
+    }
+
+    modifier isAtStage(BountyStages desiredStage) {
+        if (bountyStage != desiredStage)
+            throw;
+        _;
+    }
+
+    modifier validateFulfillmentArrayIndex(uint index) {
+        if (index >= numFulfillments)
+            throw;
+        _;
+    }
+
+    modifier approvalIsNotAutomatic() {
+        if (fulfillmentApproval)
+            throw;
+        _;
+    }
+
+    modifier validateFunding() {
+        // Less than the minimum contribution is not allowed
+        if (msg.value < fulfillmentAmount)
+            throw;
+
+        // If automatic approval is TRUE then it makes no sense
+        // to have more than one `fulfillmentAmount` to withdraw
+        // given they could withdraw it all by repeatedly sending
+        // the same fulfillment
+        if(fulfillmentApproval && msg.value > fulfillmentAmount) {
+            if (!msg.sender.send(msg.value - fulfillmentAmount))
+                throw;
+        }
+
+        // If automatic approval is FALSE then issuer may want
+        // to pay multiple and different fulfillments at his discretion
+        // however only makes sense to accept multiples of `fulfillmentAmount`
+        if(!fulfillmentApproval && msg.value % fulfillmentAmount > 0) {
+            if (!msg.sender.send(msg.value - (msg.value % fulfillmentAmount)))
+                throw;
+        }
+
+        _;
     }
 
     /*
@@ -74,26 +145,14 @@ contract StandardBounty {
         uint _deadline,
         string _data,
         uint _fulfillmentAmount,
-        bool _fulfillmentApproval,
-        bool _activateNow
-    )
-        payable
-    {
-        if (_deadline <= this.timestamp)
-            throw;
-
+        bool _fulfillmentApproval
+    ) {
         issuer = msg.sender;
-        bountyStage = BountyStages.Draft; //automatically in draft stage
-
+        bountyStage = BountyStages.Draft;
         deadline = _deadline;
         data = _data;
-
         fulfillmentApproval = _fulfillmentApproval;
         fulfillmentAmount = _fulfillmentAmount;
-
-        if (msg.value >= _fulfillmentAmount && _activateNow) {
-            bountyStage = BountyStages.Active; // Sender supplied bounty with sufficient funds
-        }
 
     }
   
@@ -103,12 +162,11 @@ contract StandardBounty {
     function addFundsToActivateBounty()
         payable
         public
+        isBeforeDeadline
+        onlyIssuer
+        validateFunding
     {
-        if (block.timestamp >= deadline)
-            throw;
-        if (this.balance >= fulfillmentAmount && msg.sender == issuer) {
-            bountyStage = BountyStages.Active;
-        }
+        transitionToState(BountyStages.Active);
 
         BountyActivated(msg.sender);
     }
@@ -119,20 +177,10 @@ contract StandardBounty {
     /// @param _dataType a meaningful description of the type of data the fulfillment represents
     function fulfillBounty(string _data, string _dataType)
         public
+        isBeforeDeadline
     {
-        if (msg.sender != issuer || block.timestamp > deadline)
-            throw;
-
-        fulfillments[numFulfillments] = Fulfillment(msg.sender, _data, _dataType);
+        fulfillments[numFulfillments] = Fulfillment(fulfillmentApproval, msg.sender, _data, _dataType);
         numFulfillments ++;
-
-        if (!fulfillmentApproval) { //fulfillment doesn't need to be approved to pay out
-            if (!msg.sender.send(fulfillmentAmount))
-                throw;
-            if (this.balance < fulfillmentAmount) {
-                bountyStage = BountyStages.Fulfilled;
-            }
-        }
 
         BountyFulfilled(msg.sender);
     }
@@ -142,25 +190,34 @@ contract StandardBounty {
     /// @param fulNum the index of the fulfillment being accepted
     function acceptFulfillment(uint fulNum)
         public
+        approvalIsNotAutomatic
+        onlyIssuer
+        isAtStage(BountyStages.Active)
+        validateFulfillmentArrayIndex(fulNum)
     {
-        if (msg.sender != issuer)
-            throw;
-        if (bountyStage != BountyStages.Active)
-            throw;
-        if (fulNum >= numFulfillments)
-            throw;
+        fulfillments[fulNum].accepted = true;
+        accepted[numAccepted] = fulNum;
+        numAccepted ++;
 
+        FulfillmentAccepted(msg.sender, fulfillmentAmount);
+    }
+
+    /// @dev acceptFulfillment(): accept a given fulfillment, and send
+    /// the fulfiller their owed funds
+    /// @param fulNum the index of the fulfillment being accepted
+    function fulfillmentPayment(uint fulNum)
+        public
+        isAtStage(BountyStages.Active)
+        validateFulfillmentArrayIndex(fulNum)
+        onlyFulfiller(fulNum)
+    {
         accepted[numAccepted] = fulfillments[fulNum];
         numAccepted ++;
 
         if (!fulfillments[fulNum].fulfiller.send(fulfillmentAmount))
             throw;
 
-        if (this.balance < fulfillmentAmount) {
-            bountyStage = BountyStages.Fulfilled;
-            if (!issuer.send(this.balance))
-                throw;
-        }
+        transitionToState(BountyStages.Fulfilled);
 
         FulfillmentAccepted(msg.sender, fulfillmentAmount);
     }
@@ -170,10 +227,9 @@ contract StandardBounty {
     /// either killed in draft stage, or never accepted any fulfillments
     function reclaimBounty()
         public
+        onlyIssuer
+        transitionToState(BountyStages.Dead)
     {
-        if (bountyStage == BountyStages.Draft || bountyStage == BountyStages.Active) {
-            bountyStage = BountyStages.Dead;
-        }
         if (!issuer.send(this.balance))
             throw;
 
@@ -182,17 +238,35 @@ contract StandardBounty {
 
     /// @dev extendDeadline(): allows the issuer to add more time to the
     /// bounty, allowing it to continue accepting fulfillments
+    /// @param _newDeadline the new deadline in timestamp format
     function extendDeadline(uint _newDeadline)
         public
+        onlyIssuer
+        newDeadlineIsValid(_newDeadline)
     {
-        if (msg.sender != issuer)
-            throw;
+        deadline = _newDeadline;
 
-        if (_newDeadline > deadline) {
-            deadline = _newDeadline;
-        }
         DeadlineExtended(_newDeadline);
     }
 
+    /*
+     * Internal functions
+     */
 
+    /// @dev transitionToState(): transitions the contract to the 
+    /// state passed in the parameter `_newStage`
+    /// @param _newStage the new stage to transition to
+    function transitionToState(BountyStages _newStage)
+        internal
+    {
+        if (_newStage == BountyStages.Active)
+            bountyStage = _newStage;
+        else if (_newStage == BountyStages.Dead && (bountyStage == BountyStages.Draft || bountyStage == BountyStages.Active))
+            bountyStage = _newStage;
+        else if (_newStage == BountyStages.Fulfilled && this.balance < fulfillmentAmount) {
+            bountyStage = _newStage;
+            if (!issuer.send(this.balance))
+                throw;
+        }
+    }
 }
