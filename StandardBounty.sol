@@ -53,6 +53,7 @@ contract StandardBounty {
      */
 
     struct Fulfillment {
+        bool paid;
         bool accepted;
         address fulfiller;
         string data;
@@ -71,6 +72,12 @@ contract StandardBounty {
 
     modifier onlyFulfiller(uint fulNum) {
         if (msg.sender != fulfillments[fulNum].fulfiller)
+            throw;
+        _;
+    }
+
+    modifier amountIsNotZero(uint amount) {
+        if (amount != 0)
             throw;
         _;
     }
@@ -95,6 +102,12 @@ contract StandardBounty {
 
     modifier validateFulfillmentArrayIndex(uint index) {
         if (index >= numFulfillments)
+            throw;
+        _;
+    }
+
+    modifier checkFulfillmentIsApprovedAndUnpaid(uint fulNum) {
+        if (fulfillments[fulNum].accepted && fulfillments[fulNum].paid)
             throw;
         _;
     }
@@ -146,7 +159,9 @@ contract StandardBounty {
         string _data,
         uint _fulfillmentAmount,
         bool _fulfillmentApproval
-    ) {
+    )
+        amountIsNotZero(_fulfillmentAmount)
+    {
         issuer = msg.sender;
         bountyStage = BountyStages.Draft;
         deadline = _deadline;
@@ -179,7 +194,7 @@ contract StandardBounty {
         public
         isBeforeDeadline
     {
-        fulfillments[numFulfillments] = Fulfillment(fulfillmentApproval, msg.sender, _data, _dataType);
+        fulfillments[numFulfillments] = Fulfillment(false, fulfillmentApproval, msg.sender, _data, _dataType);
         numFulfillments ++;
 
         BountyFulfilled(msg.sender);
@@ -210,10 +225,8 @@ contract StandardBounty {
         isAtStage(BountyStages.Active)
         validateFulfillmentArrayIndex(fulNum)
         onlyFulfiller(fulNum)
+        checkFulfillmentIsApprovedAndUnpaid(fulNum)
     {
-        accepted[numAccepted] = fulfillments[fulNum];
-        numAccepted ++;
-
         if (!fulfillments[fulNum].fulfiller.send(fulfillmentAmount))
             throw;
 
@@ -254,7 +267,8 @@ contract StandardBounty {
      */
 
     /// @dev transitionToState(): transitions the contract to the 
-    /// state passed in the parameter `_newStage`
+    /// state passed in the parameter `_newStage` given the
+    /// conditions stated in the body of the function
     /// @param _newStage the new stage to transition to
     function transitionToState(BountyStages _newStage)
         internal
