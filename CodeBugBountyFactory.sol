@@ -22,10 +22,10 @@ contract CodeBugBountyFactory is Factory {
         returns (address bugBounty)
     {
         bugBounty = new CodeBugBounty(
-            uint _deadline,
-            string _data,
-            uint _fulfillmentAmount,
-            Bountied _bountiedContract
+            _deadline,
+            _data,
+            _fulfillmentAmount,
+            _bountiedContract
         );
         register(bugBounty);
     }

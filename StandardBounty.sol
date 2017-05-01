@@ -34,7 +34,7 @@ contract StandardBounty {
     Fulfillment[] public fulfillments; // the list of submitted fulfillments
     uint public numFulfillments; // the number of submitted fulfillments
 
-    uint[] public acceptedFulfillmentIndexes; // the list of accepted fulfillments
+    uint[] public accepted; // the list of accepted fulfillments
     uint public numAccepted; // the number of accepted fulfillments
 
     /*
@@ -127,7 +127,7 @@ contract StandardBounty {
         // to have more than one `fulfillmentAmount` to withdraw
         // given they could withdraw it all by repeatedly sending
         // the same fulfillment
-        if(fulfillmentApproval && msg.value > fulfillmentAmount) {
+        if (fulfillmentApproval && msg.value > fulfillmentAmount) {
             if (!msg.sender.send(msg.value - fulfillmentAmount))
                 throw;
         }
@@ -135,7 +135,7 @@ contract StandardBounty {
         // If automatic approval is FALSE then issuer may want
         // to pay multiple and different fulfillments at his discretion
         // however only makes sense to accept multiples of `fulfillmentAmount`
-        if(!fulfillmentApproval && msg.value % fulfillmentAmount > 0) {
+        if (!fulfillmentApproval && msg.value % fulfillmentAmount > 0) {
             if (!msg.sender.send(msg.value - (msg.value % fulfillmentAmount)))
                 throw;
         }
