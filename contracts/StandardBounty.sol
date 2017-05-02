@@ -6,6 +6,8 @@ pragma solidity ^0.4.8;
 /// @author Mark Beylin <mark.beylin@consensys.net>, Gonçalo Sá <goncalo.sa@consensys.net>
 contract StandardBounty {
 
+    uint constant public MAX_FULFILLMENTS = 254;
+
     /*
      * Events
      */
@@ -37,6 +39,7 @@ contract StandardBounty {
 
     uint[] public accepted; // the list of accepted fulfillments
     uint public numAccepted; // the number of accepted fulfillments
+    uint public numPaid; // the number of paid fulfillments
 
     /*
      * Enums
@@ -97,6 +100,12 @@ contract StandardBounty {
 
     modifier isAtStage(BountyStages desiredStage) {
         if (bountyStage != desiredStage)
+            throw;
+        _;
+    }
+
+    modifier checkFulfillmentsNumber() {
+        if (fulNum > MAX_FULFILLMENTS)
             throw;
         _;
     }
@@ -208,7 +217,10 @@ contract StandardBounty {
     /// @param _dataType a meaningful description of the type of data the fulfillment represents
     function fulfillBounty(string _data, string _dataType)
         public
+        isAtStage(BountyStages.Active)
         isBeforeDeadline
+        checkFulfillmentsNumber
+        canTransitionToState(BountyStages.Fulfilled)
     {
         fulfillments[numFulfillments] = Fulfillment(false, fulfillmentApproval, msg.sender, _data, _dataType);
         numFulfillments ++;
@@ -251,6 +263,8 @@ contract StandardBounty {
         if (!fulfillments[fulNum].fulfiller.send(fulfillmentAmount))
             throw;
 
+        numPaid++;
+
         FulfillmentAccepted(msg.sender, fulfillmentAmount);
     }
 
@@ -260,8 +274,11 @@ contract StandardBounty {
     function reclaimBounty()
         public
         onlyIssuer
+        canTransitionToState(BountyStages.Dead)
     {
-        if (!issuer.send(this.balance))
+        uint unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
+
+        if (!issuer.send(this.balance - unpaidAmount))
             throw;
 
         transitionToState(BountyStages.Dead);
