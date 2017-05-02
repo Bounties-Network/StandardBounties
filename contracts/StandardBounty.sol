@@ -136,7 +136,7 @@ contract StandardBounty {
         // to pay multiple and different fulfillments at his discretion
         // however only makes sense to accept multiples of `fulfillmentAmount`
         if (!fulfillmentApproval && msg.value % fulfillmentAmount > 0) {
-            if (!msg.sender.send(msg.value - (msg.value % fulfillmentAmount)))
+            if (!msg.sender.send(msg.value % fulfillmentAmount))
                 throw;
         }
 
@@ -147,7 +147,7 @@ contract StandardBounty {
      * Public functions
      */
 
-    /// @dev StandardBounty(): instantiates a new draft bounty, activating it if sufficient funds exist to pay out the bounty
+    /// @dev StandardBounty(): instantiates a new draft bounty
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
     /// @param _data the requirements of the bounty
     /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
