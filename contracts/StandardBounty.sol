@@ -155,15 +155,6 @@ contract StandardBounty {
         if (newStage < bountyStage - 1)
             throw;
 
-
-        else if (newStage == BountyStages.Dead && (bountyStage == BountyStages.Draft || bountyStage == BountyStages.Active))
-            bountyStage = newStage;
-        else if (newStage == BountyStages.Fulfilled && this.balance < fulfillmentAmount) {
-            bountyStage = newStage;
-            if (!issuer.send(this.balance))
-                throw;
-        }
-
         _;
     }
 
