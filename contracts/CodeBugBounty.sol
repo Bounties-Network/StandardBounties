@@ -50,12 +50,14 @@ contract CodeBugBounty is StandardBounty {
     function CodeBugBounty(
         uint _deadline,
         string _data,
+        string _contactInfo,
         uint _fulfillmentAmount,
         Bountied _bountiedContract
     )
     	StandardBounty(
     		_deadline,
         	_data,
+            _contactInfo,
         	_fulfillmentAmount,
         	false
     	)

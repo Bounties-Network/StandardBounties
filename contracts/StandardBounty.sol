@@ -21,6 +21,7 @@ contract StandardBounty {
      */
 
     address public issuer; //the creator of the bounty
+    string public issuerContact; //string of a contact method used to reach the issuer in case it is needed
     
     BountyStages public bountyStage; 
 
@@ -149,11 +150,13 @@ contract StandardBounty {
 
     /// @dev StandardBounty(): instantiates a new draft bounty
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
+    /// @param _contactInfo a string with contact info of the issuer, for them to be contacted if needed
     /// @param _data the requirements of the bounty
     /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
     /// @param _fulfillmentApproval whether or not a fulfillment must be approved for one to claim the reward
     function StandardBounty(
         uint _deadline,
+        string _contactInfo,
         string _data,
         uint _fulfillmentAmount,
         bool _fulfillmentApproval
@@ -161,6 +164,7 @@ contract StandardBounty {
         amountIsNotZero(_fulfillmentAmount)
     {
         issuer = msg.sender;
+        issuerContact = _contactInfo;
         bountyStage = BountyStages.Draft;
         deadline = _deadline;
         data = _data;
