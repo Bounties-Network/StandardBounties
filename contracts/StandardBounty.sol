@@ -105,7 +105,7 @@ contract StandardBounty {
     }
 
     modifier checkFulfillmentsNumber() {
-        if (fulNum > MAX_FULFILLMENTS)
+        if (numFulfillments > MAX_FULFILLMENTS)
             throw;
         _;
     }
