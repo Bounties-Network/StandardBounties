@@ -12,7 +12,7 @@ contract StandardBounty {
 
     event BountyActivated(address issuer);
     event BountyFulfilled(address indexed fulfiller);
-    event FulfillmentAccepted(address indexed fulfiller, uint256 fulfillmentAmount);
+    event FulfillmentAccepted(address indexed fulfiller);
     event BountyReclaimed();
     event DeadlineExtended(uint newDeadline);
 
@@ -144,6 +144,29 @@ contract StandardBounty {
         _;
     }
 
+    modifier canTransitionToState(BountyStages newStage) {
+        // RULE #1
+        // Can not go back in Stages unless you're in stage "Fulfilled"
+        if (newStage < bountyStage && newStage != BountyStages.Fulfilled)
+            throw;
+
+        // RULE #2
+        // Can never go back more than one state
+        if (newStage < bountyStage - 1)
+            throw;
+
+
+        else if (newStage == BountyStages.Dead && (bountyStage == BountyStages.Draft || bountyStage == BountyStages.Active))
+            bountyStage = newStage;
+        else if (newStage == BountyStages.Fulfilled && this.balance < fulfillmentAmount) {
+            bountyStage = newStage;
+            if (!issuer.send(this.balance))
+                throw;
+        }
+
+        _;
+    }
+
     /*
      * Public functions
      */
@@ -199,24 +222,30 @@ contract StandardBounty {
         fulfillments[numFulfillments] = Fulfillment(false, fulfillmentApproval, msg.sender, _data, _dataType);
         numFulfillments ++;
 
+        transitionToState(BountyStages.Fulfilled);
+
         BountyFulfilled(msg.sender);
     }
 
     /// @dev acceptFulfillment(): accept a given fulfillment, and send
     /// the fulfiller their owed funds
     /// @param fulNum the index of the fulfillment being accepted
-    function acceptFulfillment(uint fulNum)
+    /// @param _newStage the new stage to transition to
+    function acceptFulfillment(uint fulNum, BountyStages _newStage)
         public
         approvalIsNotAutomatic
         onlyIssuer
-        isAtStage(BountyStages.Active)
+        isAtStage(BountyStages.Fulfilled)
         validateFulfillmentArrayIndex(fulNum)
+        canTransitionToState(_newStage)
     {
         fulfillments[fulNum].accepted = true;
         accepted[numAccepted] = fulNum;
         numAccepted ++;
 
-        FulfillmentAccepted(msg.sender, fulfillmentAmount);
+        transitionToState(_newStage);
+
+        FulfillmentAccepted(msg.sender);
     }
 
     /// @dev acceptFulfillment(): accept a given fulfillment, and send
@@ -224,15 +253,12 @@ contract StandardBounty {
     /// @param fulNum the index of the fulfillment being accepted
     function fulfillmentPayment(uint fulNum)
         public
-        isAtStage(BountyStages.Active)
         validateFulfillmentArrayIndex(fulNum)
         onlyFulfiller(fulNum)
         checkFulfillmentIsApprovedAndUnpaid(fulNum)
     {
         if (!fulfillments[fulNum].fulfiller.send(fulfillmentAmount))
             throw;
-
-        transitionToState(BountyStages.Fulfilled);
 
         FulfillmentAccepted(msg.sender, fulfillmentAmount);
     }
@@ -243,10 +269,11 @@ contract StandardBounty {
     function reclaimBounty()
         public
         onlyIssuer
-        transitionToState(BountyStages.Dead)
     {
         if (!issuer.send(this.balance))
             throw;
+
+        transitionToState(BountyStages.Dead);
 
         BountyReclaimed();
     }
@@ -275,14 +302,6 @@ contract StandardBounty {
     function transitionToState(BountyStages _newStage)
         internal
     {
-        if (_newStage == BountyStages.Active)
-            bountyStage = _newStage;
-        else if (_newStage == BountyStages.Dead && (bountyStage == BountyStages.Draft || bountyStage == BountyStages.Active))
-            bountyStage = _newStage;
-        else if (_newStage == BountyStages.Fulfilled && this.balance < fulfillmentAmount) {
-            bountyStage = _newStage;
-            if (!issuer.send(this.balance))
-                throw;
-        }
+        bountyStage = _newStage;
     }
 }
