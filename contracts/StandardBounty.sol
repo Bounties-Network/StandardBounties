@@ -13,8 +13,9 @@ contract StandardBounty {
      */
 
     event BountyActivated(address issuer);
-    event BountyFulfilled(address indexed fulfiller);
-    event FulfillmentAccepted(address indexed fulfiller);
+    event BountyFulfilled(address indexed fulfiller, uint256 indexed fulNum);
+    event FulfillmentAccepted(address indexed fulfiller, uint256 indexed fulNum);
+    event FulfillmentPaid(address indexed fulfiller, uint256 indexed fulNum)
     event BountyReclaimed();
     event DeadlineExtended(uint newDeadline);
 
@@ -202,9 +203,11 @@ contract StandardBounty {
     function addFundsToActivateBounty()
         payable
         public
+        isAtStage(BountyStages.Draft)
         isBeforeDeadline
         onlyIssuer
         validateFunding
+        canTransitionToState(BountyStages.Active)
     {
         transitionToState(BountyStages.Active);
 
@@ -223,11 +226,10 @@ contract StandardBounty {
         canTransitionToState(BountyStages.Fulfilled)
     {
         fulfillments[numFulfillments] = Fulfillment(false, fulfillmentApproval, msg.sender, _data, _dataType);
-        numFulfillments ++;
 
         transitionToState(BountyStages.Fulfilled);
 
-        BountyFulfilled(msg.sender);
+        BountyFulfilled(msg.sender, numFulfillments++);
     }
 
     /// @dev acceptFulfillment(): accept a given fulfillment, and send
@@ -243,12 +245,11 @@ contract StandardBounty {
         canTransitionToState(_newStage)
     {
         fulfillments[fulNum].accepted = true;
-        accepted[numAccepted] = fulNum;
-        numAccepted ++;
+        accepted[numAccepted++] = fulNum;
 
         transitionToState(_newStage);
 
-        FulfillmentAccepted(msg.sender);
+        FulfillmentAccepted(msg.sender, fulNum);
     }
 
     /// @dev acceptFulfillment(): accept a given fulfillment, and send
@@ -265,7 +266,7 @@ contract StandardBounty {
 
         numPaid++;
 
-        FulfillmentAccepted(msg.sender, fulfillmentAmount);
+        FulfillmentPaid(msg.sender, fulNum);
     }
 
     /// @dev reclaimBounty(): drains the contract of it's remaining
