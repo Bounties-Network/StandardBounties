@@ -2,10 +2,9 @@
 
 `Version 0.0.1`
 
-1. [Description](#1-rationale)
-2. [Requirements](#2-implementation)
-3. [Installation](#3-installation)
-4. [Usage](#4-usage)
+1. [Rationale](#1-rationale)
+2. [Implementation](#2-implementation)
+3. [Development](#3-development)
 
 A set of standard contracts to be used as interfaces for any kind of bounty, either qualitative or quantitative in nature.
 
@@ -23,9 +22,17 @@ The generalized bounty contract (StandardBounty.sol) is implemented as a State M
 
 ![Bounties State Machine](/standardbountyfsm.png?raw=true "StandardBounty Finite State Machine")
 
-All the extension bounty types **musn't** break the state diagram above. They should differ in validation of state change but not in transition rules.
-
 ### 2.1 Invariant check pattern for _CodeBugBounty.sol_
+
+The pattern for invariant checks of bugs on smart contract code relies on the careful planning & implementation by the bounty creator.
+
+If the invariants are not chosen correctly or their code is implemented poorly you'll probably just end up giving money away! Please be careful.
+
+## 3. Development
+
+All the extension bounty types (particular cases like _CodeBugBounty.sol_) **musn't** break the state diagram above. They should differ in validation of state change but not in transition rules.
+
+
 
 
 
