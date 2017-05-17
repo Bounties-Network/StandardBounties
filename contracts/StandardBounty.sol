@@ -15,7 +15,7 @@ contract StandardBounty {
     event BountyActivated(address issuer);
     event BountyFulfilled(address indexed fulfiller, uint256 indexed fulNum);
     event FulfillmentAccepted(address indexed fulfiller, uint256 indexed fulNum);
-    event FulfillmentPaid(address indexed fulfiller, uint256 indexed fulNum)
+    event FulfillmentPaid(address indexed fulfiller, uint256 indexed fulNum);
     event BountyReclaimed();
     event DeadlineExtended(uint newDeadline);
 
@@ -25,15 +25,13 @@ contract StandardBounty {
 
     address public issuer; //the creator of the bounty
     string public issuerContact; //string of a contact method used to reach the issuer in case it is needed
-    
-    BountyStages public bountyStage; 
+
+    BountyStages public bountyStage;
 
     uint public deadline; //unix timestamp for deadline
     string public data; //data representing the requirements for the bounty, and any associated files - this is commonly an IPFS hash but in reality could be anything the bounty creator desires
 
-
     uint public fulfillmentAmount; // the amount of wei to be rewarded to the user who fulfills the bounty
-    bool public fulfillmentApproval; // whether or not a fulfillment must be approved before the bounty can be claimed
 
     Fulfillment[] public fulfillments; // the list of submitted fulfillments
     uint public numFulfillments; // the number of submitted fulfillments
@@ -123,31 +121,15 @@ contract StandardBounty {
         _;
     }
 
-    modifier approvalIsNotAutomatic() {
-        if (fulfillmentApproval)
-            throw;
-        _;
-    }
 
     modifier validateFunding() {
-        // Less than the minimum contribution is not allowed
-        if (msg.value < fulfillmentAmount)
-            throw;
 
-        // If automatic approval is TRUE then it makes no sense
-        // to have more than one `fulfillmentAmount` to withdraw
-        // given they could withdraw it all by repeatedly sending
-        // the same fulfillment
-        if (fulfillmentApproval && msg.value > fulfillmentAmount) {
-            if (!msg.sender.send(msg.value - fulfillmentAmount))
-                throw;
-        }
-
-        // If automatic approval is FALSE then issuer may want
-        // to pay multiple and different fulfillments at his discretion
-        // however only makes sense to accept multiples of `fulfillmentAmount`
-        if (!fulfillmentApproval && msg.value % fulfillmentAmount > 0) {
-            if (!msg.sender.send(msg.value % fulfillmentAmount))
+        // Funding is validated right before a bounty is moved into the active
+        // stage, thus all funds which are surplus to paying out those bounties
+        // are refunded. After this, new funds may also be added on an ad-hoc
+        // basis
+        if ( (msg.value + this.balance) % fulfillmentAmount > 0) {
+            if (!msg.sender.send((msg.value + this.balance) % fulfillmentAmount))
                 throw;
         }
 
@@ -155,6 +137,15 @@ contract StandardBounty {
     }
 
     modifier canTransitionToState(BountyStages newStage) {
+
+      /*
+      This section feels incomplete to me, however I believe that an issuer
+      should be able to return a bounty into the active state regardless of its
+      current state- this means that a bounty can be drained, then re-activated,
+      as long as the deadline hasn't been met
+
+      its possible that this modifier isn't even required anymore, but I think we should discuss
+
         // RULE #1
         // Can not go back in Stages unless you're in stage "Fulfilled"
         if (newStage < bountyStage && newStage != BountyStages.Fulfilled)
@@ -165,6 +156,7 @@ contract StandardBounty {
         if (newStage < bountyStage - 1)
             throw;
 
+      */
         _;
     }
 
@@ -177,13 +169,11 @@ contract StandardBounty {
     /// @param _contactInfo a string with contact info of the issuer, for them to be contacted if needed
     /// @param _data the requirements of the bounty
     /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
-    /// @param _fulfillmentApproval whether or not a fulfillment must be approved for one to claim the reward
     function StandardBounty(
         uint _deadline,
         string _contactInfo,
         string _data,
-        uint _fulfillmentAmount,
-        bool _fulfillmentApproval
+        uint _fulfillmentAmount
     )
         amountIsNotZero(_fulfillmentAmount)
     {
@@ -192,18 +182,15 @@ contract StandardBounty {
         bountyStage = BountyStages.Draft;
         deadline = _deadline;
         data = _data;
-        fulfillmentApproval = _fulfillmentApproval;
         fulfillmentAmount = _fulfillmentAmount;
 
     }
-  
+
     /// @notice Send funds to activate the bug bounty
-    /// @dev addFundsToActivateBounty(): adds more funds to a bounty so 
-    /// it may continue to pay out to fulfillers
-    function addFundsToActivateBounty()
+    /// @dev activateBounty(): activate a bounty so it may continue to pay out
+    function activateBounty()
         payable
         public
-        isAtStage(BountyStages.Draft)
         isBeforeDeadline
         onlyIssuer
         validateFunding
@@ -214,8 +201,7 @@ contract StandardBounty {
         BountyActivated(msg.sender);
     }
 
-    /// @dev fulfillBounty(): submit a fulfillment for the given bounty,
-    /// while also claiming the reward (if approval isn't required)
+    /// @dev fulfillBounty(): submit a fulfillment for the given bounty
     /// @param _data the data artifacts representing the fulfillment of the bounty
     /// @param _dataType a meaningful description of the type of data the fulfillment represents
     function fulfillBounty(string _data, string _dataType)
@@ -223,11 +209,8 @@ contract StandardBounty {
         isAtStage(BountyStages.Active)
         isBeforeDeadline
         checkFulfillmentsNumber
-        canTransitionToState(BountyStages.Fulfilled)
     {
-        fulfillments[numFulfillments] = Fulfillment(false, fulfillmentApproval, msg.sender, _data, _dataType);
-
-        transitionToState(BountyStages.Fulfilled);
+        fulfillments[numFulfillments] = Fulfillment(false, false, msg.sender, _data, _dataType);
 
         BountyFulfilled(msg.sender, numFulfillments++);
     }
@@ -235,19 +218,18 @@ contract StandardBounty {
     /// @dev acceptFulfillment(): accept a given fulfillment, and send
     /// the fulfiller their owed funds
     /// @param fulNum the index of the fulfillment being accepted
-    /// @param _newStage the new stage to transition to
-    function acceptFulfillment(uint fulNum, BountyStages _newStage)
+    function acceptFulfillment(uint fulNum)
         public
-        approvalIsNotAutomatic
         onlyIssuer
-        isAtStage(BountyStages.Fulfilled)
+        isAtStage(BountyStages.Active)
         validateFulfillmentArrayIndex(fulNum)
-        canTransitionToState(_newStage)
     {
         fulfillments[fulNum].accepted = true;
         accepted[numAccepted++] = fulNum;
 
-        transitionToState(_newStage);
+        if (lastFulfillment()){
+          transitionToState(BountyStages.Fulfilled);
+        }
 
         FulfillmentAccepted(msg.sender, fulNum);
     }
@@ -300,11 +282,23 @@ contract StandardBounty {
         DeadlineExtended(_newDeadline);
     }
 
+    /// @dev (): a fallback function, allowing anyone to contribute ether to a
+    /// bounty, as long as it is still before its deadline.
+    /// NOTE: THESE FUNDS ARE AT THE MERCY OF THE ISSUER, AND CAN BE
+    /// DRAINED AT ANY MOMENT BY THEM. REFUNDS CAN ONLY BE PROVIDED TO THE
+    /// ISSUER
+    function()
+        payable
+        isBeforeDeadline
+    {
+    }
+
+
     /*
      * Internal functions
      */
 
-    /// @dev transitionToState(): transitions the contract to the 
+    /// @dev transitionToState(): transitions the contract to the
     /// state passed in the parameter `_newStage` given the
     /// conditions stated in the body of the function
     /// @param _newStage the new stage to transition to
@@ -312,5 +306,19 @@ contract StandardBounty {
         internal
     {
         bountyStage = _newStage;
+    }
+
+    /// @dev lastFulfillment(): determines if the current
+    /// fulfillment is the last one which can be accepted,
+    /// based on the remaining balance
+    function lastFulfillment()
+        internal
+        returns (bool isFulfilled)
+
+    {
+        uint unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
+
+        isFulfilled = ((this.balance - unpaidAmount) < fulfillmentAmount);
+
     }
 }
