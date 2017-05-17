@@ -136,29 +136,6 @@ contract StandardBounty {
         _;
     }
 
-    modifier canTransitionToState(BountyStages newStage) {
-
-      /*
-      This section feels incomplete to me, however I believe that an issuer
-      should be able to return a bounty into the active state regardless of its
-      current state- this means that a bounty can be drained, then re-activated,
-      as long as the deadline hasn't been met
-
-      its possible that this modifier isn't even required anymore, but I think we should discuss
-
-        // RULE #1
-        // Can not go back in Stages unless you're in stage "Fulfilled"
-        if (newStage < bountyStage && newStage != BountyStages.Fulfilled)
-            throw;
-
-        // RULE #2
-        // Can never go back more than one state
-        if (newStage < bountyStage - 1)
-            throw;
-
-      */
-        _;
-    }
 
     /*
      * Public functions
