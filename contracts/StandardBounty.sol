@@ -124,6 +124,10 @@ contract StandardBounty {
 
     modifier validateFunding() {
 
+        // Funding is validated right before a bounty is moved into the active
+        // stage, thus all funds which are surplus to paying out those bounties
+        // are refunded. After this, new funds may also be added on an ad-hoc
+        // basis
         if ( (msg.value + this.balance) % fulfillmentAmount > 0) {
             if (!msg.sender.send((msg.value + this.balance) % fulfillmentAmount))
                 throw;
@@ -277,6 +281,18 @@ contract StandardBounty {
 
         DeadlineExtended(_newDeadline);
     }
+
+    /// @dev (): a fallback function, allowing anyone to contribute ether to a
+    /// bounty, as long as it is still before its deadline.
+    /// NOTE: THESE FUNDS ARE AT THE MERCY OF THE ISSUER, AND CAN BE
+    /// DRAINED AT ANY MOMENT BY THEM. REFUNDS CAN ONLY BE PROVIDED TO THE
+    /// ISSUER
+    function()
+        payable
+        isBeforeDeadline
+    {
+    }
+
 
     /*
      * Internal functions
