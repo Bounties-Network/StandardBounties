@@ -120,8 +120,7 @@ contract StandardBounty {
         // are refunded. After this, new funds may also be added on an ad-hoc
         // basis
         if ( (msg.value + this.balance) % fulfillmentAmount > 0) {
-            if (!msg.sender.send((msg.value + this.balance) % fulfillmentAmount))
-                throw;
+            msg.sender.transfer((msg.value + this.balance) % fulfillmentAmount);
         }
 
         _;
@@ -210,8 +209,7 @@ contract StandardBounty {
         onlyFulfiller(fulNum)
         checkFulfillmentIsApprovedAndUnpaid(fulNum)
     {
-        if (!fulfillments[fulNum].fulfiller.send(fulfillmentAmount))
-            throw;
+        fulfillments[fulNum].fulfiller.transfer(fulfillmentAmount);
 
         numPaid++;
 
@@ -227,8 +225,7 @@ contract StandardBounty {
     {
         uint unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
 
-        if (!issuer.send(this.balance - unpaidAmount))
-            throw;
+        issuer.transfer(this.balance - unpaidAmount);
 
         transitionToState(BountyStages.Dead);
 
