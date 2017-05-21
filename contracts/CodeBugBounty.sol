@@ -1,4 +1,4 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.11;
 
 import "./StandardBounty.sol";
 
@@ -33,9 +33,8 @@ contract CodeBugBounty is StandardBounty {
      */
 
     modifier checkBountiedInvariants(address _bountiedContract) {
-        if (_bountiedContract.checkInvariant()) {
-            throw;
-        }
+        require(_bountiedContract.checkInvariant());
+        _;
     }
 
 	/*
