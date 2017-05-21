@@ -33,9 +33,8 @@ contract CodeBugBounty is StandardBounty {
      */
 
     modifier checkBountiedInvariants(address _bountiedContract) {
-        if (_bountiedContract.checkInvariant()) {
-            throw;
-        }
+        require(_bountiedContract.checkInvariant());
+        _;
     }
 
 	/*
