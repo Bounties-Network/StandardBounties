@@ -58,8 +58,7 @@ contract CodeBugBounty is StandardBounty {
     		_deadline,
         	_data,
             _contactInfo,
-        	_fulfillmentAmount,
-        	false
+        	_fulfillmentAmount
     	)
     	checkBountiedInvariants(_bountiedContract)
     {
@@ -74,7 +73,6 @@ contract CodeBugBounty is StandardBounty {
         isAtStage(BountyStages.Active)
         validateFulfillmentArrayIndex(fulNum)
         checkBountiedInvariants(bountiedContract)
-        canTransitionToState(BountyStages.Dead)
     {
         fulfillments[fulNum].accepted = true;
         accepted[numAccepted] = fulNum;
