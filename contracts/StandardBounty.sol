@@ -171,7 +171,6 @@ contract StandardBounty {
         isBeforeDeadline
         onlyIssuer
         validateFunding
-        canTransitionToState(BountyStages.Active)
     {
         transitionToState(BountyStages.Active);
 
@@ -234,7 +233,6 @@ contract StandardBounty {
     function reclaimBounty()
         public
         onlyIssuer
-        canTransitionToState(BountyStages.Dead)
     {
         uint unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
 
