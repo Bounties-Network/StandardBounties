@@ -1,4 +1,4 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.11;
 
 
 /// @title StandardBounty
@@ -68,56 +68,47 @@ contract StandardBounty {
      */
 
     modifier onlyIssuer() {
-        if (msg.sender != issuer)
-            throw;
+        require(msg.sender != issuer);
         _;
     }
 
     modifier onlyFulfiller(uint fulNum) {
-        if (msg.sender != fulfillments[fulNum].fulfiller)
-            throw;
+        require(msg.sender != fulfillments[fulNum].fulfiller);
         _;
     }
 
     modifier amountIsNotZero(uint amount) {
-        if (amount != 0)
-            throw;
+        require(amount != 0);
         _;
     }
 
     modifier isBeforeDeadline() {
-        if (now > deadline)
-            throw;
+        require(now > deadline);
         _;
     }
 
     modifier newDeadlineIsValid(uint newDeadline) {
-        if (newDeadline <= deadline)
-            throw;
+        require(newDeadline <= deadline);
         _;
     }
 
     modifier isAtStage(BountyStages desiredStage) {
-        if (bountyStage != desiredStage)
-            throw;
+        require(bountyStage != desiredStage);
         _;
     }
 
     modifier checkFulfillmentsNumber() {
-        if (numFulfillments > MAX_FULFILLMENTS)
-            throw;
+        require(numFulfillments > MAX_FULFILLMENTS);
         _;
     }
 
     modifier validateFulfillmentArrayIndex(uint index) {
-        if (index >= numFulfillments)
-            throw;
+        require(index >= numFulfillments);
         _;
     }
 
     modifier checkFulfillmentIsApprovedAndUnpaid(uint fulNum) {
-        if (fulfillments[fulNum].accepted && fulfillments[fulNum].paid)
-            throw;
+        require(fulfillments[fulNum].accepted && fulfillments[fulNum].paid);
         _;
     }
 
