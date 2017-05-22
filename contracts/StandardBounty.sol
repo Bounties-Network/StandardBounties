@@ -48,7 +48,6 @@ contract StandardBounty {
     enum BountyStages {
         Draft,
         Active,
-        Fulfilled,
         Dead // bounties past deadline with no accepted fulfillments
     }
 
@@ -220,10 +219,6 @@ contract StandardBounty {
         fulfillments[fulNum].accepted = true;
         accepted[numAccepted++] = fulNum;
 
-        if (lastFulfillment()) {
-            transitionToState(BountyStages.Fulfilled);
-        }
-
         FulfillmentAccepted(msg.sender, fulNum);
     }
 
@@ -293,15 +288,5 @@ contract StandardBounty {
         internal
     {
         bountyStage = _newStage;
-    }
-
-    /// @dev lastFulfillment(): determines if the current
-    /// fulfillment is the last one which can be accepted,
-    /// based on the remaining balance
-    function lastFulfillment()
-        internal
-        returns (bool isFulfilled)
-    {
-        isFulfilled = ((this.balance - unpaidAmount()) < fulfillmentAmount);
     }
 }
