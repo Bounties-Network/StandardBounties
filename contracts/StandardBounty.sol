@@ -68,47 +68,47 @@ contract StandardBounty {
      */
 
     modifier onlyIssuer() {
-        require(msg.sender != issuer);
+        require(msg.sender == issuer);
         _;
     }
 
     modifier onlyFulfiller(uint fulNum) {
-        require(msg.sender != fulfillments[fulNum].fulfiller);
+        require(msg.sender == fulfillments[fulNum].fulfiller);
         _;
     }
 
     modifier amountIsNotZero(uint amount) {
-        require(amount != 0);
+        require(amount == 0);
         _;
     }
 
     modifier isBeforeDeadline() {
-        require(now > deadline);
+        require(now < deadline);
         _;
     }
 
     modifier newDeadlineIsValid(uint newDeadline) {
-        require(newDeadline <= deadline);
+        require(newDeadline > deadline);
         _;
     }
 
     modifier isAtStage(BountyStages desiredStage) {
-        require(bountyStage != desiredStage);
+        require(bountyStage == desiredStage);
         _;
     }
 
     modifier checkFulfillmentsNumber() {
-        require(numFulfillments > MAX_FULFILLMENTS);
+        require(numFulfillments < MAX_FULFILLMENTS);
         _;
     }
 
     modifier validateFulfillmentArrayIndex(uint index) {
-        require(index >= numFulfillments);
+        require(index < numFulfillments);
         _;
     }
 
     modifier checkFulfillmentIsApprovedAndUnpaid(uint fulNum) {
-        require(fulfillments[fulNum].accepted && fulfillments[fulNum].paid);
+        require(fulfillments[fulNum].accepted && !fulfillments[fulNum].paid);
         _;
     }
 
