@@ -17,6 +17,7 @@ contract StandardBounty {
     event FulfillmentAccepted(address indexed fulfiller, uint256 indexed fulNum);
     event FulfillmentPaid(address indexed fulfiller, uint256 indexed fulNum);
     event BountyReclaimed();
+    event ContributionAdded(address indexed contributor, uint256 value)
     event DeadlineExtended(uint newDeadline);
 
     /*
@@ -254,6 +255,7 @@ contract StandardBounty {
         payable
         isBeforeDeadline
     {
+        ContributionAdded(msg.sender, msg.value);
     }
 
 
