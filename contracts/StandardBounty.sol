@@ -83,6 +83,11 @@ contract StandardBounty {
         _;
     }
 
+    modifier amountEqualsValue(uint amount) {
+        require((amount * 1 ether) != msg.value);
+        _;
+    }
+
     modifier isBeforeDeadline() {
         require(now > deadline);
         _;
@@ -247,13 +252,21 @@ contract StandardBounty {
     }
 
     /// @dev (): a fallback function, allowing anyone to contribute ether to a
-    /// bounty, as long as it is still before its deadline.
+    /// bounty, as long as it is still before its deadline. Shouldn't
+    /// keep ether by accident (hence 'value').
     /// NOTE: THESE FUNDS ARE AT THE MERCY OF THE ISSUER, AND CAN BE
     /// DRAINED AT ANY MOMENT BY THEM. REFUNDS CAN ONLY BE PROVIDED TO THE
     /// ISSUER
-    function()
+    /// @notice Please note you funds will be at the mercy of the issuer
+    ///  and can be drained at any moment. Be careful!
+    /// @param value the amount being contributed in ether to prevent
+    /// accidental deposits
+    function(uint value)
         payable
         isBeforeDeadline
+        amountIsNotZero(value)
+        amountEqualsValue(value)
+        validateFunding
     {
         ContributionAdded(msg.sender, msg.value);
     }
