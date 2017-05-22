@@ -16,7 +16,7 @@ contract StandardBounty {
     event BountyFulfilled(address indexed fulfiller, uint256 indexed fulNum);
     event FulfillmentAccepted(address indexed fulfiller, uint256 indexed fulNum);
     event FulfillmentPaid(address indexed fulfiller, uint256 indexed fulNum);
-    event BountyReclaimed();
+    event BountyKilled();
     event ContributionAdded(address indexed contributor, uint256 value)
     event DeadlineExtended(uint newDeadline);
 
@@ -194,8 +194,8 @@ contract StandardBounty {
         fulfillments[fulNum].accepted = true;
         accepted[numAccepted++] = fulNum;
 
-        if (lastFulfillment()){
-          transitionToState(BountyStages.Fulfilled);
+        if (lastFulfillment()) {
+            transitionToState(BountyStages.Fulfilled);
         }
 
         FulfillmentAccepted(msg.sender, fulNum);
@@ -217,10 +217,10 @@ contract StandardBounty {
         FulfillmentPaid(msg.sender, fulNum);
     }
 
-    /// @dev reclaimBounty(): drains the contract of it's remaining
+    /// @dev killBounty(): drains the contract of it's remaining
     /// funds, and moves the bounty into stage 3 (dead) since it was
     /// either killed in draft stage, or never accepted any fulfillments
-    function reclaimBounty()
+    function killBounty()
         public
         onlyIssuer
     {
@@ -230,7 +230,7 @@ contract StandardBounty {
 
         transitionToState(BountyStages.Dead);
 
-        BountyReclaimed();
+        BountyKilled();
     }
 
     /// @dev extendDeadline(): allows the issuer to add more time to the
@@ -279,7 +279,6 @@ contract StandardBounty {
     function lastFulfillment()
         internal
         returns (bool isFulfilled)
-
     {
         uint unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
 
