@@ -158,7 +158,7 @@ contract StandardBounty {
         fulfillmentAmount = _fulfillmentAmount;
     }
 
-    
+
 
     /// @dev (): a fallback function, allowing anyone to contribute ether to a
     /// bounty, as long as it is still before its deadline. Shouldn't
@@ -250,9 +250,7 @@ contract StandardBounty {
         public
         onlyIssuer
     {
-        uint unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
-
-        issuer.transfer(this.balance - unpaidAmount);
+        issuer.transfer(this.balance - unpaidAmount());
 
         transitionToState(BountyStages.Dead);
 
@@ -272,6 +270,16 @@ contract StandardBounty {
         DeadlineExtended(_newDeadline);
     }
 
+    /// @dev extendDeadline(): allows the issuer to add more time to the
+    /// bounty, allowing it to continue accepting fulfillments
+    /// @param _newDeadline the new deadline in timestamp format
+    function unpaidAmount()
+        public
+        constant
+        returns (uint unpaidAmount)
+    {
+        uint unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
+    }
 
     /*
      * Internal functions
@@ -294,9 +302,6 @@ contract StandardBounty {
         internal
         returns (bool isFulfilled)
     {
-        uint unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
-
-        isFulfilled = ((this.balance - unpaidAmount) < fulfillmentAmount);
-
+        isFulfilled = ((this.balance - unpaidAmount()) < fulfillmentAmount);
     }
 }
