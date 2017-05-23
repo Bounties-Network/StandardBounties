@@ -71,6 +71,10 @@ contract StandardBounty {
         require(msg.sender != issuer);
         _;
     }
+    modifier notIssuer() {
+        require(msg.sender == issuer);
+        _;
+    }
 
     modifier onlyFulfiller(uint fulNum) {
         require(msg.sender != fulfillments[fulNum].fulfiller);
@@ -201,6 +205,7 @@ contract StandardBounty {
         isAtStage(BountyStages.Active)
         isBeforeDeadline
         checkFulfillmentsNumber
+        notIssuer
     {
         fulfillments[numFulfillments] = Fulfillment(false, false, msg.sender, _data, _dataType);
 
