@@ -72,7 +72,7 @@ contract StandardBounty {
         _;
     }
     modifier notIssuer() {
-        require(msg.sender == issuer);
+        require(msg.sender != issuer);
         _;
     }
 
