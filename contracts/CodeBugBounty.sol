@@ -76,7 +76,7 @@ contract CodeBugBounty is StandardBounty {
         public
         isAtStage(BountyStages.Active)
         validateFulfillmentArrayIndex(fulNum)
-        checkBountiedInvariants(bountiedContract)
+        checkBountiedInvariantsFailed()
     {
         fulfillments[fulNum].accepted = true;
         accepted[numAccepted] = fulNum;
