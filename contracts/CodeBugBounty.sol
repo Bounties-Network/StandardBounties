@@ -4,12 +4,12 @@ import "./StandardBounty.sol";
 
 
 /// @title Bountied
-/// @dev Contract to be tested and that should disburse the 
+/// @dev Contract to be tested and that should disburse the
 /// `fulfillmentAmount` if it is sees its invariant truths broken
 /// @author Gonçalo Sá <goncalo.sa@consensys.net>
 contract Bountied {
     /// @dev checkInvariant(): function definition of a function that
-    /// returns a boolean of constant truths you wish to maintain in 
+    /// returns a boolean of constant truths you wish to maintain in
     /// this logical copy of your bountied contract
     function checkInvariant() returns(bool);
 
@@ -34,6 +34,11 @@ contract CodeBugBounty is StandardBounty {
 
     modifier checkBountiedInvariants(address _bountiedContract) {
         require(_bountiedContract.checkInvariant());
+        _;
+    }
+
+    modifier checkBountiedInvariantsFailed() {
+        require(!bountiedContract.checkInvariant());
         _;
     }
 
