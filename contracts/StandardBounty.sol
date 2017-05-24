@@ -1,4 +1,4 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.11;
 
 
 /// @title StandardBounty
@@ -16,7 +16,8 @@ contract StandardBounty {
     event BountyFulfilled(address indexed fulfiller, uint256 indexed fulNum);
     event FulfillmentAccepted(address indexed fulfiller, uint256 indexed fulNum);
     event FulfillmentPaid(address indexed fulfiller, uint256 indexed fulNum);
-    event BountyReclaimed();
+    event BountyKilled();
+    event ContributionAdded(address indexed contributor, uint256 value);
     event DeadlineExtended(uint newDeadline);
 
     /*
@@ -47,7 +48,6 @@ contract StandardBounty {
     enum BountyStages {
         Draft,
         Active,
-        Fulfilled,
         Dead // bounties past deadline with no accepted fulfillments
     }
 
@@ -68,56 +68,56 @@ contract StandardBounty {
      */
 
     modifier onlyIssuer() {
-        if (msg.sender != issuer)
-            throw;
+        require(msg.sender == issuer);
+        _;
+    }
+    modifier notIssuer() {
+        require(msg.sender != issuer);
         _;
     }
 
     modifier onlyFulfiller(uint fulNum) {
-        if (msg.sender != fulfillments[fulNum].fulfiller)
-            throw;
+        require(msg.sender == fulfillments[fulNum].fulfiller);
         _;
     }
 
     modifier amountIsNotZero(uint amount) {
-        if (amount != 0)
-            throw;
+        require(amount == 0);
+        _;
+    }
+
+    modifier amountEqualsValue(uint amount) {
+        require((amount * 1 ether) != msg.value);
         _;
     }
 
     modifier isBeforeDeadline() {
-        if (now > deadline)
-            throw;
+        require(now < deadline);
         _;
     }
 
     modifier newDeadlineIsValid(uint newDeadline) {
-        if (newDeadline <= deadline)
-            throw;
+        require(newDeadline > deadline);
         _;
     }
 
     modifier isAtStage(BountyStages desiredStage) {
-        if (bountyStage != desiredStage)
-            throw;
+        require(bountyStage == desiredStage);
         _;
     }
 
     modifier checkFulfillmentsNumber() {
-        if (numFulfillments > MAX_FULFILLMENTS)
-            throw;
+        require(numFulfillments < MAX_FULFILLMENTS);
         _;
     }
 
     modifier validateFulfillmentArrayIndex(uint index) {
-        if (index >= numFulfillments)
-            throw;
+        require(index < numFulfillments);
         _;
     }
 
     modifier checkFulfillmentIsApprovedAndUnpaid(uint fulNum) {
-        if (fulfillments[fulNum].accepted && fulfillments[fulNum].paid)
-            throw;
+        require(fulfillments[fulNum].accepted && !fulfillments[fulNum].paid);
         _;
     }
 
@@ -129,8 +129,7 @@ contract StandardBounty {
         // are refunded. After this, new funds may also be added on an ad-hoc
         // basis
         if ( (msg.value + this.balance) % fulfillmentAmount > 0) {
-            if (!msg.sender.send((msg.value + this.balance) % fulfillmentAmount))
-                throw;
+            msg.sender.transfer((msg.value + this.balance) % fulfillmentAmount);
         }
 
         _;
@@ -160,7 +159,25 @@ contract StandardBounty {
         deadline = _deadline;
         data = _data;
         fulfillmentAmount = _fulfillmentAmount;
+    }
 
+
+
+    /// @dev contribute(): a function allowing anyone to contribute ether to a
+    /// bounty, as long as it is still before its deadline. Shouldn't
+    /// keep ether by accident (hence 'value').
+    /// @notice Please note you funds will be at the mercy of the issuer
+    ///  and can be drained at any moment. Be careful!
+    /// @param value the amount being contributed in ether to prevent
+    /// accidental deposits
+    function contribute (uint value)
+        payable
+        isBeforeDeadline
+        amountIsNotZero(value)
+        amountEqualsValue(value)
+        validateFunding
+    {
+        ContributionAdded(msg.sender, msg.value);
     }
 
     /// @notice Send funds to activate the bug bounty
@@ -185,6 +202,7 @@ contract StandardBounty {
         isAtStage(BountyStages.Active)
         isBeforeDeadline
         checkFulfillmentsNumber
+        notIssuer
     {
         fulfillments[numFulfillments] = Fulfillment(false, false, msg.sender, _data, _dataType);
 
@@ -203,10 +221,6 @@ contract StandardBounty {
         fulfillments[fulNum].accepted = true;
         accepted[numAccepted++] = fulNum;
 
-        if (lastFulfillment()){
-          transitionToState(BountyStages.Fulfilled);
-        }
-
         FulfillmentAccepted(msg.sender, fulNum);
     }
 
@@ -219,29 +233,25 @@ contract StandardBounty {
         onlyFulfiller(fulNum)
         checkFulfillmentIsApprovedAndUnpaid(fulNum)
     {
-        if (!fulfillments[fulNum].fulfiller.send(fulfillmentAmount))
-            throw;
+        fulfillments[fulNum].fulfiller.transfer(fulfillmentAmount);
 
         numPaid++;
 
         FulfillmentPaid(msg.sender, fulNum);
     }
 
-    /// @dev reclaimBounty(): drains the contract of it's remaining
+    /// @dev killBounty(): drains the contract of it's remaining
     /// funds, and moves the bounty into stage 3 (dead) since it was
     /// either killed in draft stage, or never accepted any fulfillments
-    function reclaimBounty()
+    function killBounty()
         public
         onlyIssuer
     {
-        uint unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
-
-        if (!issuer.send(this.balance - unpaidAmount))
-            throw;
+        issuer.transfer(this.balance - unpaidAmount());
 
         transitionToState(BountyStages.Dead);
 
-        BountyReclaimed();
+        BountyKilled();
     }
 
     /// @dev extendDeadline(): allows the issuer to add more time to the
@@ -257,21 +267,22 @@ contract StandardBounty {
         DeadlineExtended(_newDeadline);
     }
 
-    /// @dev (): a fallback function, allowing anyone to contribute ether to a
-    /// bounty, as long as it is still before its deadline.
-    /// NOTE: THESE FUNDS ARE AT THE MERCY OF THE ISSUER, AND CAN BE
-    /// DRAINED AT ANY MOMENT BY THEM. REFUNDS CAN ONLY BE PROVIDED TO THE
-    /// ISSUER
-    function()
-        payable
-        isBeforeDeadline
-    {
-    }
 
 
     /*
      * Internal functions
      */
+
+
+    /// @dev unpaidAmount(): calculates the amount which
+    /// the bounty has yet to pay out
+    function unpaidAmount()
+        public
+        constant
+        returns (uint unpaidAmount)
+    {
+        unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
+    }
 
     /// @dev transitionToState(): transitions the contract to the
     /// state passed in the parameter `_newStage` given the
@@ -281,19 +292,5 @@ contract StandardBounty {
         internal
     {
         bountyStage = _newStage;
-    }
-
-    /// @dev lastFulfillment(): determines if the current
-    /// fulfillment is the last one which can be accepted,
-    /// based on the remaining balance
-    function lastFulfillment()
-        internal
-        returns (bool isFulfilled)
-
-    {
-        uint unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
-
-        isFulfilled = ((this.balance - unpaidAmount) < fulfillmentAmount);
-
     }
 }

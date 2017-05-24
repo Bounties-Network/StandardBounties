@@ -8,8 +8,6 @@
 
 A set of standard contracts to be used as interfaces for any kind of bounty, either qualitative or quantitative in nature.
 
-Original concept & code by @mbeylin. Maintained by @gnsps & @mbeylin.
-
 ## 1. Rationale
 
 Bounties can be used to facilitate transactions between two parties, where a quantitative task, qualitative task or artifact is being exchanged for ETH.

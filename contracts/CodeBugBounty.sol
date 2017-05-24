@@ -1,15 +1,15 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.11;
 
 import "./StandardBounty.sol";
 
 
 /// @title Bountied
-/// @dev Contract to be tested and that should disburse the 
+/// @dev Contract to be tested and that should disburse the
 /// `fulfillmentAmount` if it is sees its invariant truths broken
 /// @author Gonçalo Sá <goncalo.sa@consensys.net>
 contract Bountied {
     /// @dev checkInvariant(): function definition of a function that
-    /// returns a boolean of constant truths you wish to maintain in 
+    /// returns a boolean of constant truths you wish to maintain in
     /// this logical copy of your bountied contract
     function checkInvariant() returns(bool);
 
@@ -19,7 +19,7 @@ contract Bountied {
 /// @title CodeBugBounty
 /// @dev extension of StandardBounty to be used specifically for code bug bounties
 /// Concept borrowed
-/// @author Gonçalo Sá <goncalo.sa@consensys.net>
+/// @author Gonçalo Sá <goncalo.sa@consensys.net>, Mark Beylin <mark.beylin@consensys.net>
 contract CodeBugBounty is StandardBounty {
 
 	/*
@@ -33,9 +33,14 @@ contract CodeBugBounty is StandardBounty {
      */
 
     modifier checkBountiedInvariants(address _bountiedContract) {
-        if (_bountiedContract.checkInvariant()) {
-            throw;
-        }
+        Bountied newBountiedContract = Bountied(_bountiedContract);
+        require(newBountiedContract.checkInvariant());
+        _;
+    }
+
+    modifier checkBountiedInvariantsFailed() {
+        require(!bountiedContract.checkInvariant());
+        _;
     }
 
 	/*
@@ -58,8 +63,7 @@ contract CodeBugBounty is StandardBounty {
     		_deadline,
         	_data,
             _contactInfo,
-        	_fulfillmentAmount,
-        	false
+        	_fulfillmentAmount
     	)
     	checkBountiedInvariants(_bountiedContract)
     {
@@ -73,8 +77,7 @@ contract CodeBugBounty is StandardBounty {
         public
         isAtStage(BountyStages.Active)
         validateFulfillmentArrayIndex(fulNum)
-        checkBountiedInvariants(bountiedContract)
-        canTransitionToState(BountyStages.Dead)
+        checkBountiedInvariantsFailed()
     {
         fulfillments[fulNum].accepted = true;
         accepted[numAccepted] = fulNum;
