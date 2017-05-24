@@ -10,11 +10,13 @@ contract CodeBugBountyFactory is Factory {
     /// @dev Allows multiple creations of code bug bounties
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
     /// @param _data the requirements of the bounty
+    /// @param _contactInfo the contact information of the issuer
     /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
     /// @param _bountiedContract the address of the contract to be bountied (with invariants check implemented)
     function create(
         uint _deadline,
         string _data,
+        string _contactInfo,
         uint _fulfillmentAmount,
         Bountied _bountiedContract
     )
@@ -24,6 +26,7 @@ contract CodeBugBountyFactory is Factory {
         bugBounty = new CodeBugBounty(
             _deadline,
             _data,
+            _contactInfo,
             _fulfillmentAmount,
             _bountiedContract
         );

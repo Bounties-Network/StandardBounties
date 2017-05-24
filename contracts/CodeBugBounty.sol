@@ -50,6 +50,7 @@ contract CodeBugBounty is StandardBounty {
     /// @dev CodeBugBounty(): instantiates a new draft code bug bounty
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
     /// @param _data the requirements of the bounty
+    /// @param _contactInfo the contact information of the issuer
     /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
     /// @param _bountiedContract the address of the contract to be bountied (with invariants check implemented)
     function CodeBugBounty(
