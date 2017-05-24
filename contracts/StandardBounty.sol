@@ -17,7 +17,7 @@ contract StandardBounty {
     event FulfillmentAccepted(address indexed fulfiller, uint256 indexed fulNum);
     event FulfillmentPaid(address indexed fulfiller, uint256 indexed fulNum);
     event BountyKilled();
-    event ContributionAdded(address indexed contributor, uint256 value)
+    event ContributionAdded(address indexed contributor, uint256 value);
     event DeadlineExtended(uint newDeadline);
 
     /*
@@ -163,17 +163,14 @@ contract StandardBounty {
 
 
 
-    /// @dev (): a fallback function, allowing anyone to contribute ether to a
+    /// @dev contribute(): a function allowing anyone to contribute ether to a
     /// bounty, as long as it is still before its deadline. Shouldn't
     /// keep ether by accident (hence 'value').
-    /// NOTE: THESE FUNDS ARE AT THE MERCY OF THE ISSUER, AND CAN BE
-    /// DRAINED AT ANY MOMENT BY THEM. REFUNDS CAN ONLY BE PROVIDED TO THE
-    /// ISSUER
     /// @notice Please note you funds will be at the mercy of the issuer
     ///  and can be drained at any moment. Be careful!
     /// @param value the amount being contributed in ether to prevent
     /// accidental deposits
-    function(uint value)
+    function contribute (uint value)
         payable
         isBeforeDeadline
         amountIsNotZero(value)
@@ -270,20 +267,22 @@ contract StandardBounty {
         DeadlineExtended(_newDeadline);
     }
 
-    /// @dev extendDeadline(): allows the issuer to add more time to the
-    /// bounty, allowing it to continue accepting fulfillments
-    /// @param _newDeadline the new deadline in timestamp format
+
+
+    /*
+     * Internal functions
+     */
+
+
+    /// @dev unpaidAmount(): calculates the amount which
+    /// the bounty has yet to pay out
     function unpaidAmount()
         public
         constant
         returns (uint unpaidAmount)
     {
-        uint unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
+        unpaidAmount = fulfillmentAmount * (numAccepted - numPaid);
     }
-
-    /*
-     * Internal functions
-     */
 
     /// @dev transitionToState(): transitions the contract to the
     /// state passed in the parameter `_newStage` given the
