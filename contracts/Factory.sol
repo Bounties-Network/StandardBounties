@@ -9,6 +9,7 @@ contract Factory {
 
     mapping(address => bool) public isInstantiation;
     mapping(address => address[]) public instantiations;
+    address[] public instances;
 
     /// @dev Returns number of instantiations by creator.
     /// @param creator Contract creator.
@@ -26,6 +27,7 @@ contract Factory {
     function register(address instantiation)
         internal
     {
+        instances.push(instantiation);
         isInstantiation[instantiation] = true;
         instantiations[msg.sender].push(instantiation);
         ContractInstantiation(msg.sender, instantiation);
