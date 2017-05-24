@@ -19,7 +19,7 @@ contract Bountied {
 /// @title CodeBugBounty
 /// @dev extension of StandardBounty to be used specifically for code bug bounties
 /// Concept borrowed
-/// @author Gonçalo Sá <goncalo.sa@consensys.net>
+/// @author Gonçalo Sá <goncalo.sa@consensys.net>, Mark Beylin <mark.beylin@consensys.net>
 contract CodeBugBounty is StandardBounty {
 
 	/*
@@ -33,7 +33,8 @@ contract CodeBugBounty is StandardBounty {
      */
 
     modifier checkBountiedInvariants(address _bountiedContract) {
-        require(_bountiedContract.checkInvariant());
+        Bountied newBountiedContract = Bountied(_bountiedContract);
+        require(newBountiedContract.checkInvariant());
         _;
     }
 
