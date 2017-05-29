@@ -6,6 +6,8 @@ import "./StandardBounty.sol";
 /// @title Code bug bounties factory, concept by Stefan George - <stefan.george@consensys.net>
 /// @author Gonçalo Sá <goncalo.sa@consensys.net>
 contract BountyFactory is Factory {
+    address[] public instances;
+
 
     /// @dev Allows multiple creations of bounties
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
@@ -30,4 +32,5 @@ contract BountyFactory is Factory {
         );
         register(bounty);
     }
+
 }

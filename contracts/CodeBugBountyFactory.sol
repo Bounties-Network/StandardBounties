@@ -4,8 +4,11 @@ import "./CodeBugBounty.sol";
 
 
 /// @title Code bug bounties factory, concept by Stefan George - <stefan.george@consensys.net>
-/// @author Gonçalo Sá <goncalo.sa@consensys.net>
+/// @author Gonçalo Sá <goncalo.sa@consensys.net>, Mark Beylin <mark.beylin@consensys.net>
 contract CodeBugBountyFactory is Factory {
+
+    address[] public instances;
+
 
     /// @dev Allows multiple creations of code bug bounties
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
@@ -30,6 +33,26 @@ contract CodeBugBountyFactory is Factory {
             _fulfillmentAmount,
             _bountiedContract
         );
+        require (bugBounty!= 0x0);
         register(bugBounty);
+    }
+    /// @dev Registers contract in factory registry.
+    /// @param instantiation Address of contract instantiation.
+    function register(address instantiation)
+    {
+        instances.push(instantiation);
+        isInstantiation[instantiation] = true;
+        instantiations[msg.sender].push(instantiation);
+        ContractInstantiation(msg.sender, instantiation);
+    }
+     /// @dev Returns number of instances
+    /// @return Returns number of instantiations by creator.
+    function getInstanceCount()
+        public
+        constant
+        returns (uint)
+    {
+        return instances.length;
+
     }
 }

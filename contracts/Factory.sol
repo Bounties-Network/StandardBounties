@@ -9,7 +9,6 @@ contract Factory {
 
     mapping(address => bool) public isInstantiation;
     mapping(address => address[]) public instantiations;
-    address[] public instances;
 
     /// @dev Returns number of instantiations by creator.
     /// @param creator Contract creator.
