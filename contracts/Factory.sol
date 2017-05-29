@@ -21,16 +21,7 @@ contract Factory {
     {
         return instantiations[creator].length;
     }
-    /// @dev Returns number of instances
-    /// @return Returns number of instantiations by creator.
-    function getInstanceCount()
-        public
-        constant
-        returns (uint)
-    {
-        return instances.length;
 
-    }
 
     /// @dev Registers contract in factory registry.
     /// @param instantiation Address of contract instantiation.
