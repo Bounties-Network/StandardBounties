@@ -26,7 +26,6 @@ contract Factory {
     /// @param instantiation Address of contract instantiation.
     function register(address instantiation)
     {
-        instances.push(instantiation);
         isInstantiation[instantiation] = true;
         instantiations[msg.sender].push(instantiation);
         ContractInstantiation(msg.sender, instantiation);
