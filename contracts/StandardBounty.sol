@@ -153,7 +153,7 @@ contract StandardBounty {
     )
         amountIsNotZero(_fulfillmentAmount)
     {
-        issuer = msg.sender;
+        issuer = tx.origin;
         issuerContact = _contactInfo;
         bountyStage = BountyStages.Draft;
         deadline = _deadline;
