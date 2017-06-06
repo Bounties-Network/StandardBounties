@@ -82,7 +82,7 @@ contract StandardBounty {
     }
 
     modifier amountIsNotZero(uint amount) {
-        require(amount == 0);
+        require(amount != 0);
         _;
     }
 
