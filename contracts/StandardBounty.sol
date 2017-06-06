@@ -128,8 +128,9 @@ contract StandardBounty {
         // stage, thus all funds which are surplus to paying out those bounties
         // are refunded. After this, new funds may also be added on an ad-hoc
         // basis
+        require (msg.value + this.balance >= fulfillmentAmount);
         if ( (msg.value + this.balance) % fulfillmentAmount > 0) {
-            msg.sender.transfer((msg.value + this.balance) % fulfillmentAmount);
+              msg.sender.transfer((msg.value + this.balance) % fulfillmentAmount);
         }
 
         _;
@@ -175,7 +176,6 @@ contract StandardBounty {
         isBeforeDeadline
         amountIsNotZero(value)
         amountEqualsValue(value)
-        validateFunding
     {
         ContributionAdded(msg.sender, msg.value);
     }
