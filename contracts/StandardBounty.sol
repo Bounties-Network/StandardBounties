@@ -193,13 +193,19 @@ contract StandardBounty {
 
     /// @notice Send funds to activate the bug bounty
     /// @dev activateBounty(): activate a bounty so it may continue to pay out
-    function activateBounty()
+    /// @param value the amount being contributed in ether to prevent
+    /// accidental deposits
+    function activateBounty(uint value)
         payable
         public
         isBeforeDeadline
         onlyIssuer
+        amountIsNotZero(value)
+        amountEqualsValue(value)
         validateFunding
     {
+        ContributionAdded(msg.sender, msg.value);
+
         transitionToState(BountyStages.Active);
 
         BountyActivated(msg.sender);
