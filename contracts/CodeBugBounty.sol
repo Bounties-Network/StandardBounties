@@ -1,19 +1,7 @@
 pragma solidity ^0.4.11;
-
 import "./StandardBounty.sol";
+import "./Bountied.sol";
 
-
-/// @title Bountied
-/// @dev Contract to be tested and that should disburse the
-/// `fulfillmentAmount` if it is sees its invariant truths broken
-/// @author Gonçalo Sá <goncalo.sa@consensys.net>
-contract Bountied {
-    /// @dev checkInvariant(): function definition of a function that
-    /// returns a boolean of constant truths you wish to maintain in
-    /// this logical copy of your bountied contract
-    function checkInvariant() returns(bool);
-
-}
 
 
 /// @title CodeBugBounty
@@ -49,20 +37,21 @@ contract CodeBugBounty is StandardBounty {
 
     /// @dev CodeBugBounty(): instantiates a new draft code bug bounty
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
+    /// @param _contactInfo the contact information of the issuer
     /// @param _data the requirements of the bounty
     /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
     /// @param _bountiedContract the address of the contract to be bountied (with invariants check implemented)
     function CodeBugBounty(
         uint _deadline,
-        string _data,
         string _contactInfo,
+        string _data,
         uint _fulfillmentAmount,
         Bountied _bountiedContract
     )
     	StandardBounty(
     		_deadline,
+    		_contactInfo,
         	_data,
-            _contactInfo,
         	_fulfillmentAmount
     	)
     	checkBountiedInvariants(_bountiedContract)

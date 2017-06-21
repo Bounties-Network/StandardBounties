@@ -82,17 +82,22 @@ contract StandardBounty {
     }
 
     modifier amountIsNotZero(uint amount) {
-        require(amount == 0);
+        require(amount != 0);
         _;
     }
 
     modifier amountEqualsValue(uint amount) {
-        require((amount * 1 ether) != msg.value);
+        require((amount * 1 wei) == msg.value);
         _;
     }
 
     modifier isBeforeDeadline() {
         require(now < deadline);
+        _;
+    }
+
+    modifier validateDeadline(uint newDeadline) {
+        require(newDeadline > now);
         _;
     }
 
@@ -128,6 +133,8 @@ contract StandardBounty {
         // stage, thus all funds which are surplus to paying out those bounties
         // are refunded. After this, new funds may also be added on an ad-hoc
         // basis
+
+        require ((this.balance) >= fulfillmentAmount);
         if ( (msg.value + this.balance) % fulfillmentAmount > 0) {
             msg.sender.transfer((msg.value + this.balance) % fulfillmentAmount);
         }
@@ -152,13 +159,18 @@ contract StandardBounty {
         uint _fulfillmentAmount
     )
         amountIsNotZero(_fulfillmentAmount)
+        validateDeadline(_deadline)
     {
-        issuer = msg.sender;
+        issuer = tx.origin;
         issuerContact = _contactInfo;
         bountyStage = BountyStages.Draft;
         deadline = _deadline;
         data = _data;
         fulfillmentAmount = _fulfillmentAmount;
+
+        numFulfillments = 0;
+        numAccepted = 0;
+        numPaid = 0;
     }
 
 
@@ -175,20 +187,25 @@ contract StandardBounty {
         isBeforeDeadline
         amountIsNotZero(value)
         amountEqualsValue(value)
-        validateFunding
     {
         ContributionAdded(msg.sender, msg.value);
     }
 
     /// @notice Send funds to activate the bug bounty
     /// @dev activateBounty(): activate a bounty so it may continue to pay out
-    function activateBounty()
+    /// @param value the amount being contributed in ether to prevent
+    /// accidental deposits
+    function activateBounty(uint value)
         payable
         public
         isBeforeDeadline
         onlyIssuer
+        amountIsNotZero(value)
+        amountEqualsValue(value)
         validateFunding
     {
+        ContributionAdded(msg.sender, msg.value);
+
         transitionToState(BountyStages.Active);
 
         BountyActivated(msg.sender);
@@ -204,10 +221,11 @@ contract StandardBounty {
         checkFulfillmentsNumber
         notIssuer
     {
-        fulfillments[numFulfillments] = Fulfillment(false, false, msg.sender, _data, _dataType);
+        fulfillments.push(Fulfillment(false, false, msg.sender, _data, _dataType));
 
         BountyFulfilled(msg.sender, numFulfillments++);
     }
+
 
     /// @dev acceptFulfillment(): accept a given fulfillment, and send
     /// the fulfiller their owed funds
@@ -234,6 +252,7 @@ contract StandardBounty {
         checkFulfillmentIsApprovedAndUnpaid(fulNum)
     {
         fulfillments[fulNum].fulfiller.transfer(fulfillmentAmount);
+        fulfillments[fulNum].paid = true;
 
         numPaid++;
 
@@ -266,7 +285,19 @@ contract StandardBounty {
 
         DeadlineExtended(_newDeadline);
     }
-
+    /// @dev getFulfillment(): Returns the fulfillment at a given index
+    /// @param _fulNum the index of the fulfillment to return
+    function getFulfillment(uint _fulNum)
+        public
+        constant
+        returns (bool, bool, address, string, string)
+    {
+        return (fulfillments[_fulNum].paid,
+                fulfillments[_fulNum].accepted,
+                fulfillments[_fulNum].fulfiller,
+                fulfillments[_fulNum].data,
+                fulfillments[_fulNum].dataType);
+    }
 
 
     /*
