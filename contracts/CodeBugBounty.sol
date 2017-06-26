@@ -64,15 +64,16 @@ contract CodeBugBounty is StandardBounty {
     /// @param fulNum the index of the fulfillment being accepted
     function acceptFulfillment(uint fulNum)
         public
+        onlyIssuer
         isAtStage(BountyStages.Active)
         validateFulfillmentArrayIndex(fulNum)
         checkBountiedInvariantsFailed()
     {
         fulfillments[fulNum].accepted = true;
-        accepted[numAccepted] = fulNum;
+        accepted.push(fulNum);
         numAccepted ++;
 
-        transitionToState(BountyStages.Dead);
+        killBounty();
 
         FulfillmentAccepted(msg.sender, fulfillmentAmount);
     }

@@ -192,20 +192,14 @@ contract StandardBounty {
     }
 
     /// @notice Send funds to activate the bug bounty
-    /// @dev activateBounty(): activate a bounty so it may continue to pay out
-    /// @param value the amount being contributed in ether to prevent
-    /// accidental deposits
-    function activateBounty(uint value)
+    /// @dev activateBounty(): activate a bounty so it may pay out
+    function activateBounty()
         payable
         public
         isBeforeDeadline
         onlyIssuer
-        amountIsNotZero(value)
-        amountEqualsValue(value)
         validateFunding
     {
-        ContributionAdded(msg.sender, msg.value);
-
         transitionToState(BountyStages.Active);
 
         BountyActivated(msg.sender);
@@ -297,6 +291,25 @@ contract StandardBounty {
                 fulfillments[_fulNum].fulfiller,
                 fulfillments[_fulNum].data,
                 fulfillments[_fulNum].dataType);
+    }
+
+    /// @dev getBounty(): Returns the details of the bounty
+    function getBounty()
+        public
+        constant
+        returns (address, string, uint, uint, string, uint, uint, uint, uint)
+    {
+        return (issuer,
+                issuerContact,
+                uint(bountyStage),
+                deadline,
+                data,
+                fulfillmentAmount,
+                numFulfillments,
+                numAccepted,
+                numPaid);
+
+
     }
 
 
