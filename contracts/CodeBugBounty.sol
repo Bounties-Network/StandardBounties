@@ -39,20 +39,25 @@ contract CodeBugBounty is StandardBounty {
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
     /// @param _contactInfo the contact information of the issuer
     /// @param _data the requirements of the bounty
-    /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
+    /// @param _fulfillmentAmounts the amount of wei to be paid out for each successful fulfillment
     /// @param _bountiedContract the address of the contract to be bountied (with invariants check implemented)
+    /// @param _numMilestones the total number of milestones which can be paid out
+
     function CodeBugBounty(
         uint _deadline,
         string _contactInfo,
         string _data,
-        uint _fulfillmentAmount,
+        uint[] _fulfillmentAmounts,
+        uint _numMilestones,
         Bountied _bountiedContract
+
     )
     	StandardBounty(
     		_deadline,
     		_contactInfo,
         	_data,
-        	_fulfillmentAmount
+        	_fulfillmentAmounts,
+        	_numMilestones
     	)
     	checkBountiedInvariants(_bountiedContract)
     {
@@ -61,21 +66,23 @@ contract CodeBugBounty is StandardBounty {
 
     /// @dev acceptFulfillment(): accept a given fulfillment, and send
     /// the fulfiller their owed funds [OVERWRITTEN FROM StandardBounty]
-    /// @param fulNum the index of the fulfillment being accepted
-    function acceptFulfillment(uint fulNum)
+    /// @param fulfillmentId the index of the fulfillment being accepted
+    /// @param milestoneId the id of the milestone being accepted
+    function acceptFulfillment(uint fulfillmentId, uint milestoneId)
         public
         onlyIssuer
         isAtStage(BountyStages.Active)
-        validateFulfillmentArrayIndex(fulNum)
+        validateFulfillmentArrayIndex(fulfillmentId, milestoneId)
+        validateMilestoneIndex(milestoneId)
         checkBountiedInvariantsFailed()
     {
-        fulfillments[fulNum].accepted = true;
-        accepted.push(fulNum);
-        numAccepted ++;
+        fulfillments[milestoneId][fulfillmentId].accepted = true;
+        accepted[milestoneId].push(fulfillmentId);
+        numAccepted[milestoneId] ++;
 
         killBounty();
 
-        FulfillmentAccepted(msg.sender, fulfillmentAmount);
+        FulfillmentAccepted(msg.sender, fulfillmentId, milestoneId);
     }
 
 }
