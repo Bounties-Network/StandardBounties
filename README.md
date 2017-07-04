@@ -22,16 +22,16 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
 - A bounty begins in the `Draft` state, where the requirements, deadline, arbiter, and reward amounts can still be altered.
 
   In this state, the various functions which can be called are:
-    - `contribute()` [ANYONE]: contributes ETH (or tokens) to the bounty
-    - `activateBounty()` [ONLY ISSUER]: This will activate the bounty
-    - `killBounty()` [ONLY ISSUER]: This will kill the bounty
+    - `contribute()` [**ANYONE**]: contributes ETH (or tokens) to the bounty
+    - `activateBounty()` [**ONLY ISSUER**]: This will activate the bounty
+    - `killBounty()` [**ONLY ISSUER**]: This will kill the bounty
 
   As well as several functions to alter the bounty details:
-    - `changeDeadline()`
-    - `changeData()`
-    - `changeContact()`
-    - `changeArbiter()`
-    - `changeFulfillmentAmounts()`
+    - `changeDeadline()` [**ONLY ISSUER**]
+    - `changeData()` [**ONLY ISSUER**]
+    - `changeContact()` [**ONLY ISSUER**]
+    - `changeArbiter()` [**ONLY ISSUER**]
+    - `changeFulfillmentAmounts()` [**ONLY ISSUER**]
 
 - A bounty transitions to the `Active` state when the issuer calls `activateBounty()`.
 
