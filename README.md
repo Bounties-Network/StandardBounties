@@ -19,7 +19,15 @@ The _StandardBounty.sol_ contract facilitates transactions on qualitative data (
 
 A single bounty contract can be used to pay amounts of ETH or a given token, based on the successful completion of specific **Milestones**. The contract aims to reduce the necessary trust in the issuer by forcing them to deposit sufficient Ether (or tokens) to at minimum pay out each milestone once.
 
-A bounty begins in the `draft` stage, where requirements, deadlines, and reward amounts can still be altered.
+- A bounty begins in the `Draft` state, where the requirements, deadline, arbiter, and reward amounts can still be altered.
+
+- A bounty transitions to the `Active` state when the issuer calls `activateBounty()`. This is only possible if
+  - the bounty hasn't expired (past its deadline)
+  - the bounty has sufficient funds to pay out each milestone at least once
+
+  Once a bounty is `Active`, bounty hunters can submit fulfillments for the various milestones, and the bounty issuer can approve fulfillments to pay out the rewards.
+
+- A bounty transitions to the `Dead` state when the issuer calls `killBounty()`, which drains the contract of its balance, less the necessary funds to pay out fulfillments which have already been accepted but aren't yet paid out
 
 
 

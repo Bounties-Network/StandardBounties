@@ -312,6 +312,17 @@ contract StandardBounty {
         DeadlineExtended(_newDeadline);
     }
 
+    /// @dev changeDeadline(): allows the issuer to change the deadline of the bounty
+    /// @param _newDeadline the new deadline
+    function changeDeadline(string _newDeadline)
+        public
+        onlyIssuer
+        validateDeadline(_deadline)
+        isAtStage(BountyStages.Draft)
+    {
+        deadline = _newDeadline;
+    }
+
     /// @dev changeData(): allows the issuer to change the data of the bounty
     /// @param _newData the new data
     function changeData(string _newData)

@@ -51,8 +51,7 @@ contract CodeBugBounty is StandardBounty {
       uint[] _fulfillmentAmounts,
       uint _numMilestones,
       address _arbiter,
-      Bountied _bountiedContract
-
+      address _bountiedContract
   )
   	StandardBounty(
   		_deadline,
