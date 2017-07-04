@@ -25,6 +25,7 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
     - `contribute()`: This can be called by any individual to contribute ETH (or tokens) to the bounty
     - `activateBounty()`: This can only be called by the issuer, and will activate the bounty
     - `killBounty()`: This can only be called by the issuer, and will kill the bounty
+    
   As well as several functions to alter the bounty details
     - `changeDeadline()`
     - `changeData()`
