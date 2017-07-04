@@ -262,7 +262,6 @@ contract StandardBounty {
         unpaidAmountRemains(_milestoneId)
     {
         fulfillments[_milestoneId][_fulfillmentId].accepted = true;
-        accepted[_milestoneId].push(_fulfillmentId);
         numAccepted[_milestoneId]++;
 
         FulfillmentAccepted(msg.sender, _fulfillmentId, _milestoneId);
@@ -315,7 +314,7 @@ contract StandardBounty {
 
     /// @dev changeData(): allows the issuer to change the data of the bounty
     /// @param _newData the new data
-    function changeData(uint _newData)
+    function changeData(string _newData)
         public
         onlyIssuer
         isAtStage(BountyStages.Draft)
@@ -325,7 +324,7 @@ contract StandardBounty {
 
     /// @dev changeContact(): allows the issuer to change the contact of the bounty
     /// @param _newContact the new data
-    function changeContact(uint _newContact)
+    function changeContact(string _newContact)
         public
         onlyIssuer
         isAtStage(BountyStages.Draft)
@@ -335,7 +334,7 @@ contract StandardBounty {
 
     /// @dev changeArbiter(): allows the issuer to change the arbiter of the bounty
     /// @param _newArbiter the new data
-    function changeArbiter(uint _newArbiter)
+    function changeArbiter(address _newArbiter)
         public
         onlyIssuer
         isAtStage(BountyStages.Draft)
@@ -346,10 +345,12 @@ contract StandardBounty {
     /// @dev changeFulfillmentAmounts(): allows the issuer to change the
     /// fulfillment amounts of the bounty
     /// @param _newFulfillmentAmounts the new fulfillment amounts
-    function changeFulfillmentAmounts(uint[] _newFulfillmentAmounts)
+    /// @param _numMilestones the number of milestones which can be fulfilled
+    function changeFulfillmentAmounts(uint[] _newFulfillmentAmounts, uint _numMilestones)
         public
         onlyIssuer
         amountsNotZero(_newFulfillmentAmounts)
+        correctLengths(_numMilestones, _newFulfillmentAmounts.length)
         isAtStage(BountyStages.Draft)
     {
         fulfillmentAmounts = _newFulfillmentAmounts;
