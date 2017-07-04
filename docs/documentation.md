@@ -1,13 +1,7 @@
-# StandardBounties
+# StandardBounties Documentation
 
 `Version 0.0.1`
 
-1. [Rationale](#1-rationale)
-2. [Implementation](#2-implementation)
-3. [Development](#3-development)
-4. [Documentation](#4-documentation)
-
-A set of standard contracts to be used as interfaces for any kind of bounty, either qualitative or quantitative in nature.
 
 ## 1. Rationale
 
@@ -58,7 +52,7 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
 
 
 
-### 2.1 Invariant check pattern for _CodeBugBounty.sol_
+### 2.1 Invariants checking pattern for _CodeBugBounty.sol_
 
 Code bug bounties are a specific implementation of the `StandardBounty`, where the 0th milestone is reserved for fulfillments which break a contracts invariants. Its use requires the implementation of `Bountied.sol`, with special care given to the `checkInvariants()` function that checks the correctness of the contract's state.
 
@@ -69,4 +63,4 @@ All the extension bounty types (particular cases like _CodeBugBounty.sol_) **mus
 
 ## 4. Documentation
 
-For thorough documentation of all functions, see [the documentation](./docs/documentation.md)
+For thorough documentation of all functions, see [the docs](./docs/documentation.md)
