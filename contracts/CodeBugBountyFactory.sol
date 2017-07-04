@@ -14,14 +14,18 @@ contract CodeBugBountyFactory is Factory {
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
     /// @param _contactInfo the contact information of the issuer
     /// @param _data the requirements of the bounty
-    /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
+    /// @param _fulfillmentAmounts the amount of wei to be paid out for each successful fulfillment
     /// @param _bountiedContract the address of the contract to be bountied (with invariants check implemented)
+    /// @param _numMilestones the total number of milestones which can be paid out
+    /// @param _arbiter the address of the arbiter who can mediate claims
     function create(
-        uint _deadline,
-        string _contactInfo,
-        string _data,
-        uint _fulfillmentAmount,
-        Bountied _bountiedContract
+      uint _deadline,
+      string _contactInfo,
+      string _data,
+      uint[] _fulfillmentAmounts,
+      uint _numMilestones,
+      address _arbiter,
+      Bountied _bountiedContract
     )
         public
         returns (address bugBounty)
@@ -30,10 +34,11 @@ contract CodeBugBountyFactory is Factory {
             _deadline,
             _contactInfo,
             _data,
-            _fulfillmentAmount,
+            _fulfillmentAmounts,
+            _numMilestones,
+            _arbiter,
             _bountiedContract
         );
-        require (bugBounty != 0x0);
         register(bugBounty);
     }
     /// @dev Registers contract in factory registry.
