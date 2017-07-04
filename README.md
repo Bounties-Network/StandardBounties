@@ -22,22 +22,30 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
 - A bounty begins in the `Draft` state, where the requirements, deadline, arbiter, and reward amounts can still be altered.
 
   In this state, the various functions which can be called are:
-    - `contribute()`: This can be called by any individual to contribute ETH (or tokens) to the bounty
-    - `activateBounty()`: This can only be called by the issuer, and will activate the bounty
-    - `killBounty()`: This can only be called by the issuer, and will kill the bounty
-    
-  As well as several functions to alter the bounty details
+    - `contribute()` [ANYONE]: contributes ETH (or tokens) to the bounty
+    - `activateBounty()` [ONLY ISSUER]: This will activate the bounty
+    - `killBounty()` [ONLY ISSUER]: This will kill the bounty
+
+  As well as several functions to alter the bounty details:
     - `changeDeadline()`
     - `changeData()`
     - `changeContact()`
     - `changeArbiter()`
     - `changeFulfillmentAmounts()`
 
-- A bounty transitions to the `Active` state when the issuer calls `activateBounty()`. This is only possible if
+- A bounty transitions to the `Active` state when the issuer calls `activateBounty()`.
+
+  This is only possible if
   - the bounty hasn't expired (isn't past its deadline)
   - the bounty has sufficient funds to pay out each milestone at least once
 
   Once a bounty is `Active`, bounty hunters can submit fulfillments for the various milestones, and the bounty issuer can approve fulfillments to pay out the rewards.
+
+  In this state, the various functions which can be called are:
+    - `fulfillBounty()`:
+    - `acceptFulfillment()`:
+    - `fulfillmentPayment()`:
+    - `killBounty()`: This can only be called by the issuer, and will kill the bounty
 
 - A bounty transitions to the `Dead` state when the issuer calls `killBounty()`, which drains the contract of its balance, less the necessary funds to pay out fulfillments which have already been accepted but aren't yet paid out
 
