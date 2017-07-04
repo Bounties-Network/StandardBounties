@@ -31,6 +31,7 @@ contract Bountied {
 
 
     function checkInvariant() returns(bool){
+      /*
 
         if (uint(bounty.bountyStage()) == 0){
             for (uint i = 0; i < bounty.numMilestones(); i++){
@@ -68,7 +69,7 @@ contract Bountied {
         } else {
             return false;
         }
-
+*/
         return true;
     }
 

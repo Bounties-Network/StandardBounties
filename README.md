@@ -15,17 +15,11 @@ Ethereum smart contracts can trivially facilitate transactions of resources (or 
 The _StandardBounty.sol_ contract facilitates transactions on qualitative data (often representing artifacts of completion of some service), allowing bounty issuers to systematically approve the work they receive.
 
 
-
-
-Bounties can be used to facilitate transactions between two parties, where a quantitative task, qualitative task or artifact is being exchanged for ETH.
-
-Code bug bounties are included here as an implemented extension of the generalized bounty and to serve as an example of a pure quantitative bounty that can automatically be paid out.
-
 ## 2. Implementation
 
 A single bounty contract can be used to pay amounts of ETH or a given token, based on the successful completion of specific **Milestones**. The contract aims to reduce the necessary trust in the issuer by forcing them to deposit sufficient Ether (or tokens) to at minimum pay out each milestone once.
 
-A bounty begins in the `draft` stage, where requirements, deadlines, and reward amounts can still be altered. 
+A bounty begins in the `draft` stage, where requirements, deadlines, and reward amounts can still be altered.
 
 
 
