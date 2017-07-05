@@ -21,11 +21,10 @@ contract Factory {
         return instantiations[creator].length;
     }
 
+
     /// @dev Registers contract in factory registry.
     /// @param instantiation Address of contract instantiation.
-    function register(address instantiation)
-        internal
-    {
+    function register(address instantiation) {
         isInstantiation[instantiation] = true;
         instantiations[msg.sender].push(instantiation);
         ContractInstantiation(msg.sender, instantiation);
