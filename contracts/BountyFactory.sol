@@ -14,13 +14,16 @@ contract BountyFactory is Factory {
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
     /// @param _contactInfo a string with contact info of the issuer, for them to be contacted if needed
     /// @param _data the requirements of the bounty
-    /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
+    /// @param _fulfillmentAmounts the amount of wei to be paid out for each successful fulfillment
+    /// @param _numMilestones the total number of milestones which can be paid out
+    /// @param _arbiter the address of the arbiter who can mediate claims
     function create(
-        uint _deadline,
-        string _contactInfo,
-        string _data,
-        uint _fulfillmentAmount
-
+      uint _deadline,
+      string _contactInfo,
+      string _data,
+      uint[] _fulfillmentAmounts,
+      uint _numMilestones,
+      address _arbiter
     )
         public
         returns (address bounty)
@@ -29,7 +32,9 @@ contract BountyFactory is Factory {
           _deadline,
           _contactInfo,
           _data,
-          _fulfillmentAmount
+          _fulfillmentAmounts,
+          _numMilestones,
+          _arbiter
         );
         register(bounty);
     }

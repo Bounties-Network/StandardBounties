@@ -28,12 +28,12 @@ contract TokenBounty is StandardBounty {
 
     modifier validateFunding() {
 
-        // Funding is validated right before a bounty is moved into the active
-        // stage, thus all funds which are surplus to paying out those bounties
-        // are refunded. After this, new funds may also be added on an ad-hoc
-        // basis
+        uint total = 0;
+        for (uint i = 0 ; i < numMilestones; i++){
+            total += fulfillmentAmounts[i];
+        }
 
-        require (tokenContract.balanceOf(this) >= fulfillmentAmount);
+        require (tokenContract.balanceOf(this) >= total);
 
         _;
     }
@@ -48,73 +48,44 @@ contract TokenBounty is StandardBounty {
     /// @param _contactInfo the contact information of the issuer
     /// @param _data the requirements of the bounty
     /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
+    /// @param _numMilestones the total number of milestones which can be paid out
     /// @param _tokenAddress the address of the token contract
     function TokenBounty(
         uint _deadline,
         string _contactInfo,
         string _data,
-        uint _fulfillmentAmount,
+        uint[] _fulfillmentAmounts,
+        address _arbiter,
         address _tokenAddress
     )
     	StandardBounty(
     		_deadline,
     		_contactInfo,
-        	_data,
-        	_fulfillmentAmount
+      	_data,
+      	_fulfillmentAmounts,
+        _numMilestones,
+        _arbiter
     	)
     {
         tokenContract = StandardToken(_tokenAddress);
     }
 
-    /// @dev contribute(): a function allowing anyone to contribute any token
-    /// to a bounty, as long as it is still before its deadline. Shouldn't
-    /// keep tokens by accident (hence 'value').
-    /// @notice Please note you funds will be at the mercy of the issuer
-    ///  and can be drained at any moment. Be careful!
-    /// @param value the amount being contributed in tokens to prevent
-    /// accidental deposits
-    function contribute (uint value)
-        payable
-        isBeforeDeadline
-        amountIsNotZero(value)
-        amountEqualsValue(value)
-    {
-        ContributionAdded(msg.sender, msg.value);
-    }
-
-    /// @notice Send funds to activate the bug bounty
-    /// @dev activateBounty(): activate a bounty so it may continue to pay out
-    /// @param value the amount being contributed in ether to prevent
-    /// accidental deposits
-    function activateBounty(uint value)
-        payable
-        public
-        isBeforeDeadline
-        onlyIssuer
-        amountIsNotZero(value)
-        amountEqualsValue(value)
-        validateFunding
-    {
-        ContributionAdded(msg.sender, msg.value);
-
-        transitionToState(BountyStages.Active);
-
-        BountyActivated(msg.sender);
-    }
 
     /// @dev acceptFulfillment(): accept a given fulfillment, and send
     /// the fulfiller their owed funds
-    /// @param fulNum the index of the fulfillment being accepted
-    function fulfillmentPayment(uint fulNum)
+    /// @param _fulfillmentId the index of the fulfillment being accepted
+    /// @param _milestoneId the id of the milestone being paid
+    function fulfillmentPayment(uint _fulfillmentId, uint _milestoneId)
         public
-        validateFulfillmentArrayIndex(fulNum)
-        onlyFulfiller(fulNum)
-        checkFulfillmentIsApprovedAndUnpaid(fulNum)
+        validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
+        validateMilestoneIndex(_milestoneId)
+        onlyFulfiller(_fulfillmentId, _milestoneId)
+        checkFulfillmentIsApprovedAndUnpaid(_fulfillmentId, _milestoneId)
     {
-        tokenContract.transfer(fulfillments[fulNum].fulfiller, fulfillmentAmount);
-        fulfillments[fulNum].paid = true;
+        tokenContract.transfer(fulfillments[_milestoneId][_fulfillmentId].fulfiller, fulfillmentAmounts[_milestoneId]);
+        fulfillments[_milestoneId][_fulfillmentId].paid = true;
 
-        numPaid++;
+        numPaid[_milestoneId]++;
 
         FulfillmentPaid(msg.sender, fulNum);
     }
@@ -126,7 +97,7 @@ contract TokenBounty is StandardBounty {
         public
         onlyIssuer
     {
-        issuer.transfer(tokenContract.balanceOf(this) - unpaidAmount());
+        tokenContract.transfer(tokenContract.balanceOf(this) - unpaidAmount());
 
         transitionToState(BountyStages.Dead);
 
