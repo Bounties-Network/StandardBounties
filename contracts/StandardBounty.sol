@@ -122,6 +122,11 @@ contract StandardBounty {
         _;
     }
 
+    modifier isNotDead() {
+        require(bountyStage != BountyStages.Dead);
+        _;
+    }
+
     modifier checkFulfillmentsNumber(uint _milestoneId) {
         require(numFulfillments[_milestoneId] < MAX_FULFILLMENTS);
         _;
@@ -213,6 +218,7 @@ contract StandardBounty {
     function contribute (uint value)
         payable
         isBeforeDeadline
+        isNotDead
         amountIsNotZero(value)
         amountEqualsValue(value)
     {
@@ -221,15 +227,19 @@ contract StandardBounty {
 
     /// @notice Send funds to activate the bug bounty
     /// @dev activateBounty(): activate a bounty so it may pay out
-    function activateBounty()
+    /// @param value the amount being contributed in ether to prevent
+    /// accidental deposits
+    function activateBounty(uint value)
         payable
         public
         isBeforeDeadline
         onlyIssuer
+        amountEqualsValue(value)
         validateFunding
     {
         transitionToState(BountyStages.Active);
 
+        ContributionAdded(msg.sender, msg.value);
         BountyActivated(msg.sender);
     }
 
@@ -311,6 +321,8 @@ contract StandardBounty {
 
         DeadlineExtended(_newDeadline);
     }
+
+
 
     /// @dev changeDeadline(): allows the issuer to change the deadline of the bounty
     /// @param _newDeadline the new deadline
