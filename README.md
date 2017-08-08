@@ -43,9 +43,9 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
   Once a bounty is `Active`, bounty hunters can submit fulfillments for the various milestones, and the bounty issuer can approve fulfillments to pay out the rewards.
 
   In this state, the various functions which can be called are:
-    - `fulfillBounty()` [**ANYONE BUT ISSUER**]:
+    - `fulfillBounty()` [**ANYONE BUT ISSUER OR ARBITER**]:
     - `acceptFulfillment()` [**ONLY ISSUER**]:
-    - `fulfillmentPayment()` [**FULFILLER**]:
+    - `fulfillmentPayment()` [**ONLY FULFILLER**]:
     - `killBounty()` [**ONLY ISSUER**]:
 
 - A bounty transitions to the `Dead` state when the issuer calls `killBounty()`, which drains the contract of its balance, less the necessary funds to pay out fulfillments which have already been accepted but aren't yet paid out.
