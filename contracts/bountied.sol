@@ -15,11 +15,22 @@ contract Bountied {
     StandardBounty public bounty;
 
     address issuer;
+    bool failing;
+
+    modifier onlyIssuer(){
+      require (msg.sender == issuer);
+      _;
+    }
 
 
 
-    function bountied(){
+    function Bountied(){
         issuer = msg.sender;
+        failing = false;
+    }
+
+    function toggleBountied(){
+      failing = !failing;
     }
 
 
@@ -69,8 +80,9 @@ contract Bountied {
         } else {
             return false;
         }
-*/
         return true;
+*/
+        return !failing;
     }
 
 

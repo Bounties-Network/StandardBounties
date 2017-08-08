@@ -10,30 +10,30 @@ import "./Bountied.sol";
 /// @author Gonçalo Sá <goncalo.sa@consensys.net>, Mark Beylin <mark.beylin@consensys.net>
 contract CodeBugBounty is StandardBounty {
 
-	/*
-   * Storage
-   */
+  /*
+  * Storage
+  */
 
   Bountied public bountiedContract;
 
-	/*
-   * Modifiers
-   */
+  /*
+  * Modifiers
+  */
 
   modifier checkBountiedInvariants(address _bountiedContract) {
-      Bountied newBountiedContract = Bountied(_bountiedContract);
-      require(newBountiedContract.checkInvariant());
-      _;
+    Bountied newBountiedContract = Bountied(_bountiedContract);
+    require(newBountiedContract.checkInvariant());
+    _;
   }
 
   modifier checkBountiedInvariantsFailed(uint _milestoneId) {
-      require(_milestoneId || !bountiedContract.checkInvariant());
-      _;
+    require((_milestoneId != 0) || !bountiedContract.checkInvariant());
+    _;
   }
 
-	/*
-   * Public functions
-   */
+  /*
+  * Public functions
+  */
 
   /// @dev CodeBugBounty(): instantiates a new draft code bug bounty
   /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
@@ -45,44 +45,44 @@ contract CodeBugBounty is StandardBounty {
   /// @param _arbiter the address of the arbiter who can mediate claims
 
   function CodeBugBounty(
-      uint _deadline,
-      string _contactInfo,
-      string _data,
-      uint[] _fulfillmentAmounts,
-      uint _numMilestones,
-      address _arbiter,
-      address _bountiedContract
-  )
-  	StandardBounty(
-  		_deadline,
-  		_contactInfo,
-    	_data,
-    	_fulfillmentAmounts,
-    	_numMilestones,
+    uint _deadline,
+    string _contactInfo,
+    string _data,
+    uint[] _fulfillmentAmounts,
+    uint _numMilestones,
+    address _arbiter,
+    Bountied _bountiedContract
+    )
+    StandardBounty(
+      _deadline,
+      _contactInfo,
+      _data,
+      _fulfillmentAmounts,
+      _numMilestones,
       _arbiter
-  	)
-  	checkBountiedInvariants(_bountiedContract)
+      )
+    checkBountiedInvariants(_bountiedContract)
   {
-      bountiedContract = _bountiedContract;
+    bountiedContract = _bountiedContract;
   }
 
-  /// @dev acceptFulfillment(): accept a given fulfillment, and send
-  /// the fulfiller their owed funds
-  /// @param fulfillmentId the index of the fulfillment being accepted
-  /// @param milestoneId the id of the milestone being accepted
-  function acceptFulfillment(uint fulfillmentId, uint milestoneId)
-      public
-      onlyIssuerOrArbiter
-      isAtStage(BountyStages.Active)
-      validateFulfillmentArrayIndex(fulfillmentId, milestoneId)
-      validateMilestoneIndex(milestoneId)
-      checkBountiedInvariantsFailed(milestoneId)
+  /// @dev fulfillBounty(): submit a fulfillment for the given bounty. If the
+  /// milestone is 0, the contract checks if the invariants of the contract were
+  /// broken.
+  /// @param _data the data artifacts representing the fulfillment of the bounty
+  /// @param _dataType a meaningful description of the type of data the fulfillment represents
+  /// @param _milestoneId the id of the milestone being fulfilled
+  function fulfillBounty(string _data, string _dataType, uint _milestoneId)
+  public
+  isAtStage(BountyStages.Active)
+  isBeforeDeadline
+  checkFulfillmentsNumber(_milestoneId)
+  notIssuerOrArbiter
+  checkBountiedInvariantsFailed(milestoneId)
   {
-      fulfillments[milestoneId][fulfillmentId].accepted = true;
-      numAccepted[milestoneId]++;
+    fulfillments[_milestoneId].push(Fulfillment(false, false, msg.sender, _data, _dataType));
 
-
-      FulfillmentAccepted(msg.sender, fulfillmentId, milestoneId);
+    BountyFulfilled(msg.sender, numFulfillments[_milestoneId]++, _milestoneId);
   }
-
+      
 }

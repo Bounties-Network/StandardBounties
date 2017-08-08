@@ -43,7 +43,9 @@ contract CodeBugBountyFactory is Factory {
     }
     /// @dev Registers contract in factory registry.
     /// @param instantiation Address of contract instantiation.
-    function register(address instantiation) {
+    function register(address instantiation)
+    internal
+    {
         instances.push(instantiation);
         isInstantiation[instantiation] = true;
         instantiations[msg.sender].push(instantiation);

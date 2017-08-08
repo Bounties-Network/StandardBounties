@@ -123,10 +123,6 @@ contract StandardBounty {
       _;
   }
 
-  modifier isNotDraft () {
-    require(bountyStage != BountyStages.Draft);
-    _;
-  }
 
   modifier isNotDead() {
       require(bountyStage != BountyStages.Dead);
@@ -409,6 +405,7 @@ contract StandardBounty {
   /// @dev getFulfillment(): Returns the fulfillment at a given index
   /// @param _fulfillmentId the index of the fulfillment to return
   /// @param _milestoneId the index of the milestone to return
+  /// @return Returns a tuple for the fulfillment
   function getFulfillment(uint _fulfillmentId, uint _milestoneId)
       public
       constant
@@ -422,6 +419,7 @@ contract StandardBounty {
   }
 
   /// @dev getBounty(): Returns the details of the bounty
+  /// @return Returns a tuple for the bounty
   function getBounty()
       public
       constant
@@ -437,6 +435,7 @@ contract StandardBounty {
 
   /// @dev unpaidAmount(): calculates the amount which
   /// the bounty has yet to pay out
+  /// @return Returns the amount of Wei or tokens owed
   function unpaidAmount()
       public
       constant

@@ -36,6 +36,7 @@ contract BountyFactory is Factory {
           _numMilestones,
           _arbiter
         );
+        instances.push(bounty);
         register(bounty);
     }
 
