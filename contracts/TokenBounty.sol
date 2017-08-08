@@ -29,13 +29,11 @@ contract TokenBounty is StandardBounty {
   }
 
   modifier validateFunding() {
-
     uint total = 0;
     for (uint i = 0 ; i < numMilestones; i++){
       total += fulfillmentAmounts[i];
     }
-
-    require (tokenContract.balanceOf(this) >= total);
+    require (tokenContract.balanceOf(this) > total + unpaidAmount());
 
     _;
   }
@@ -57,6 +55,7 @@ contract TokenBounty is StandardBounty {
     string _contactInfo,
     string _data,
     uint[] _fulfillmentAmounts,
+    uint _numMilestones,
     address _arbiter,
     address _tokenAddress
     )
@@ -89,7 +88,7 @@ contract TokenBounty is StandardBounty {
 
       numPaid[_milestoneId]++;
 
-      FulfillmentPaid(msg.sender, fulNum);
+      FulfillmentPaid(msg.sender, _fulfillmentId, _milestoneId);
     }
 
     /// @dev killBounty(): drains the contract of it's remaining
@@ -99,7 +98,7 @@ contract TokenBounty is StandardBounty {
     public
     onlyIssuer
     {
-      tokenContract.transfer(tokenContract.balanceOf(this) - unpaidAmount());
+      tokenContract.transfer(issuer, tokenContract.balanceOf(this) - unpaidAmount());
 
       transitionToState(BountyStages.Dead);
 
