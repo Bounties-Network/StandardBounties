@@ -7,40 +7,40 @@
 
 ### Storage
 
-`address public issuer;`
+`address public issuer`
 the creator of the bounty
 
-`string public issuerContact;`
+`string public issuerContact`
 This is used for the issuer to give participants an off-chain method of communication to maintain healthy contact.
 
-`address public arbiter;`
+`address public arbiter`
 If the issuer chooses to allow for 3rd party mediation, they allow the arbiter to accept fulfillments on their behalf, and are disallowed from fulfilling the bounty.
 
-`BountyStages public bountyStage;`
+`BountyStages public bountyStage`
 Bounties are formed in the `Draft` stage, a period the issuer can use to edit any of the bounty elements, and attain sufficient funding. During the active stage requirements or payout amounts cannot be altered, however the deadline may be extended. Fulfillments can only be accepted in the `Active` stage, even if the deadline has passed. The issuer can kill the bounty returning all funds to them (less the amount due for already accepted but unpaid submissions), however this behaviour is highly discouraged and can hurt reputation.
 
-`uint public deadline;`
+`uint public deadline`
 A bounty can only be contributed to, activated, or fulfilled before the given deadline. This deadline can be moved forward or backwards in the draft stage, but once the bounty is activated it can only be extended. This helps maintain the contractual nature of the relationship, where issuers cannot move deadlines forward arbitrarily while individuals are fulfilling the tasks.
 
-`string public data;`
+`string public data`
 All data representing the requirements are stored off-chain, and their hash is updated here. Requirements and auxiliary data are mutable while the bounty is in the `Active` stage, but becomes immutable when the bounty is activated, thereby "locking in" the terms of the contract, the requirements for acceptance for each milestone. These should be as rich as possible from the outset, to avoid conflicts stemming from task fulfillers believing they merited the bounty reward.
 
-`uint public numMilestones;`
+`uint public numMilestones`
 The total number of milestones.
 
-`uint[] public fulfillmentAmounts;`
+`uint[] public fulfillmentAmounts`
 The total bounty amount is broken down into stepwise payments for each milestone, allowing different individuals to fulfill different pieces of a bounty task. This array stores the amount of wei (or ERC20 token) which will pay out when work is accepted.
 
-`mapping(uint=>Fulfillment[]) public fulfillments;`
+`mapping(uint=>Fulfillment[]) public fulfillments`
 Work is submitted and a hash is stored on-chain, allowing any deliverable to be submitted for the same bounty.
 
-`mapping(uint=>uint) public numFulfillments;`
+`mapping(uint=>uint) public numFulfillments`
 The number of submissions for each milestone.
 
-`mapping(uint=>uint) public numAccepted;`
+`mapping(uint=>uint) public numAccepted`
 The number of submissions which have been accepted for each milestone.
 
-`mapping(uint=>uint) public numPaid;`
+`mapping(uint=>uint) public numPaid`
 The number of submissions which have paid out to task fulfillers for each milestone.
 
 ### External functions
