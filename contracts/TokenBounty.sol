@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.13;
 import "./StandardBounty.sol";
 import "./StandardToken.sol";
 
@@ -47,7 +47,7 @@ contract TokenBounty is StandardBounty {
   /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
   /// @param _contactInfo the contact information of the issuer
   /// @param _data the requirements of the bounty
-  /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
+  /// @param _fulfillmentAmounts the amount of wei to be paid out for each successful fulfillment
   /// @param _numMilestones the total number of milestones which can be paid out
   /// @param _tokenAddress the address of the token contract
   function TokenBounty(

@@ -1,5 +1,5 @@
-pragma solidity ^0.4.11;
-import "StandardBounty.sol";
+pragma solidity ^0.4.13;
+import "./StandardBounty.sol";
 
 
 

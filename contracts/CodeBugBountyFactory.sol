@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.13;
 import "./Factory.sol";
 import "./CodeBugBounty.sol";
 
@@ -39,18 +39,10 @@ contract CodeBugBountyFactory is Factory {
             _arbiter,
             _bountiedContract
         );
+        instances.push(bugBounty);
         register(bugBounty);
     }
-    /// @dev Registers contract in factory registry.
-    /// @param instantiation Address of contract instantiation.
-    function register(address instantiation)
-    internal
-    {
-        instances.push(instantiation);
-        isInstantiation[instantiation] = true;
-        instantiations[msg.sender].push(instantiation);
-        ContractInstantiation(msg.sender, instantiation);
-    }
+
      /// @dev Returns number of instances
     /// @return Returns number of instantiations by creator.
     function getInstanceCount()

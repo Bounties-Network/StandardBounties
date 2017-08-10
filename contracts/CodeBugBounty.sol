@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.13;
 import "./StandardBounty.sol";
 import "./Bountied.sol";
 
@@ -78,11 +78,11 @@ contract CodeBugBounty is StandardBounty {
   isBeforeDeadline
   checkFulfillmentsNumber(_milestoneId)
   notIssuerOrArbiter
-  checkBountiedInvariantsFailed(milestoneId)
+  checkBountiedInvariantsFailed(_milestoneId)
   {
     fulfillments[_milestoneId].push(Fulfillment(false, false, msg.sender, _data, _dataType));
 
     BountyFulfilled(msg.sender, numFulfillments[_milestoneId]++, _milestoneId);
   }
-      
+
 }

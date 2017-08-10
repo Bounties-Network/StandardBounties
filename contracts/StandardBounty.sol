@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.13;
 
 
 /// @title StandardBounty
@@ -88,7 +88,7 @@ contract StandardBounty {
       _;
   }
    modifier amountIsNotZero(uint amount) {
-          require(amount != 0);
+      require(amount != 0);
       _;
   }
   modifier amountsNotZero(uint[] amount) {
@@ -167,7 +167,7 @@ contract StandardBounty {
   }
 
   modifier unpaidAmountRemains(uint _milestoneId) {
-      require((unpaidAmount() + fulfillmentAmounts[_milestoneId]) < this.balance);
+      require((unpaidAmount() + fulfillmentAmounts[_milestoneId]) <= this.balance);
       _;
   }
 
@@ -187,7 +187,7 @@ contract StandardBounty {
       uint _deadline,
       string _contactInfo,
       string _data,
-      uint[] _fulfillmentAmounts,
+      uint256[] _fulfillmentAmounts,
       uint _numMilestones,
       address _arbiter
   )
@@ -249,6 +249,7 @@ contract StandardBounty {
       public
       isAtStage(BountyStages.Active)
       isBeforeDeadline
+      validateMilestoneIndex(_milestoneId)
       checkFulfillmentsNumber(_milestoneId)
       notIssuerOrArbiter
   {
@@ -317,6 +318,16 @@ contract StandardBounty {
       deadline = _newDeadline;
 
       DeadlineExtended(_newDeadline);
+  }
+
+  /// @dev transferIssuer(): allows the issuer to transfer ownership of the
+  /// bounty to some new address
+  /// @param _newIssuer the address of the new issuer
+  function transferIssuer(address _newIssuer)
+  public
+  onlyIssuer
+  {
+    issuer = _newIssuer;
   }
 
   /// @dev changeBounty(): allows the issuer to change all bounty storage
@@ -409,6 +420,8 @@ contract StandardBounty {
   function getFulfillment(uint _fulfillmentId, uint _milestoneId)
       public
       constant
+      validateMilestoneIndex(_milestoneId)
+      validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
       returns (bool, bool, address, string, string)
   {
       return (fulfillments[_milestoneId][_fulfillmentId].paid,

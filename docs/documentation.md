@@ -184,6 +184,17 @@ function extendDeadline(uint _newDeadline)
 }
 ```
 
+#### transferIssuer()
+At any point, the issuer can transfer ownership of the bounty to a new address that they supply.
+```
+function transferIssuer(address _newIssuer)
+public
+onlyIssuer
+{
+  issuer = _newIssuer;
+}
+```
+
 #### ChangeBounty()
 The issuer of the bounty can change all bounty variables at once while the bounty is in the `Draft` stage.
 ```
