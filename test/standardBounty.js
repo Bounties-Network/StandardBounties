@@ -240,7 +240,7 @@ contract('StandardBounty', function(accounts) {
     assert (contractBalance.valueOf() == 2000);
   });
 
-  it("verifies that basic fulfillment-acceptance flow works", async () => {
+  it("verifies that fulfillment-acceptance flow works to completion", async () => {
     let contract = await StandardBounty.new(2528821098,
                                             "",
                                             "",
@@ -644,64 +644,198 @@ contract('StandardBounty', function(accounts) {
     }
 
   });
+  it("verifies that claiming payment for someone else's bounty isn't allowed", async () => {
+    let contract = await StandardBounty.new(2528821098,
+                                            "",
+                                            "",
+                                            [1000,1000,1000],
+                                            3,
+                                            0x0);
+
+    await contract.activateBounty(3000, {from: accounts[0], value: 3000});
+    let stage = await contract.bountyStage.call();
+    assert (stage == 1);
+    //first fulfillment
+    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[3]});
+    let fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
+    assert(fulfillment[0] == false);
+    assert(fulfillment[1] == false);
+    assert(fulfillment[2] == accounts[3]);
+    assert(fulfillment[3] == "data");
+    assert(fulfillment[4] == "datatype");
+
+    await contract.acceptFulfillment(0,0, {from: accounts[0]});
+
+    fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
+    let numAccepted = await contract.numAccepted.call(0);
+    assert(fulfillment[1] == true);
+    assert(numAccepted == 1);
 
 
 
 
+    try {
+      await contract.fulfillmentPayment(0,0, {from: accounts[1]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
 
-  /*
-  it("should call a function that depends on a linked library", function() {
-    var meta;
-    var metaCoinBalance;
-    var metaCoinEthBalance;
-
-    return MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(accounts[0]);
-    }).then(function(outCoinBalance) {
-      metaCoinBalance = outCoinBalance.toNumber();
-      return meta.getBalanceInEth.call(accounts[0]);
-    }).then(function(outCoinBalanceEth) {
-      metaCoinEthBalance = outCoinBalanceEth.toNumber();
-    }).then(function() {
-      assert.equal(metaCoinEthBalance, 2 * metaCoinBalance, "Library function returned unexpected function, linkage may be broken");
-    });
   });
-  it("should send coin correctly", function() {
-    var meta;
+  it("verifies that issuer can transfer ownership to a new account", async () => {
+    let contract = await StandardBounty.new(2528821098,
+                                            "",
+                                            "",
+                                            [1000,1000,1000],
+                                            3,
+                                            0x0);
+    await contract.activateBounty(3000, {from: accounts[0], value: 3000});
 
-    // Get initial balances of first and second account.
-    var account_one = accounts[0];
-    var account_two = accounts[1];
+    let stage = await contract.bountyStage.call();
+    assert (stage == 1);
 
-    var account_one_starting_balance;
-    var account_two_starting_balance;
-    var account_one_ending_balance;
-    var account_two_ending_balance;
+    await contract.transferIssuer(accounts[1], {from: accounts[0]});
+    let issuer = await contract.issuer.call();
+    assert (issuer == accounts[1]);
+  });
+  it("verifies that issuer can extend the deadline of the bounty", async () => {
+    let contract = await StandardBounty.new(2528821098,
+                                            "",
+                                            "",
+                                            [1000,1000,1000],
+                                            3,
+                                            0x0);
+    await contract.activateBounty(3000, {from: accounts[0], value: 3000});
 
-    var amount = 10;
+    let stage = await contract.bountyStage.call();
+    assert (stage == 1);
 
-    return MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_starting_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_starting_balance = balance.toNumber();
-      return meta.sendCoin(account_two, amount, {from: account_one});
-    }).then(function() {
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_ending_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_ending_balance = balance.toNumber();
+    await contract.extendDeadline(2628821098, {from: accounts[0]});
+    let deadline = await contract.deadline.call();
+    assert (deadline == 2628821098);
 
-      assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
-      assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
-    });
+  });
+  it("verifies that issuer can't extend the deadline to an earlier date", async () => {
+    let contract = await StandardBounty.new(2528821098,
+                                            "",
+                                            "",
+                                            [1000,1000,1000],
+                                            3,
+                                            0x0);
+    await contract.activateBounty(3000, {from: accounts[0], value: 3000});
+
+    let stage = await contract.bountyStage.call();
+    assert (stage == 1);
+
+    try {
+      await contract.extendDeadline(2428821098, {from: accounts[0]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+
+  });
+  it("verifies that issuer can't change the bounty when it isn't in the draft stage", async () => {
+    let contract = await StandardBounty.new(2528821098,
+                                            "",
+                                            "",
+                                            [1000,1000,1000],
+                                            3,
+                                            0x0);
+    await contract.activateBounty(3000, {from: accounts[0], value: 3000});
+
+    let stage = await contract.bountyStage.call();
+    assert (stage == 1);
+
+    try {
+      await contract.changeBounty(2628821098, "contact", "data", [900, 900, 900], 3, 0x0, {from: accounts[0]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+
   });
 
-  */
+  it("verifies that issuer must redeposit sufficient funds after killing a bounty", async () => {
+    let contract = await StandardBounty.new(2528821098,
+                                            "",
+                                            "",
+                                            [1000,1000,1000],
+                                            3,
+                                            0x0);
+    await contract.activateBounty(3000, {from: accounts[0], value: 3000});
+
+    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[2]});
+
+    await contract.acceptFulfillment(0,0, {from: accounts[0]});
+
+    await contract.killBounty({from: accounts[0]});
+
+    let balance = await web3.eth.getBalance(contract.address);
+    assert(balance == 1000);
+
+
+
+    try {
+      await contract.activateBounty(2000, {from: accounts[0], value: 2000});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+
+  });
+  it("verifies that reactivating a bounty works when the sufficient amount is deposited", async () => {
+    let contract = await StandardBounty.new(2528821098,
+                                            "",
+                                            "",
+                                            [1000,1000,1000],
+                                            3,
+                                            0x0);
+    await contract.activateBounty(3000, {from: accounts[0], value: 3000});
+
+    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[2]});
+
+    await contract.acceptFulfillment(0,0, {from: accounts[0]});
+
+    await contract.killBounty({from: accounts[0]});
+
+    let balance = await web3.eth.getBalance(contract.address);
+    assert(balance == 1000);
+
+    await contract.activateBounty(3000, {from: accounts[0], value: 3000});
+
+    balance = await web3.eth.getBalance(contract.address);
+    assert(balance == 4000);
+
+    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[3]});
+
+    await contract.acceptFulfillment(1,0, {from: accounts[0]});
+
+    await contract.fulfillBounty("data", "datatype", 1, {from: accounts[3]});
+
+    await contract.acceptFulfillment(0,1, {from: accounts[0]});
+
+    await contract.fulfillBounty("data", "datatype", 2, {from: accounts[3]});
+
+    await contract.acceptFulfillment(0,2, {from: accounts[0]});
+
+    let unpaid = await contract.unpaidAmount({from: accounts[0]});
+    assert (unpaid == 4000);
+
+    await contract.fulfillmentPayment(0,0, {from: accounts[2]});
+
+    await contract.fulfillmentPayment(1,0, {from: accounts[3]});
+
+    await contract.fulfillmentPayment(0,1, {from: accounts[3]});
+
+    await contract.fulfillmentPayment(0,2, {from: accounts[3]});
+
+    unpaid = await contract.unpaidAmount({from: accounts[0]});
+    assert (unpaid == 0);
+
+    balance = await web3.eth.getBalance(contract.address);
+    assert(balance == 0);
+
+  });
+
+
+
+
+
 });

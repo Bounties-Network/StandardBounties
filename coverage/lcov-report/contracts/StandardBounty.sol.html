@@ -1,0 +1,1490 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/StandardBounty.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> StandardBounty.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">80.33% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>49/61</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">84.21% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>32/38</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">81.58% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>31/38</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">85.71% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>72/84</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+454
+455
+456
+457
+458
+459
+460
+461
+462
+463
+464
+465
+466
+467
+468
+469
+470
+471
+472
+473
+474
+475
+476</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30×</span>
+<span class="cline-any cline-yes">29×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">29×</span>
+<span class="cline-any cline-yes">85×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">28×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">44×</span>
+<span class="cline-any cline-yes">44×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">28×</span>
+<span class="cline-any cline-yes">27×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">34×</span>
+<span class="cline-any cline-yes">33×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">52×</span>
+<span class="cline-any cline-yes">52×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">69×</span>
+<span class="cline-any cline-yes">69×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">27×</span>
+<span class="cline-any cline-yes">26×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25×</span>
+<span class="cline-any cline-yes">25×</span>
+<span class="cline-any cline-yes">25×</span>
+<span class="cline-any cline-yes">25×</span>
+<span class="cline-any cline-yes">25×</span>
+<span class="cline-any cline-yes">25×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">42×</span>
+<span class="cline-any cline-yes">126×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">21×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity ^0.4.11;
+&nbsp;
+&nbsp;
+/// @title StandardBounty
+/// @dev Used to pay out individuals or groups for task fulfillment through
+/// stepwise work submission, acceptance, and payment
+/// @author Mark Beylin &lt;mark.beylin@consensys.net&gt;, Gonçalo Sá &lt;goncalo.sa@consensys.net&gt;
+contract StandardBounty {
+&nbsp;
+  uint constant public MAX_FULFILLMENTS = 254;
+&nbsp;
+  /*
+   * Events
+   */
+&nbsp;
+  event BountyActivated(address issuer);
+  event BountyFulfilled(address indexed fulfiller, uint256 indexed _fulfillmentId, uint256 indexed _milestoneId);
+  event FulfillmentAccepted(address indexed fulfiller, uint256 indexed _fulfillmentId, uint256 indexed _milestoneId);
+  event FulfillmentPaid(address indexed fulfiller, uint256 indexed _fulfillmentId, uint256 indexed _milestoneId);
+  event BountyKilled();
+  event ContributionAdded(address indexed contributor, uint256 value);
+  event DeadlineExtended(uint newDeadline);
+&nbsp;
+  /*
+   * Storage
+   */
+&nbsp;
+  address public issuer; // the creator of the bounty
+  string public issuerContact; // string of a contact method used to reach the issuer in case it is needed
+&nbsp;
+  address public arbiter; // should mediate conflicts, has the power to accept work
+&nbsp;
+  BountyStages public bountyStage; // the stage of the bounty
+&nbsp;
+  uint public deadline; // unix timestamp before which all work must be submitted
+  string public data; // a hash of data representing the requirements for each milestone of the bounty, along with any associated files
+&nbsp;
+  uint public numMilestones; // the total number of milestones
+  uint[] public fulfillmentAmounts; // the amount of wei to be rewarded to the user who fulfills the i'th milestone
+&nbsp;
+  mapping(uint=&gt;Fulfillment[]) public fulfillments; // all submitted fulfillments for each milestone
+  mapping(uint=&gt;uint) public numFulfillments; // the number of submitted fulfillments for each milestone
+&nbsp;
+  mapping(uint=&gt;uint) public numAccepted; // the number of accepted fulfillments for each milestone
+  mapping(uint=&gt;uint) public numPaid; // the number of paid fulfillments for each milestone
+&nbsp;
+  /*
+   * Enums
+   */
+&nbsp;
+  enum BountyStages {
+      Draft,
+      Active,
+      Dead
+  }
+&nbsp;
+  /*
+   * Structs
+   */
+&nbsp;
+  struct Fulfillment {
+      bool paid;
+      bool accepted;
+      address fulfiller;
+      string data;
+      string dataType;
+  }
+&nbsp;
+  /*
+   * Modifiers
+   */
+&nbsp;
+  modifier onlyIssuer() {
+      require(msg.sender == issuer);
+      _;
+  }
+  modifier onlyIssuerOrArbiter() {
+      <span class="missing-if-branch" title="else path not taken" >E</span>require(msg.sender == issuer || msg.sender == arbiter);
+      _;
+  }
+  modifier notIssuerOrArbiter() {
+      require(msg.sender != issuer &amp;&amp; msg.sender != arbiter);
+      _;
+  }
+&nbsp;
+  modifier onlyFulfiller(uint _fulfillmentId, uint _milestoneId) {
+      require(msg.sender == fulfillments[_milestoneId][_fulfillmentId].fulfiller);
+      _;
+  }
+   modifier amountIsNotZero(uint amount) {
+      require(amount != 0);
+      _;
+  }
+  modifier amountsNotZero(uint[] amount) {
+      for (uint i = 0; i &lt; amount.length; i++){
+          require(amount[i] != 0);
+      }
+      _;
+  }
+&nbsp;
+  modifier amountEqualsValue(uint amount) {
+      require((amount * 1 wei) == msg.value);
+      _;
+  }
+&nbsp;
+  modifier isBeforeDeadline() {
+      <span class="missing-if-branch" title="else path not taken" >E</span>require(now &lt; deadline);
+      _;
+  }
+&nbsp;
+  modifier validateDeadline(uint newDeadline) {
+      require(newDeadline &gt; now);
+      _;
+  }
+&nbsp;
+  modifier newDeadlineIsValid(uint newDeadline) {
+      require(newDeadline &gt; deadline);
+      _;
+  }
+&nbsp;
+  modifier isAtStage(BountyStages desiredStage) {
+      require(bountyStage == desiredStage);
+      _;
+  }
+&nbsp;
+&nbsp;
+  modifier isNotDead() {
+      require(bountyStage != BountyStages.Dead);
+      _;
+  }
+&nbsp;
+  modifier checkFulfillmentsNumber(uint _milestoneId) {
+      <span class="missing-if-branch" title="else path not taken" >E</span>require(numFulfillments[_milestoneId] &lt; MAX_FULFILLMENTS);
+      _;
+  }
+&nbsp;
+  modifier validateFulfillmentArrayIndex(uint index, uint _milestoneId) {
+      <span class="missing-if-branch" title="else path not taken" >E</span>require(index &lt; numFulfillments[_milestoneId]);
+      _;
+  }
+&nbsp;
+  modifier validateMilestoneIndex(uint _milestoneId){
+      <span class="missing-if-branch" title="else path not taken" >E</span>require(_milestoneId &lt; numMilestones);
+      _;
+  }
+&nbsp;
+  modifier checkFulfillmentIsApprovedAndUnpaid(uint _fulfillmentId, uint _milestoneId) {
+      <span class="missing-if-branch" title="else path not taken" >E</span>require(fulfillments[_milestoneId][_fulfillmentId].accepted &amp;&amp; !fulfillments[_milestoneId][_fulfillmentId].paid);
+      _;
+  }
+&nbsp;
+&nbsp;
+  modifier validateFunding() {
+&nbsp;
+      uint total = 0;
+      for (uint i = 0 ; i &lt; numMilestones; i++){
+          total += fulfillmentAmounts[i];
+      }
+&nbsp;
+      require (this.balance &gt;= (total + unpaidAmount()));
+      _;
+  }
+&nbsp;
+  modifier correctLengths(uint _numMilestones, uint _length) {
+      require(_numMilestones == _length);
+      _;
+  }
+&nbsp;
+  modifier unpaidAmountRemains(uint _milestoneId) {
+      require((unpaidAmount() + fulfillmentAmounts[_milestoneId]) &lt;= this.balance);
+      _;
+  }
+&nbsp;
+&nbsp;
+  /*
+   * Public functions
+   */
+&nbsp;
+  /// @dev StandardBounty(): instantiates a new draft bounty
+  /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
+  /// @param _contactInfo a string with contact info of the issuer, for them to be contacted if needed
+  /// @param _data the requirements of the bounty
+  /// @param _fulfillmentAmounts the amount of wei to be paid out for each successful fulfillment
+  /// @param _numMilestones the total number of milestones which can be paid out
+  /// @param _arbiter the address of the arbiter who can mediate claims
+  function StandardBounty(
+      uint _deadline,
+      string _contactInfo,
+      string _data,
+      uint256[] _fulfillmentAmounts,
+      uint _numMilestones,
+      address _arbiter
+  )
+      amountsNotZero(_fulfillmentAmounts)
+      validateDeadline(_deadline)
+      correctLengths(_numMilestones, _fulfillmentAmounts.length)
+  {
+      issuer = tx.origin; //this allows for the issuance of a bounty using a factory
+      issuerContact = _contactInfo;
+      bountyStage = BountyStages.Draft;
+      deadline = _deadline;
+      data = _data;
+      numMilestones = _numMilestones;
+      arbiter = _arbiter;
+&nbsp;
+      fulfillmentAmounts = _fulfillmentAmounts;
+  }
+&nbsp;
+  /// @dev contribute(): a function allowing anyone to contribute ether to a
+  /// bounty, as long as it is still before its deadline. Shouldn't
+  /// keep ether by accident (hence 'value').
+  /// @notice Please note you funds will be at the mercy of the issuer
+  ///  and can be drained at any moment. Be careful!
+  /// @param value the amount being contributed in ether to prevent
+  /// accidental deposits
+  function contribute (uint value)
+      payable
+      isBeforeDeadline
+      isNotDead
+      amountIsNotZero(value)
+      amountEqualsValue(value)
+  {
+      ContributionAdded(msg.sender, msg.value);
+  }
+&nbsp;
+  /// @notice Send funds to activate the bug bounty
+  /// @dev activateBounty(): activate a bounty so it may pay out
+  /// @param value the amount being contributed in ether to prevent
+  /// accidental deposits
+  function activateBounty(uint value)
+      payable
+      public
+      isBeforeDeadline
+      onlyIssuer
+      amountEqualsValue(value)
+      validateFunding
+  {
+      transitionToState(BountyStages.Active);
+&nbsp;
+      ContributionAdded(msg.sender, msg.value);
+      BountyActivated(msg.sender);
+  }
+&nbsp;
+  /// @dev fulfillBounty(): submit a fulfillment for the given bounty
+  /// @param _data the data artifacts representing the fulfillment of the bounty
+  /// @param _dataType a meaningful description of the type of data the fulfillment represents
+  /// @param _milestoneId the id of the milestone being fulfilled
+  function fulfillBounty(string _data, string _dataType, uint _milestoneId)
+      public
+      isAtStage(BountyStages.Active)
+      isBeforeDeadline
+      validateMilestoneIndex(_milestoneId)
+      checkFulfillmentsNumber(_milestoneId)
+      notIssuerOrArbiter
+  {
+      fulfillments[_milestoneId].push(Fulfillment(false, false, msg.sender, _data, _dataType));
+&nbsp;
+      BountyFulfilled(msg.sender, numFulfillments[_milestoneId]++, _milestoneId);
+  }
+&nbsp;
+  /// @dev acceptFulfillment(): accept a given fulfillment
+  /// @param _fulfillmentId the index of the fulfillment being accepted
+  /// @param _milestoneId the id of the milestone being accepted
+  function acceptFulfillment(uint _fulfillmentId, uint _milestoneId)
+      public
+      onlyIssuerOrArbiter
+      isAtStage(BountyStages.Active)
+      validateMilestoneIndex(_milestoneId)
+      validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
+      unpaidAmountRemains(_milestoneId)
+  {
+      fulfillments[_milestoneId][_fulfillmentId].accepted = true;
+      numAccepted[_milestoneId]++;
+&nbsp;
+      FulfillmentAccepted(msg.sender, _fulfillmentId, _milestoneId);
+  }
+&nbsp;
+  /// @dev fulfillmentPayment(): pay the fulfiller for their work
+  /// @param _fulfillmentId the index of the fulfillment being accepted
+  /// @param _milestoneId the id of the milestone being paid
+  function fulfillmentPayment(uint _fulfillmentId, uint _milestoneId)
+      public
+      validateMilestoneIndex(_milestoneId)
+      validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
+      onlyFulfiller(_fulfillmentId, _milestoneId)
+      checkFulfillmentIsApprovedAndUnpaid(_fulfillmentId, _milestoneId)
+  {
+      fulfillments[_milestoneId][_fulfillmentId].fulfiller.transfer(fulfillmentAmounts[_milestoneId]);
+      fulfillments[_milestoneId][_fulfillmentId].paid = true;
+&nbsp;
+      numPaid[_milestoneId]++;
+&nbsp;
+      FulfillmentPaid(msg.sender, _fulfillmentId, _milestoneId);
+  }
+&nbsp;
+  /// @dev killBounty(): drains the contract of it's remaining
+  /// funds, and moves the bounty into stage 3 (dead) since it was
+  /// either killed in draft stage, or never accepted any fulfillments
+  function killBounty()
+      public
+      onlyIssuer
+  {
+      issuer.transfer(this.balance - unpaidAmount());
+&nbsp;
+      transitionToState(BountyStages.Dead);
+&nbsp;
+      BountyKilled();
+  }
+&nbsp;
+  /// @dev extendDeadline(): allows the issuer to add more time to the
+  /// bounty, allowing it to continue accepting fulfillments
+  /// @param _newDeadline the new deadline in timestamp format
+  function extendDeadline(uint _newDeadline)
+      public
+      onlyIssuer
+      newDeadlineIsValid(_newDeadline)
+  {
+      deadline = _newDeadline;
+&nbsp;
+      DeadlineExtended(_newDeadline);
+  }
+&nbsp;
+  /// @dev transferIssuer(): allows the issuer to transfer ownership of the
+  /// bounty to some new address
+  /// @param _newIssuer the address of the new issuer
+  function transferIssuer(address _newIssuer)
+  public
+  onlyIssuer
+  {
+    issuer = _newIssuer;
+  }
+&nbsp;
+  /// @dev changeBounty(): allows the issuer to change all bounty storage
+  /// members simultaneously
+  /// @param _newDeadline the new deadline for the bounty
+  /// @param _newContactInfo the new contact information for the issuer
+  /// @param _newData the new requirements of the bounty
+  /// @param _newFulfillmentAmounts the new fulfillment amounts
+  /// @param _newNumMilestones the number of milestones which can be fulfilled
+<span class="fstat-no" title="function not covered" >  function changeBounty(uint _newDeadline,</span>
+                        string _newContactInfo,
+                        string _newData,
+                        uint[] _newFulfillmentAmounts,
+                        uint _newNumMilestones,
+                        address _newArbiter)
+      public
+      onlyIssuer
+      validateDeadline(_newDeadline)
+      amountsNotZero(_newFulfillmentAmounts)
+      correctLengths(_newNumMilestones, _newFulfillmentAmounts.length)
+      isAtStage(BountyStages.Draft)
+  {
+<span class="cstat-no" title="statement not covered" >    deadline = _newDeadline</span>;
+<span class="cstat-no" title="statement not covered" >    issuerContact = _newContactInfo</span>;
+<span class="cstat-no" title="statement not covered" >    data = _newData</span>;
+<span class="cstat-no" title="statement not covered" >    fulfillmentAmounts = _newFulfillmentAmounts</span>;
+<span class="cstat-no" title="statement not covered" >    numMilestones = _newNumMilestones</span>;
+<span class="cstat-no" title="statement not covered" >    arbiter = _newArbiter</span>;
+  }
+&nbsp;
+  /// @dev changeDeadline(): allows the issuer to change the deadline of the bounty
+  /// @param _newDeadline the new deadline
+<span class="fstat-no" title="function not covered" >  function changeDeadline(uint _newDeadline)</span>
+      public
+      onlyIssuer
+      validateDeadline(_newDeadline)
+      isAtStage(BountyStages.Draft)
+  {
+<span class="cstat-no" title="statement not covered" >      deadline = _newDeadline</span>;
+  }
+&nbsp;
+  /// @dev changeData(): allows the issuer to change the data of the bounty
+  /// @param _newData the new data
+<span class="fstat-no" title="function not covered" >  function changeData(string _newData)</span>
+      public
+      onlyIssuer
+      isAtStage(BountyStages.Draft)
+  {
+<span class="cstat-no" title="statement not covered" >      data = _newData</span>;
+  }
+&nbsp;
+  /// @dev changeContact(): allows the issuer to change the contact of the bounty
+  /// @param _newContact the new data
+<span class="fstat-no" title="function not covered" >  function changeContact(string _newContact)</span>
+      public
+      onlyIssuer
+      isAtStage(BountyStages.Draft)
+  {
+<span class="cstat-no" title="statement not covered" >      issuerContact = _newContact</span>;
+  }
+&nbsp;
+  /// @dev changeArbiter(): allows the issuer to change the arbiter of the bounty
+  /// @param _newArbiter the new data
+<span class="fstat-no" title="function not covered" >  function changeArbiter(address _newArbiter)</span>
+      public
+      onlyIssuer
+      isAtStage(BountyStages.Draft)
+  {
+<span class="cstat-no" title="statement not covered" >      arbiter = _newArbiter</span>;
+  }
+&nbsp;
+  /// @dev changeFulfillmentAmounts(): allows the issuer to change the
+  /// fulfillment amounts of the bounty
+  /// @param _newFulfillmentAmounts the new fulfillment amounts
+  /// @param _numMilestones the number of milestones which can be fulfilled
+<span class="fstat-no" title="function not covered" >  function changeFulfillmentAmounts(uint[] _newFulfillmentAmounts, uint _numMilestones)</span>
+      public
+      onlyIssuer
+      amountsNotZero(_newFulfillmentAmounts)
+      correctLengths(_numMilestones, _newFulfillmentAmounts.length)
+      isAtStage(BountyStages.Draft)
+  {
+<span class="cstat-no" title="statement not covered" >      fulfillmentAmounts = _newFulfillmentAmounts</span>;
+  }
+&nbsp;
+  /// @dev getFulfillment(): Returns the fulfillment at a given index
+  /// @param _fulfillmentId the index of the fulfillment to return
+  /// @param _milestoneId the index of the milestone to return
+  /// @return Returns a tuple for the fulfillment
+  function getFulfillment(uint _fulfillmentId, uint _milestoneId)
+      public
+      constant
+      validateMilestoneIndex(_milestoneId)
+      validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
+      returns (bool, bool, address, string, string)
+  {
+      return (fulfillments[_milestoneId][_fulfillmentId].paid,
+              fulfillments[_milestoneId][_fulfillmentId].accepted,
+              fulfillments[_milestoneId][_fulfillmentId].fulfiller,
+              fulfillments[_milestoneId][_fulfillmentId].data,
+              fulfillments[_milestoneId][_fulfillmentId].dataType);
+  }
+&nbsp;
+  /// @dev getBounty(): Returns the details of the bounty
+  /// @return Returns a tuple for the bounty
+<span class="fstat-no" title="function not covered" >  function getBounty()</span>
+      public
+      constant
+      returns (address, string, uint, uint, string, uint)
+  {
+<span class="cstat-no" title="statement not covered" >      return (issuer,</span>
+              issuerContact,
+              uint(bountyStage),
+              deadline,
+              data,
+              numMilestones);
+  }
+&nbsp;
+  /// @dev unpaidAmount(): calculates the amount which
+  /// the bounty has yet to pay out
+  /// @return Returns the amount of Wei or tokens owed
+  function unpaidAmount()
+      public
+      constant
+      returns (uint amount)
+  {
+      for (uint i = 0; i &lt; numMilestones; i++){
+          amount += fulfillmentAmounts[i] * (numAccepted[i] - numPaid[i]);
+      }
+  }
+&nbsp;
+  /*
+   * Internal functions
+   */
+&nbsp;
+  /// @dev transitionToState(): transitions the contract to the
+  /// state passed in the parameter `_newStage` given the
+  /// conditions stated in the body of the function
+  /// @param _newStage the new stage to transition to
+  function transitionToState(BountyStages _newStage)
+      internal
+  {
+      bountyStage = _newStage;
+  }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Aug 11 2017 12:37:01 GMT-0400 (EDT)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>
