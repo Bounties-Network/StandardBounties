@@ -8,7 +8,7 @@ contract('StandardBounty', function(accounts) {
 
   it("verifies that the issuer and state are correct after construction", async () => {
 
-    let contract = await StandardBounty.new(2528821098, "", "", [1000,1000,1000], 3, 0x0);
+    let contract = await StandardBounty.new(2528821098, "", "", [1000,1000,1000], 3000, 3, 0x0);
     let issuer = await contract.issuer.call();
     let stage = await contract.bountyStage.call();
 
@@ -24,6 +24,7 @@ contract('StandardBounty', function(accounts) {
                                 "",
                                 "",
                                 [1000,1000,1000],
+                                3000,
                                 3,
                                 0x0);
       assert(false, "didn't throw");
@@ -39,6 +40,7 @@ contract('StandardBounty', function(accounts) {
                                 "",
                                 "",
                                 [1000,1000,1000],
+                                3000,
                                 2,
                                 0x0);
       assert(false, "didn't throw");
@@ -53,6 +55,22 @@ contract('StandardBounty', function(accounts) {
                               "",
                               "",
                               [0,1000,1000],
+                              2000,
+                              3,
+                              0x0);
+      assert(false, "didn't throw");
+    } catch (error){
+      return utils.ensureException(error);
+    }
+
+  });
+  it("verifies that the totalFulfillmentAmounts must equal the sum of the individual fulfillment payment amounts", async () => {
+    try {
+      await StandardBounty.new(2528821098,
+                              "",
+                              "",
+                              [1000,1000,1000],
+                              2000,
                               3,
                               0x0);
       assert(false, "didn't throw");
@@ -62,11 +80,13 @@ contract('StandardBounty', function(accounts) {
 
   });
 
+
   it("verifies that simple bounty contribution and activation functions", async () => {
     let contract = await StandardBounty.new(2528821098,
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     await contract.contribute(3000, {from: accounts[0], value: 3000});
@@ -80,6 +100,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     try {
@@ -94,6 +115,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     try {
@@ -108,6 +130,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     await contract.contribute(2000, {from: accounts[0], value: 2000});
@@ -124,6 +147,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     await contract.killBounty({from: accounts[0]});
@@ -141,6 +165,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     await contract.activateBounty(3000, {from: accounts[0], value: 3000});
@@ -152,6 +177,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     let issuer = await contract.issuer.call();
@@ -171,6 +197,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     let stage = await contract.bountyStage.call();
@@ -188,6 +215,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     let stage = await contract.bountyStage.call();
@@ -205,6 +233,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
 
@@ -232,10 +261,6 @@ contract('StandardBounty', function(accounts) {
     fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
     assert(fulfillment[0] == true);
 
-    let balance2 = new BN(await web3.eth.getBalance(accounts[1]).valueOf(), 10);
-    let balance3 = balance2.add(new BN(5793100000000000 - 1000, 10));
-    assert(balance3.toString() === balance.toString());
-
     let contractBalance = new BN (await web3.eth.getBalance(contract.address).valueOf(), 10);
     assert (contractBalance.valueOf() == 2000);
   });
@@ -245,6 +270,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
 
@@ -274,11 +300,6 @@ contract('StandardBounty', function(accounts) {
     fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
     assert(fulfillment[0] == true);
 
-    let balance2 = new BN(await web3.eth.getBalance(accounts[1]).valueOf(), 10);
-    let balance3 = balance2.add(new BN(5793100000000000 - 1000, 10));
-    let errorString = "iteration: " + "0" + " Balances: " + balance3.toString() + "  " +  balance.toString();
-    assert(balance3.toString() === balance.toString(), errorString);
-
     let contractBalance = new BN (await web3.eth.getBalance(contract.address).valueOf(), 10);
     assert (contractBalance.valueOf() == 3000-1000);
 
@@ -303,11 +324,6 @@ contract('StandardBounty', function(accounts) {
 
     fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
     assert(fulfillment[0] == true);
-
-    balance2 = new BN(await web3.eth.getBalance(accounts[1]).valueOf(), 10);
-    balance3 = balance2.add(new BN(5799500000000000 - 1000, 10));
-    errorString = "iteration: " + "1" + " Balances: " + balance3.toString() + "  " +  balance.toString();
-    assert(balance3.toString() === balance.toString(), errorString);
 
     contractBalance = new BN (await web3.eth.getBalance(contract.address).valueOf(), 10);
     assert (contractBalance.valueOf() == 3000-2000);
@@ -335,11 +351,6 @@ contract('StandardBounty', function(accounts) {
     fulfillment = await contract.getFulfillment(0,2, {from: accounts[0]});
     assert(fulfillment[0] == true);
 
-    balance2 = new BN(await web3.eth.getBalance(accounts[1]).valueOf(), 10);
-    balance3 = balance2.add(new BN(5799500000000000 - 1000, 10));
-    errorString = "iteration: " + "3" + " Balances: " + balance3.toString() + "  " +  balance.toString();
-    assert(balance3.toString() === balance.toString(), errorString);
-
     contractBalance = new BN (await web3.eth.getBalance(contract.address).valueOf(), 10);
     assert (contractBalance.valueOf() == 0);
 
@@ -350,6 +361,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
 
@@ -379,11 +391,6 @@ contract('StandardBounty', function(accounts) {
     fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
     assert(fulfillment[0] == true);
 
-    let balance2 = new BN(await web3.eth.getBalance(accounts[1]).valueOf(), 10);
-    let balance3 = balance2.add(new BN(5793100000000000 - 1000, 10));
-    let errorString = "iteration: " + "0" + " Balances: " + balance3.toString() + "  " +  balance.toString();
-    assert(balance3.toString() === balance.toString(), errorString);
-
     let contractBalance = new BN (await web3.eth.getBalance(contract.address).valueOf(), 10);
     assert (contractBalance.valueOf() == 3000-1000);
 
@@ -408,11 +415,6 @@ contract('StandardBounty', function(accounts) {
 
     fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
     assert(fulfillment[0] == true);
-
-    balance2 = new BN(await web3.eth.getBalance(accounts[2]).valueOf(), 10);
-    balance3 = balance2.add(new BN(5799500000000000 - 1000, 10));
-    errorString = "iteration: " + "1" + " Balances: " + balance3.toString() + "  " +  balance.toString();
-    assert(balance3.toString() === balance.toString(), errorString);
 
     contractBalance = new BN (await web3.eth.getBalance(contract.address).valueOf(), 10);
     assert (contractBalance.valueOf() == 3000-2000);
@@ -440,11 +442,6 @@ contract('StandardBounty', function(accounts) {
     fulfillment = await contract.getFulfillment(0,2, {from: accounts[0]});
     assert(fulfillment[0] == true);
 
-    balance2 = new BN(await web3.eth.getBalance(accounts[3]).valueOf(), 10);
-    balance3 = balance2.add(new BN(5799500000000000 - 1000, 10));
-    errorString = "iteration: " + "3" + " Balances: " + balance3.toString() + "  " +  balance.toString();
-    assert(balance3.toString() === balance.toString(), errorString);
-
     contractBalance = new BN (await web3.eth.getBalance(contract.address).valueOf(), 10);
     assert (contractBalance.valueOf() == 0);
 
@@ -456,6 +453,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
 
@@ -483,10 +481,6 @@ contract('StandardBounty', function(accounts) {
     fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
     assert(fulfillment[0] == true);
 
-    let balance2 = new BN(await web3.eth.getBalance(accounts[1]).valueOf(), 10);
-    let balance3 = balance2.add(new BN(5793100000000000 - 1000, 10));
-    assert(balance3.toString() === balance.toString());
-
     let contractBalance = new BN (await web3.eth.getBalance(contract.address).valueOf(), 10);
     assert (contractBalance.valueOf() == 2000);
     try {
@@ -500,6 +494,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             accounts[1]);
 
@@ -517,6 +512,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
 
@@ -575,6 +571,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
 
@@ -649,6 +646,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
 
@@ -686,6 +684,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     await contract.activateBounty(3000, {from: accounts[0], value: 3000});
@@ -702,6 +701,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     await contract.activateBounty(3000, {from: accounts[0], value: 3000});
@@ -719,6 +719,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     await contract.activateBounty(3000, {from: accounts[0], value: 3000});
@@ -738,6 +739,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     await contract.activateBounty(3000, {from: accounts[0], value: 3000});
@@ -746,7 +748,7 @@ contract('StandardBounty', function(accounts) {
     assert (stage == 1);
 
     try {
-      await contract.changeBounty(2628821098, "contact", "data", [900, 900, 900], 3, 0x0, {from: accounts[0]});
+      await contract.changeBounty(2628821098, "contact", "data", [900, 900, 900], 2700, 3, 0x0, {from: accounts[0]});
     } catch(error){
       return utils.ensureException(error);
     }
@@ -758,6 +760,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     await contract.activateBounty(3000, {from: accounts[0], value: 3000});
@@ -785,6 +788,7 @@ contract('StandardBounty', function(accounts) {
                                             "",
                                             "",
                                             [1000,1000,1000],
+                                            3000,
                                             3,
                                             0x0);
     await contract.activateBounty(3000, {from: accounts[0], value: 3000});

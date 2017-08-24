@@ -23,6 +23,7 @@ contract CodeBugBountyFactory is Factory {
       string _contactInfo,
       string _data,
       uint[] _fulfillmentAmounts,
+      uint _totalFulfillmentAmounts,
       uint _numMilestones,
       address _arbiter,
       Bountied _bountiedContract
@@ -35,6 +36,7 @@ contract CodeBugBountyFactory is Factory {
             _contactInfo,
             _data,
             _fulfillmentAmounts,
+            _totalFulfillmentAmounts,
             _numMilestones,
             _arbiter,
             _bountiedContract

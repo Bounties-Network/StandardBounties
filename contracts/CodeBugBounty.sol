@@ -49,6 +49,7 @@ contract CodeBugBounty is StandardBounty {
     string _contactInfo,
     string _data,
     uint[] _fulfillmentAmounts,
+    uint _totalFulfillmentAmounts,
     uint _numMilestones,
     address _arbiter,
     Bountied _bountiedContract
@@ -58,6 +59,7 @@ contract CodeBugBounty is StandardBounty {
       _contactInfo,
       _data,
       _fulfillmentAmounts,
+      _totalFulfillmentAmounts,
       _numMilestones,
       _arbiter
       )

@@ -55,6 +55,7 @@ contract TokenBounty is StandardBounty {
     string _contactInfo,
     string _data,
     uint[] _fulfillmentAmounts,
+    uint _totalFulfillmentAmounts,
     uint _numMilestones,
     address _arbiter,
     address _tokenAddress
@@ -64,6 +65,7 @@ contract TokenBounty is StandardBounty {
       _contactInfo,
       _data,
       _fulfillmentAmounts,
+      _totalFulfillmentAmounts,
       _numMilestones,
       _arbiter
       )

@@ -44,7 +44,7 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
 
   In this state, the various functions which can be called are:
     - `fulfillBounty()` [**ANYONE BUT ISSUER OR ARBITER**]:
-    - `acceptFulfillment()` [**ONLY ISSUER**]:
+    - `acceptFulfillment()` [**ONLY ISSUER OR ARBITER**]:
     - `fulfillmentPayment()` [**ONLY FULFILLER**]:
     - `killBounty()` [**ONLY ISSUER**]:
 

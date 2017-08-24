@@ -22,6 +22,7 @@ contract BountyFactory is Factory {
       string _contactInfo,
       string _data,
       uint[] _fulfillmentAmounts,
+      uint _totalFulfillmentAmounts,
       uint _numMilestones,
       address _arbiter
     )
@@ -33,11 +34,22 @@ contract BountyFactory is Factory {
           _contactInfo,
           _data,
           _fulfillmentAmounts,
+          _totalFulfillmentAmounts,
           _numMilestones,
           _arbiter
         );
         instances.push(bounty);
         register(bounty);
     }
+
+   /// @dev Returns number of instances
+   /// @return Returns number of instantiations by creator.
+   function getInstanceCount()
+       public
+       constant
+       returns (uint)
+   {
+       return instances.length;
+   }
 
 }

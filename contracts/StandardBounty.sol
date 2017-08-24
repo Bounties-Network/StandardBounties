@@ -37,6 +37,7 @@ contract StandardBounty {
 
   uint public numMilestones; // the total number of milestones
   uint[] public fulfillmentAmounts; // the amount of wei to be rewarded to the user who fulfills the i'th milestone
+  uint public totalFulfillmentAmounts; // the sum of the payouts for the various milestones
 
   mapping(uint=>Fulfillment[]) public fulfillments; // all submitted fulfillments for each milestone
   mapping(uint=>uint) public numFulfillments; // the number of submitted fulfillments for each milestone
@@ -91,10 +92,13 @@ contract StandardBounty {
       require(amount != 0);
       _;
   }
-  modifier amountsNotZero(uint[] amount) {
-      for (uint i = 0; i < amount.length; i++){
-          require(amount[i] != 0);
+  modifier amountsNotZeroAndEqualSum(uint[] amounts, uint _sum) {
+      uint sum = 0;
+      for (uint i = 0; i < amounts.length; i++){
+          sum += amounts[i];
+          require(amounts[i] != 0);
       }
+      require (sum == _sum);
       _;
   }
 
@@ -188,10 +192,11 @@ contract StandardBounty {
       string _contactInfo,
       string _data,
       uint256[] _fulfillmentAmounts,
+      uint _totalFulfillmentAmounts,
       uint _numMilestones,
       address _arbiter
   )
-      amountsNotZero(_fulfillmentAmounts)
+      amountsNotZeroAndEqualSum(_fulfillmentAmounts, _totalFulfillmentAmounts)
       validateDeadline(_deadline)
       correctLengths(_numMilestones, _fulfillmentAmounts.length)
   {
@@ -204,6 +209,7 @@ contract StandardBounty {
       arbiter = _arbiter;
 
       fulfillmentAmounts = _fulfillmentAmounts;
+      totalFulfillmentAmounts = _totalFulfillmentAmounts;
   }
 
   /// @dev contribute(): a function allowing anyone to contribute ether to a
@@ -341,12 +347,13 @@ contract StandardBounty {
                         string _newContactInfo,
                         string _newData,
                         uint[] _newFulfillmentAmounts,
+                        uint _totalFulfillmentAmounts,
                         uint _newNumMilestones,
                         address _newArbiter)
       public
       onlyIssuer
       validateDeadline(_newDeadline)
-      amountsNotZero(_newFulfillmentAmounts)
+      amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
       correctLengths(_newNumMilestones, _newFulfillmentAmounts.length)
       isAtStage(BountyStages.Draft)
   {
@@ -354,6 +361,7 @@ contract StandardBounty {
     issuerContact = _newContactInfo;
     data = _newData;
     fulfillmentAmounts = _newFulfillmentAmounts;
+    totalFulfillmentAmounts = _totalFulfillmentAmounts;
     numMilestones = _newNumMilestones;
     arbiter = _newArbiter;
   }
@@ -403,14 +411,16 @@ contract StandardBounty {
   /// fulfillment amounts of the bounty
   /// @param _newFulfillmentAmounts the new fulfillment amounts
   /// @param _numMilestones the number of milestones which can be fulfilled
-  function changeFulfillmentAmounts(uint[] _newFulfillmentAmounts, uint _numMilestones)
+  function changeFulfillmentAmounts(uint[] _newFulfillmentAmounts, uint _totalFulfillmentAmounts, uint _numMilestones)
       public
       onlyIssuer
-      amountsNotZero(_newFulfillmentAmounts)
+      amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
       correctLengths(_numMilestones, _newFulfillmentAmounts.length)
       isAtStage(BountyStages.Draft)
   {
       fulfillmentAmounts = _newFulfillmentAmounts;
+      numMilestones = _numMilestones;
+      totalFulfillmentAmounts = _totalFulfillmentAmounts;
   }
 
   /// @dev getFulfillment(): Returns the fulfillment at a given index

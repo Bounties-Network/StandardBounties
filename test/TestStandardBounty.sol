@@ -17,6 +17,7 @@ contract TestStandardBounty {
                                                   "",
                                                   "",
                                                   fulfillmentAmounts,
+                                                  3000,
                                                   3,
                                                    0x0);
 
