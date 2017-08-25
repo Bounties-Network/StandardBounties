@@ -1,5 +1,6 @@
 pragma solidity ^0.4.11;
 
+import "./SafeMath.sol";
 
 /// @title StandardBounty
 /// @dev Used to pay out individuals or groups for task fulfillment through
@@ -95,7 +96,7 @@ contract StandardBounty {
   modifier amountsNotZeroAndEqualSum(uint[] amounts, uint _sum) {
       uint sum = 0;
       for (uint i = 0; i < amounts.length; i++){
-          sum += amounts[i];
+          sum = SafeMath.add(sum,amounts[i]);
           require(amounts[i] != 0);
       }
       require (sum == _sum);
@@ -158,10 +159,10 @@ contract StandardBounty {
 
       uint total = 0;
       for (uint i = 0 ; i < numMilestones; i++){
-          total += fulfillmentAmounts[i];
+          total = SafeMath.add(total, fulfillmentAmounts[i]);
       }
 
-      require (this.balance >= (total + unpaidAmount()));
+      require (this.balance >= SafeMath.add(total, unpaidAmount()));
       _;
   }
 
@@ -171,7 +172,7 @@ contract StandardBounty {
   }
 
   modifier unpaidAmountRemains(uint _milestoneId) {
-      require((unpaidAmount() + fulfillmentAmounts[_milestoneId]) <= this.balance);
+      require(SafeMath.add(unpaidAmount(), fulfillmentAmounts[_milestoneId]) <= this.balance);
       _;
   }
 
@@ -465,7 +466,7 @@ contract StandardBounty {
       returns (uint amount)
   {
       for (uint i = 0; i < numMilestones; i++){
-          amount += fulfillmentAmounts[i] * (numAccepted[i] - numPaid[i]);
+          amount = SafeMath.add(amount, SafeMath.mul(fulfillmentAmounts[i], SafeMath.sub(numAccepted[i], numPaid[i])));
       }
   }
 
