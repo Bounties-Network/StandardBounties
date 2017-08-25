@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 
-import "./Factory.sol";
+import "./inherited/Factory.sol";
 import "./StandardBounty.sol";
 
 

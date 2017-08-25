@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 import "./StandardBounty.sol";
-import "./StandardToken.sol";
+import "./inherited/StandardToken.sol";
 
 
 /// @title TokenBounty

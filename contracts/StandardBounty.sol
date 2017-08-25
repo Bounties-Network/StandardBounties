@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 
-import "./SafeMath.sol";
+import "./inherited/SafeMath.sol";
 
 /// @title StandardBounty
 /// @dev Used to pay out individuals or groups for task fulfillment through
