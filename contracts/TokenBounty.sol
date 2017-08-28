@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 import "./StandardBounty.sol";
-import "./inherited/StandardToken.sol";
+import "./inherited/HumanStandardToken.sol";
 
 
 /// @title TokenBounty
@@ -22,21 +22,29 @@ contract TokenBounty is StandardBounty {
 
 
   modifier amountEqualsValue(uint value) {
-    require(value  == tokenContract.allowance(msg.sender, this));
-    require(tokenContract.transferFrom(msg.sender, this, value));
-
+      require(value  <= tokenContract.allowance(msg.sender, this));
+      if (value != 0){
+        require(tokenContract.transferFrom(msg.sender, this, value));
+      }
+      require(tokenContract.balanceOf(this) >= value);
     _;
   }
 
   modifier validateFunding() {
     uint total = 0;
     for (uint i = 0 ; i < numMilestones; i++){
-      total += fulfillmentAmounts[i];
+      total = SafeMath.add(total,  fulfillmentAmounts[i]);
     }
-    require (tokenContract.balanceOf(this) > total + unpaidAmount());
+    require (tokenContract.balanceOf(this) >= SafeMath.add(total, unpaidAmount()));
 
     _;
   }
+  
+  modifier unpaidAmountRemains(uint _milestoneId) {
+      require(SafeMath.add(unpaidAmount(), fulfillmentAmounts[_milestoneId]) <= tokenContract.balanceOf(this));
+      _;
+  }
+
 
 
   /*
@@ -105,6 +113,39 @@ contract TokenBounty is StandardBounty {
       transitionToState(BountyStages.Dead);
 
       BountyKilled();
+    }
+
+    /// @dev changeBounty(): allows the issuer to change all bounty storage
+    /// members simultaneously
+    /// @param _newDeadline the new deadline for the bounty
+    /// @param _newContactInfo the new contact information for the issuer
+    /// @param _newData the new requirements of the bounty
+    /// @param _newFulfillmentAmounts the new fulfillment amounts
+    /// @param _newNumMilestones the number of milestones which can be fulfilled
+    /// @param _tokenAddress the address of the token contract
+    function changeBounty(uint _newDeadline,
+                          string _newContactInfo,
+                          string _newData,
+                          uint[] _newFulfillmentAmounts,
+                          uint _totalFulfillmentAmounts,
+                          uint _newNumMilestones,
+                          address _newArbiter,
+                          address _tokenAddress)
+        public
+        onlyIssuer
+        validateDeadline(_newDeadline)
+        amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
+        correctLengths(_newNumMilestones, _newFulfillmentAmounts.length)
+        isAtStage(BountyStages.Draft)
+    {
+      deadline = _newDeadline;
+      issuerContact = _newContactInfo;
+      data = _newData;
+      fulfillmentAmounts = _newFulfillmentAmounts;
+      totalFulfillmentAmounts = _totalFulfillmentAmounts;
+      numMilestones = _newNumMilestones;
+      arbiter = _newArbiter;
+      tokenContract = HumanStandardToken(_tokenAddress);
     }
 
   }

@@ -154,7 +154,6 @@ contract StandardBounty {
       _;
   }
 
-
   modifier validateFunding() {
 
       uint total = 0;
@@ -227,7 +226,7 @@ contract StandardBounty {
       amountIsNotZero(value)
       amountEqualsValue(value)
   {
-      ContributionAdded(msg.sender, msg.value);
+      ContributionAdded(msg.sender, value);
   }
 
   /// @notice Send funds to activate the bug bounty
