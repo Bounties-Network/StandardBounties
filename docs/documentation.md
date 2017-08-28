@@ -8,28 +8,31 @@
 ### Storage
 
 `address public issuer`
-the creator of the bounty
+The issuer is the creator of the bounty, and has full control over administering its rewards.
 
 `string public issuerContact`
 This is used for the issuer to give participants an off-chain method of communication to maintain healthy contact.
 
 `address public arbiter`
-If the issuer chooses to allow for 3rd party mediation, they allow the arbiter to accept fulfillments on their behalf, and are disallowed from fulfilling the bounty.
+The arbiter is an individual or contract who is able to accept fulfillments on the issuer's behalf. The arbiter is also disallowed from fulfilling the bounty.
 
 `BountyStages public bountyStage`
-Bounties are formed in the `Draft` stage, a period the issuer can use to edit any of the bounty elements, and attain sufficient funding. During the active stage requirements or payout amounts cannot be altered, however the deadline may be extended. Fulfillments can only be accepted in the `Active` stage, even if the deadline has passed. The issuer can kill the bounty returning all funds to them (less the amount due for already accepted but unpaid submissions), however this behaviour is highly discouraged and can hurt reputation.
+Bounties are formed in the `Draft` stage, a period during which the issuer can edit any of the bounty's state variables, and attain sufficient funding. In the draft stage, no fulfillments can be submitted, and no funds can be paid out.
+
+Once the bounty state variables are finalized, and the bounty contract holds sufficient funds to pay out each milestone at least once, it can be transitioned to the `Active` stage by only the issuer. During the active stage, requirements or payout amounts cannot be altered, however the deadline may be extended. Fulfillments can only be submitted in the `Active` stage before the deadline, although they may be accepted by the issuer or arbiter even after the deadline has passed.
+At any point, the issuer can kill the bounty returning all funds to them (less the amount due for already accepted but unpaid submissions), transitioning the bounty into the `Dead` stage. However, this behaviour is highly discouraged and should be avoided at all costs.
 
 `uint public deadline`
-A bounty can only be contributed to, activated, or fulfilled before the given deadline. This deadline can be moved forward or backwards in the draft stage, but once the bounty is activated it can only be extended. This helps maintain the contractual nature of the relationship, where issuers cannot move deadlines forward arbitrarily while individuals are fulfilling the tasks.
+A bounty can only be contributed to, activated, or fulfilled before the given deadline, however fulfillments can be accepted even after the deadline has passed. This deadline can be moved forward or backwards in the draft stage, but once the bounty is activated it can only be extended. This helps maintain the contractual nature of the relationship, where issuers cannot move deadlines forward arbitrarily while individuals are fulfilling the tasks.
 
 `string public data`
-All data representing the requirements are stored off-chain, and their hash is updated here. Requirements and auxiliary data are mutable while the bounty is in the `Active` stage, but becomes immutable when the bounty is activated, thereby "locking in" the terms of the contract, the requirements for acceptance for each milestone. These should be as rich as possible from the outset, to avoid conflicts stemming from task fulfillers believing they merited the bounty reward.
+All data representing the requirements are stored off-chain, and their hash is updated here. Requirements and auxiliary data are mutable while the bounty is in the `Draft` stage, but becomes immutable when the bounty is activated, thereby "locking in" the terms of the contract, the requirements for acceptance for each milestone. These should be as rich as possible from the outset, to avoid conflicts stemming from task fulfillers believing they merited the bounty reward.
 
 `uint public numMilestones`
 The total number of milestones.
 
 `uint[] public fulfillmentAmounts`
-The total bounty amount is broken down into stepwise payments for each milestone, allowing different individuals to fulfill different pieces of a bounty task. This array stores the amount of wei (or ERC20 token) which will pay out when work is accepted.
+The total bounty amount is broken down into stepwise payments for each milestone, allowing different individuals to fulfill different pieces of a bounty task. This array stores the amount of wei (or ERC20 token) which will pay out for each milestone when work is accepted. The length of this array is the number of milestones.
 
 `mapping(uint=>Fulfillment[]) public fulfillments`
 Work is submitted and a hash is stored on-chain, allowing any deliverable to be submitted for the same bounty.
@@ -41,22 +44,23 @@ The number of submissions for each milestone.
 The number of submissions which have been accepted for each milestone.
 
 `mapping(uint=>uint) public numPaid`
-The number of submissions which have paid out to task fulfillers for each milestone.
+The number of submissions which have paid out to task fulfillers for each milestone. `numPaid[i]` is always strictly less than or equal to `numAccepted[i]`.
 
 ### External functions
 
 #### StandardBounty()
-Instantiates the variables describing the bounty, while it is in the draft stage. The contract gives `tx.origin` the issuer privileges so that a factory design pattern can be used.
+Constructs the bounty and instantiates state variables, initializing it in the draft stage. The contract gives `tx.origin` the issuer privileges so that a factory design pattern can be used. The bounty deadline must be after the time of issuance (contract deployment), and none of the milestones can pay out 0 tokens.
 ```
 function StandardBounty(
     uint _deadline,
     string _contactInfo,
     string _data,
-    uint[] _fulfillmentAmounts,
+    uint256[] _fulfillmentAmounts,
+    uint _totalFulfillmentAmounts,
     uint _numMilestones,
     address _arbiter
 )
-    amountsNotZero(_fulfillmentAmounts)
+    amountsNotZeroAndEqualSum(_fulfillmentAmounts, _totalFulfillmentAmounts)
     validateDeadline(_deadline)
     correctLengths(_numMilestones, _fulfillmentAmounts.length)
 {
@@ -69,11 +73,12 @@ function StandardBounty(
     arbiter = _arbiter;
 
     fulfillmentAmounts = _fulfillmentAmounts;
+    totalFulfillmentAmounts = _totalFulfillmentAmounts;
 }
 ```
 
 #### Contribute()
-This allows a bounty to receive 3rd party contributions from the crowd. The Ether (or tokens) which are deposited are at the mercy of the issuer, who can at any point call `killBounty()` to drain remaining funds.
+This allows a bounty to receive 3rd party contributions from the crowd. This functionality is only available before the deadline has passed, and while the bounty is not in the `Dead` stage. The Ether (or tokens) which are deposited are at the mercy of the issuer, who can at any point call `killBounty()` to drain remaining funds.
 ```
 function contribute (uint value)
     payable
@@ -82,12 +87,12 @@ function contribute (uint value)
     amountIsNotZero(value)
     amountEqualsValue(value)
 {
-    ContributionAdded(msg.sender, msg.value);
+    ContributionAdded(msg.sender, value);
 }
 ```
 
 #### ActivateBounty()
-If the bounty has sufficient funds to pay out each milestone at least once, it can be activated, allowing individuals to add submissions.
+If the bounty has sufficient funds to pay out each milestone at least once, it can be activated, allowing individuals to add submissions. Only the issuer is allowed to activate their bounty.
 ```
 function activateBounty(uint value)
     payable
@@ -106,11 +111,13 @@ function activateBounty(uint value)
 
 #### FulfillBounty()
 Once the bounty is active, anyone can fulfill it and submit the necessary deliverables for a given milestone (as long as the deadline has not passed). Anyone can fulfill the bounty, except for the issuer and arbiter, who are disallowed from doing so.
+
 ```
 function fulfillBounty(string _data, string _dataType, uint _milestoneId)
     public
     isAtStage(BountyStages.Active)
     isBeforeDeadline
+    validateMilestoneIndex(_milestoneId)
     checkFulfillmentsNumber(_milestoneId)
     notIssuerOrArbiter
 {
@@ -119,8 +126,10 @@ function fulfillBounty(string _data, string _dataType, uint _milestoneId)
     BountyFulfilled(msg.sender, numFulfillments[_milestoneId]++, _milestoneId);
 }
 ```
+
 #### AcceptFulfillment()
 Submissions can be accepted by the issuer while the bounty is active, and the contract has sufficient funds to pay out all previously accepted submissions. Arbiters also have the ability to accept work, but should only do so after mediating between the issuer and fulfiller to resolve the conflict.
+
 ```
 function acceptFulfillment(uint _fulfillmentId, uint _milestoneId)
     public
@@ -138,7 +147,7 @@ function acceptFulfillment(uint _fulfillmentId, uint _milestoneId)
 ```
 
 #### FulfillmentPayment()
-Once an individuals submission has been accepted, they can claim their reward, transferring the Ether (or tokens) to the successful fulfiller.
+Once an individuals submission has been accepted, they can claim their reward, transferring the Ether (or tokens) to the successful fulfiller. A payment can only be claimed once for each fulfillment which has been accepted.
 ```
 function fulfillmentPayment(uint _fulfillmentId, uint _milestoneId)
     public
@@ -155,8 +164,9 @@ function fulfillmentPayment(uint _fulfillmentId, uint _milestoneId)
     FulfillmentPaid(msg.sender, _fulfillmentId, _milestoneId);
 }
 ```
+
 #### KillBounty()
-Once an individuals submission has been accepted, they can claim their reward, transferring the Ether (or tokens) to the successful fulfiller.
+The issuer of the bounty can transition it into the `Dead` stage at any point in time, draining the contract of all remaining funds (less the amount still due for successful fulfillments which are yet unpaid).
 ```
 function killBounty()
     public
@@ -185,7 +195,7 @@ function extendDeadline(uint _newDeadline)
 ```
 
 #### transferIssuer()
-At any point, the issuer can transfer ownership of the bounty to a new address that they supply.
+At any point, the issuer can transfer ownership of the bounty to a new address that they supply. This gives full power and authority to the new issuer address, and releases the old issuer address from the ability to administer the bounty.
 ```
 function transferIssuer(address _newIssuer)
 public
@@ -196,18 +206,19 @@ onlyIssuer
 ```
 
 #### ChangeBounty()
-The issuer of the bounty can change all bounty variables at once while the bounty is in the `Draft` stage.
+The issuer of the bounty can change all bounty variables at once while the bounty is in the `Draft` stage. This is not allowed when the bounty is in the `Active` or `Dead` stage.
 ```
 function changeBounty(uint _newDeadline,
                       string _newContactInfo,
                       string _newData,
                       uint[] _newFulfillmentAmounts,
+                      uint _totalFulfillmentAmounts,
                       uint _newNumMilestones,
                       address _newArbiter)
     public
     onlyIssuer
     validateDeadline(_newDeadline)
-    amountsNotZero(_newFulfillmentAmounts)
+    amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
     correctLengths(_newNumMilestones, _newFulfillmentAmounts.length)
     isAtStage(BountyStages.Draft)
 {
@@ -215,13 +226,14 @@ function changeBounty(uint _newDeadline,
   issuerContact = _newContactInfo;
   data = _newData;
   fulfillmentAmounts = _newFulfillmentAmounts;
+  totalFulfillmentAmounts = _totalFulfillmentAmounts;
   numMilestones = _newNumMilestones;
   arbiter = _newArbiter;
 }
 ```
 
 #### changeDeadline()
-The issuer of the bounty can change the deadline however they wish while the bounty is in the `Draft` stage.
+The issuer of the bounty can change the deadline however they wish while the bounty is in the `Draft` stage. This is not allowed when the bounty is in the `Active` or `Dead` stage.
 ```
 function changeDeadline(uint _newDeadline)
     public
@@ -234,7 +246,7 @@ function changeDeadline(uint _newDeadline)
 ```
 
 #### changeData()
-The issuer of the bounty can change the data (and requirements for acceptance) at any time while it is in `Draft` stage.
+The issuer of the bounty can change the data (and requirements for acceptance) at any time while it is in `Draft` stage. This is not allowed when the bounty is in the `Active` or `Dead` stage.
 ```
 function changeData(string _newData)
     public
@@ -246,7 +258,7 @@ function changeData(string _newData)
 ```
 
 #### changeContact()
-The issuer of the bounty can change their contact information at any time while it is in `Draft` stage.
+The issuer of the bounty can change their contact information at any time while it is in `Draft` stage. This is not allowed when the bounty is in the `Active` or `Dead` stage.
 ```
 function changeContact(string _newContact)
     public
@@ -258,7 +270,7 @@ function changeContact(string _newContact)
 ```
 
 #### changeArbiter()
-The issuer of the bounty can change the arbiter at any time while it is in `Draft` stage.
+The issuer of the bounty can change the arbiter at any time while it is in `Draft` stage. This is not allowed when the bounty is in the `Active` or `Dead` stage.
 ```
 function changeArbiter(address _newArbiter)
     public
@@ -270,16 +282,18 @@ function changeArbiter(address _newArbiter)
 ```
 
 #### changeFulfillmentAmounts()
-The issuer of the bounty can change the payout amounts due for all milestones at once at any time while it is in `Draft` stage.
+The issuer of the bounty can change the payout amounts due for all milestones at once at any time while it is in `Draft` stage. The payouts for each milestone still cannot be 0, and the number of payouts must correspond to the total number of milestones. This is not allowed when the bounty is in the `Active` or `Dead` stage.
 ```
-function changeFulfillmentAmounts(uint[] _newFulfillmentAmounts, uint _numMilestones)
+function changeFulfillmentAmounts(uint[] _newFulfillmentAmounts, uint _totalFulfillmentAmounts, uint _numMilestones)
     public
     onlyIssuer
-    amountsNotZero(_newFulfillmentAmounts)
+    amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
     correctLengths(_numMilestones, _newFulfillmentAmounts.length)
     isAtStage(BountyStages.Draft)
 {
     fulfillmentAmounts = _newFulfillmentAmounts;
+    numMilestones = _numMilestones;
+    totalFulfillmentAmounts = _totalFulfillmentAmounts;
 }
 ```
 
@@ -289,6 +303,8 @@ Returns all of the information describing a given fulfillment for a given milest
 function getFulfillment(uint _fulfillmentId, uint _milestoneId)
     public
     constant
+    validateMilestoneIndex(_milestoneId)
+    validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
     returns (bool, bool, address, string, string)
 {
     return (fulfillments[_milestoneId][_fulfillmentId].paid,
@@ -316,7 +332,7 @@ function getBounty()
 ```
 
 #### UnpaidAmount()
-Returns the amount of wei which is owed for submissions which were already accepted.
+Returns the amount of wei or tokens which are owed for submissions which were already accepted, but have not yet been paid.
 ```
 function unpaidAmount()
     public
@@ -324,7 +340,7 @@ function unpaidAmount()
     returns (uint amount)
 {
     for (uint i = 0; i < numMilestones; i++){
-        amount += fulfillmentAmounts[i] * (numAccepted[i] - numPaid[i]);
+        amount = SafeMath.add(amount, SafeMath.mul(fulfillmentAmounts[i], SafeMath.sub(numAccepted[i], numPaid[i])));
     }
 }
 ```

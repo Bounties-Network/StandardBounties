@@ -185,6 +185,7 @@ contract StandardBounty {
   /// @param _contactInfo a string with contact info of the issuer, for them to be contacted if needed
   /// @param _data the requirements of the bounty
   /// @param _fulfillmentAmounts the amount of wei to be paid out for each successful fulfillment
+  /// @param _totalFulfillmentAmounts the sum of the individual fulfillment amounts
   /// @param _numMilestones the total number of milestones which can be paid out
   /// @param _arbiter the address of the arbiter who can mediate claims
   function StandardBounty(
@@ -213,12 +214,11 @@ contract StandardBounty {
   }
 
   /// @dev contribute(): a function allowing anyone to contribute ether to a
-  /// bounty, as long as it is still before its deadline. Shouldn't
-  /// keep ether by accident (hence 'value').
+  /// bounty, as long as it is still before its deadline. Shouldn't keep
+  /// ether by accident (hence 'value').
+  /// @param value the amount being contributed in ether to prevent accidental deposits
   /// @notice Please note you funds will be at the mercy of the issuer
   ///  and can be drained at any moment. Be careful!
-  /// @param value the amount being contributed in ether to prevent
-  /// accidental deposits
   function contribute (uint value)
       payable
       isBeforeDeadline
@@ -342,7 +342,9 @@ contract StandardBounty {
   /// @param _newContactInfo the new contact information for the issuer
   /// @param _newData the new requirements of the bounty
   /// @param _newFulfillmentAmounts the new fulfillment amounts
+  /// @param _totalFulfillmentAmounts the sum of the individual fulfillment amounts
   /// @param _newNumMilestones the number of milestones which can be fulfilled
+  /// @param _newArbiter the new address of the arbiter
   function changeBounty(uint _newDeadline,
                         string _newContactInfo,
                         string _newData,
@@ -410,6 +412,7 @@ contract StandardBounty {
   /// @dev changeFulfillmentAmounts(): allows the issuer to change the
   /// fulfillment amounts of the bounty
   /// @param _newFulfillmentAmounts the new fulfillment amounts
+  /// @param _totalFulfillmentAmounts the sum of the individual fulfillment amounts
   /// @param _numMilestones the number of milestones which can be fulfilled
   function changeFulfillmentAmounts(uint[] _newFulfillmentAmounts, uint _totalFulfillmentAmounts, uint _numMilestones)
       public
