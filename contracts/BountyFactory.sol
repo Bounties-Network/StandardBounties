@@ -8,7 +8,27 @@ import "./StandardBounty.sol";
 /// @author Gonçalo Sá <goncalo.sa@consensys.net>
 contract BountyFactory is Factory {
     address[] public instances;
+    address public owner;
 
+    modifier onlyOwner(){
+      require(msg.sender == owner);
+      _;
+    }
+
+    modifier correctId(uint _bountyId, address _bountyAddress){
+      require(instances[_bountyId] == _bountyAddress);
+      _;
+    }
+
+    modifier correctUser(uint _userId, address _userAddress, address _bountyAddress){
+      require(instantiations[_userAddress][_userId] == _bountyAddress);
+      _;
+    }
+
+    /// @dev constructor for the factory
+    function BountyFactory(){
+      owner = msg.sender;
+    }
 
     /// @dev Allows multiple creations of bounties
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
@@ -52,4 +72,29 @@ contract BountyFactory is Factory {
        return instances.length;
    }
 
+   /// @dev Enables the creator of the factory to remove unwanted bounties
+   /// @param _bountyId the ID of the bounty
+   /// @param _bountyAddress the address of the bounty
+   /// @param _userId the index of the bounty in the user's array
+   /// @param _userAddress the address of the original bounty
+   function remove(uint _bountyId, address _bountyAddress, uint _userId, address _userAddress)
+   public
+   onlyOwner
+   correctId(_bountyId, _bountyAddress)
+   correctUser(_userId, _userAddress, _bountyAddress)
+   {
+     delete instances[_bountyId];
+     isInstantiation[_bountyAddress] = false;
+     delete instantiations[_userAddress][_userId];
+
+   }
+
+   /// @dev Enables the creator of the factory transfer ownership
+   /// @param _newOwner the new address of the owner
+   function transferOwner(address _newOwner)
+   public
+   onlyOwner
+   {
+     owner = _newOwner;
+   }
 }
