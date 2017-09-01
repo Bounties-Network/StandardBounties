@@ -28,11 +28,8 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
     - `killBounty()` [**ONLY ISSUER**]: This will kill the bounty
 
   As well as several functions to alter the bounty details:
-    - `changeDeadline()` [**ONLY ISSUER**]
-    - `changeData()` [**ONLY ISSUER**]
-    - `changeContact()` [**ONLY ISSUER**]
-    - `changeArbiter()` [**ONLY ISSUER**]
-    - `changeFulfillmentAmounts()` [**ONLY ISSUER**]
+    - `changeBounty()` [**ONLY ISSUER**]
+    - `extendDeadline()` [**ONLY ISSUER**]
 
 - A bounty transitions to the `Active` state when the issuer calls `activateBounty()`.
 
@@ -56,16 +53,9 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
   - `activateBounty()` [**ONLY ISSUER**]
 
 
-
-
-### 2.1 Invariant check pattern for _CodeBugBounty.sol_
-
-Code bug bounties are a specific implementation of the `StandardBounty`, where the 0th milestone is reserved for fulfillments which break a contracts invariants. Its use requires the implementation of `Bountied.sol`, with special care given to the `checkInvariants()` function that checks the correctness of the contract's state.
-
-
 ## 3. Development
 
-All the extension bounty types (particular cases like _CodeBugBounty.sol_) **musn't** break the state transitions as described above.
+All the extension bounty types **musn't** break the state transitions as described above.
 
 ## 4. Documentation
 

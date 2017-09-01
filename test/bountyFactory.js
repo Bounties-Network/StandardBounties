@@ -1,5 +1,7 @@
 const BountyFactory = artifacts.require("../contracts/BountyFactory.sol");
 const StandardBounty = artifacts.require("../contracts/StandardBounty.sol");
+const HumanStandardToken = artifacts.require("../contracts/inherited/HumanStandardToken.sol");
+
 const utils = require('./helpers/Utils');
 const BN = require(`bn.js`);
 
@@ -50,10 +52,32 @@ contract('BountyFactory', function(accounts) {
     let owner = await manager.owner();
     assert (owner == accounts[0]);
 
-    let bounty = await manager.create(2528821098,"","",[1000,1000,1000],3000,3,0x0, {from: accounts[0]});
+    let bounty = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[0]});
 
     let bounty0 = await manager.instances(0);
     assert (bounty.logs[0].args.instantiation == bounty0);
+  });
+
+  it("verifies that bounty creation works for token bounties too", async () => {
+
+    let manager = await BountyFactory.new({from: accounts[0]});
+
+    let owner = await manager.owner();
+    assert (owner == accounts[0]);
+
+    let bounty = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[0]});
+
+    let bounty0 = await manager.instances(0);
+    assert (bounty.logs[0].args.instantiation == bounty0);
+
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    bounty = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0, bountyToken.address, {from: accounts[0]});
+    bounty0 = await manager.instances(1);
+
+    assert (bounty.logs[0].args.instantiation == bounty0);
+
+
   });
   it("verifies that bounty creation with incorrect args fails", async () => {
 
@@ -64,7 +88,7 @@ contract('BountyFactory', function(accounts) {
 
 
     try {
-      await manager.create(2528821098,"","",[0,1000,1000],3000,3,0x0, {from: accounts[0]});
+      await manager.create(2528821098,"",[0,1000,1000],3000,0x0,0x0, {from: accounts[0]});
     } catch(error){
       return utils.ensureException(error);
     }
@@ -78,18 +102,14 @@ contract('BountyFactory', function(accounts) {
     let owner = await manager.owner();
     assert (owner == accounts[0]);
 
-    let bounty = await manager.create(2528821098,"","",[1000,1000,1000],3000,3,0x0, {from: accounts[1]});
-    let bounty2 = await manager.create(2528821098,"","",[1000,1000,1000],3000,3,0x0, {from: accounts[1]});
+    let bounty = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
+    let bounty2 = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
 
 
     let bounty0 = await manager.instances(0);
     assert (bounty.logs[0].args.instantiation == bounty0);
 
-    let isInstantiation = await manager.isInstantiation(bounty0);
-    assert (isInstantiation == true);
     await manager.remove(0, bounty0, 0, accounts[1]);
-    isInstantiation = await manager.isInstantiation(bounty0);
-    assert(isInstantiation == false);
     let instance = await manager.instances(0);
     assert(instance == "0x0000000000000000000000000000000000000000");
     let instantiation = await manager.instantiations(accounts[1], 0);
@@ -103,15 +123,13 @@ contract('BountyFactory', function(accounts) {
     let owner = await manager.owner();
     assert (owner == accounts[0]);
 
-    let bounty = await manager.create(2528821098,"","",[1000,1000,1000],3000,3,0x0, {from: accounts[1]});
-    let bounty2 = await manager.create(2528821098,"","",[1000,1000,1000],3000,3,0x0, {from: accounts[1]});
+    let bounty = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
+    let bounty2 = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
 
 
     let bounty0 = await manager.instances(0);
     assert (bounty.logs[0].args.instantiation == bounty0);
 
-    let isInstantiation = await manager.isInstantiation(bounty0);
-    assert (isInstantiation == true);
     try {
       await manager.remove(0, bounty0, 0, accounts[1], {from: accounts[1]});
     } catch(error){
@@ -126,15 +144,13 @@ contract('BountyFactory', function(accounts) {
     let owner = await manager.owner();
     assert (owner == accounts[0]);
 
-    let bounty = await manager.create(2528821098,"","",[1000,1000,1000],3000,3,0x0, {from: accounts[1]});
-    let bounty2 = await manager.create(2528821098,"","",[1000,1000,1000],3000,3,0x0, {from: accounts[1]});
+    let bounty = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
+    let bounty2 = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
 
 
     let bounty0 = await manager.instances(0);
     assert (bounty.logs[0].args.instantiation == bounty0);
 
-    let isInstantiation = await manager.isInstantiation(bounty0);
-    assert (isInstantiation == true);
     try {
       await manager.remove(1, bounty0, 1, accounts[1], {from: accounts[0]});
     } catch(error){

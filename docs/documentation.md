@@ -10,9 +10,6 @@
 `address public issuer`
 The issuer is the creator of the bounty, and has full control over administering its rewards.
 
-`string public issuerContact`
-This is used for the issuer to give participants an off-chain method of communication to maintain healthy contact.
-
 `address public arbiter`
 The arbiter is an individual or contract who is able to accept fulfillments on the issuer's behalf. The arbiter is also disallowed from fulfilling the bounty.
 
@@ -28,17 +25,12 @@ A bounty can only be contributed to, activated, or fulfilled before the given de
 `string public data`
 All data representing the requirements are stored off-chain, and their hash is updated here. Requirements and auxiliary data are mutable while the bounty is in the `Draft` stage, but becomes immutable when the bounty is activated, thereby "locking in" the terms of the contract, the requirements for acceptance for each milestone. These should be as rich as possible from the outset, to avoid conflicts stemming from task fulfillers believing they merited the bounty reward.
 
-`uint public numMilestones`
-The total number of milestones.
-
 `uint[] public fulfillmentAmounts`
 The total bounty amount is broken down into stepwise payments for each milestone, allowing different individuals to fulfill different pieces of a bounty task. This array stores the amount of wei (or ERC20 token) which will pay out for each milestone when work is accepted. The length of this array is the number of milestones.
 
 `mapping(uint=>Fulfillment[]) public fulfillments`
 Work is submitted and a hash is stored on-chain, allowing any deliverable to be submitted for the same bounty.
 
-`mapping(uint=>uint) public numFulfillments`
-The number of submissions for each milestone.
 
 `mapping(uint=>uint) public numAccepted`
 The number of submissions which have been accepted for each milestone.
@@ -232,71 +224,6 @@ function changeBounty(uint _newDeadline,
 }
 ```
 
-#### changeDeadline()
-The issuer of the bounty can change the deadline however they wish while the bounty is in the `Draft` stage. This is not allowed when the bounty is in the `Active` or `Dead` stage.
-```
-function changeDeadline(uint _newDeadline)
-    public
-    onlyIssuer
-    validateDeadline(_newDeadline)
-    isAtStage(BountyStages.Draft)
-{
-    deadline = _newDeadline;
-}
-```
-
-#### changeData()
-The issuer of the bounty can change the data (and requirements for acceptance) at any time while it is in `Draft` stage. This is not allowed when the bounty is in the `Active` or `Dead` stage.
-```
-function changeData(string _newData)
-    public
-    onlyIssuer
-    isAtStage(BountyStages.Draft)
-{
-    data = _newData;
-}
-```
-
-#### changeContact()
-The issuer of the bounty can change their contact information at any time while it is in `Draft` stage. This is not allowed when the bounty is in the `Active` or `Dead` stage.
-```
-function changeContact(string _newContact)
-    public
-    onlyIssuer
-    isAtStage(BountyStages.Draft)
-{
-    issuerContact = _newContact;
-}
-```
-
-#### changeArbiter()
-The issuer of the bounty can change the arbiter at any time while it is in `Draft` stage. This is not allowed when the bounty is in the `Active` or `Dead` stage.
-```
-function changeArbiter(address _newArbiter)
-    public
-    onlyIssuer
-    isAtStage(BountyStages.Draft)
-{
-    arbiter = _newArbiter;
-}
-```
-
-#### changeFulfillmentAmounts()
-The issuer of the bounty can change the payout amounts due for all milestones at once at any time while it is in `Draft` stage. The payouts for each milestone still cannot be 0, and the number of payouts must correspond to the total number of milestones. This is not allowed when the bounty is in the `Active` or `Dead` stage.
-```
-function changeFulfillmentAmounts(uint[] _newFulfillmentAmounts, uint _totalFulfillmentAmounts, uint _numMilestones)
-    public
-    onlyIssuer
-    amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
-    correctLengths(_numMilestones, _newFulfillmentAmounts.length)
-    isAtStage(BountyStages.Draft)
-{
-    fulfillmentAmounts = _newFulfillmentAmounts;
-    numMilestones = _numMilestones;
-    totalFulfillmentAmounts = _totalFulfillmentAmounts;
-}
-```
-
 #### getFulfillment()
 Returns all of the information describing a given fulfillment for a given milestone.
 ```
@@ -341,6 +268,33 @@ function unpaidAmount()
 {
     for (uint i = 0; i < numMilestones; i++){
         amount = SafeMath.add(amount, SafeMath.mul(fulfillmentAmounts[i], SafeMath.sub(numAccepted[i], numPaid[i])));
+    }
+}
+```
+
+#### getNumFulfillments()
+Returns the number of fulfillments which have been submitted for a given milestone
+```
+function getNumFulfillments(uint _milestoneId)
+    public
+    constant
+    validateMilestoneIndex(_milestoneId)
+    returns (uint)
+{
+    return fulfillments[_milestoneId].length;
+}
+```
+
+#### unpaidAmount()
+Returns the amount of ETH or tokens which must still be paid out for previously accepted fulfillments.
+```
+function unpaidAmount()
+    public
+    constant
+    returns (uint amount)
+{
+    for (uint i = 0; i < fulfillmentAmounts.length; i++){
+        amount = (amount + (fulfillmentAmounts[i]* (numAccepted[i]- numPaid[i])));
     }
 }
 ```

@@ -1,6 +1,7 @@
 pragma solidity ^0.4.11;
 import "./StandardBounty.sol";
 import "./inherited/HumanStandardToken.sol";
+import "./inherited/SafeMath.sol";
 
 
 /// @title TokenBounty
@@ -32,14 +33,14 @@ contract TokenBounty is StandardBounty {
 
   modifier validateFunding() {
     uint total = 0;
-    for (uint i = 0 ; i < numMilestones; i++){
+    for (uint i = 0 ; i < fulfillmentAmounts.length; i++){
       total = SafeMath.add(total,  fulfillmentAmounts[i]);
     }
     require (tokenContract.balanceOf(this) >= SafeMath.add(total, unpaidAmount()));
 
     _;
   }
-  
+
   modifier unpaidAmountRemains(uint _milestoneId) {
       require(SafeMath.add(unpaidAmount(), fulfillmentAmounts[_milestoneId]) <= tokenContract.balanceOf(this));
       _;
@@ -53,28 +54,22 @@ contract TokenBounty is StandardBounty {
 
   /// @dev TokenBounty(): instantiates a new draft token bounty
   /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
-  /// @param _contactInfo the contact information of the issuer
   /// @param _data the requirements of the bounty
   /// @param _fulfillmentAmounts the amount of wei to be paid out for each successful fulfillment
-  /// @param _numMilestones the total number of milestones which can be paid out
   /// @param _tokenAddress the address of the token contract
   function TokenBounty(
     uint _deadline,
-    string _contactInfo,
     string _data,
     uint[] _fulfillmentAmounts,
     uint _totalFulfillmentAmounts,
-    uint _numMilestones,
     address _arbiter,
     address _tokenAddress
     )
     StandardBounty(
       _deadline,
-      _contactInfo,
       _data,
       _fulfillmentAmounts,
       _totalFulfillmentAmounts,
-      _numMilestones,
       _arbiter
       )
   {
@@ -118,32 +113,25 @@ contract TokenBounty is StandardBounty {
     /// @dev changeBounty(): allows the issuer to change all bounty storage
     /// members simultaneously
     /// @param _newDeadline the new deadline for the bounty
-    /// @param _newContactInfo the new contact information for the issuer
     /// @param _newData the new requirements of the bounty
     /// @param _newFulfillmentAmounts the new fulfillment amounts
-    /// @param _newNumMilestones the number of milestones which can be fulfilled
     /// @param _tokenAddress the address of the token contract
     function changeBounty(uint _newDeadline,
-                          string _newContactInfo,
                           string _newData,
                           uint[] _newFulfillmentAmounts,
                           uint _totalFulfillmentAmounts,
-                          uint _newNumMilestones,
                           address _newArbiter,
                           address _tokenAddress)
         public
         onlyIssuer
         validateDeadline(_newDeadline)
         amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
-        correctLengths(_newNumMilestones, _newFulfillmentAmounts.length)
         isAtStage(BountyStages.Draft)
     {
       deadline = _newDeadline;
-      issuerContact = _newContactInfo;
       data = _newData;
       fulfillmentAmounts = _newFulfillmentAmounts;
       totalFulfillmentAmounts = _totalFulfillmentAmounts;
-      numMilestones = _newNumMilestones;
       arbiter = _newArbiter;
       tokenContract = HumanStandardToken(_tokenAddress);
     }

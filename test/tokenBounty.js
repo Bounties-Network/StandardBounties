@@ -11,7 +11,7 @@ contract('TokenBounty', function(accounts) {
 
     let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
-    let contract = await TokenBounty.new(2528821098, "", "", [1000,1000,1000], 3000, 3, 0x0, bountyToken.address);
+    let contract = await TokenBounty.new(2528821098, "", [1000,1000,1000], 3000, 0x0, bountyToken.address);
     let issuer = await contract.issuer.call();
     let stage = await contract.bountyStage.call();
 
@@ -27,32 +27,11 @@ contract('TokenBounty', function(accounts) {
     try {
 
       await TokenBounty.new(0,
-                                "",
-                                "",
-                                [1000,1000,1000],
-                                3000,
-                                3,
-                                0x0,
-                                bountyToken.address);
-      assert(false, "didn't throw");
-    } catch (error){
-      return utils.ensureException(error);
-    }
-
-  });
-
-  it("verifies that incorrect milestone payouts and num will throw", async () => {
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-    try {
-      await TokenBounty.new(2528821098,
-                                "",
-                                "",
-                                [1000,1000,1000],
-                                3000,
-                                2,
-                                0x0,
-                                bountyToken.address);
+                            "",
+                            [1000,1000,1000],
+                            3000,
+                            0x0,
+                            bountyToken.address);
       assert(false, "didn't throw");
     } catch (error){
       return utils.ensureException(error);
@@ -65,10 +44,8 @@ contract('TokenBounty', function(accounts) {
     try {
       await TokenBounty.new(2528821098,
                               "",
-                              "",
                               [0,1000,1000],
                               2000,
-                              3,
                               0x0,
                               bountyToken.address);
       assert(false, "didn't throw");
@@ -83,10 +60,8 @@ contract('TokenBounty', function(accounts) {
     try {
       await TokenBounty.new(2528821098,
                               "",
-                              "",
                               [1000,1000,1000],
                               2000,
-                              3,
                               0x0,
                               bountyToken.address);
       assert(false, "didn't throw");
@@ -102,10 +77,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -122,10 +95,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -141,10 +112,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     try {
@@ -159,10 +128,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 2000, {from: accounts[0]});
@@ -178,10 +145,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 2000, {from: accounts[0]});
@@ -199,10 +164,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await contract.killBounty({from: accounts[0]});
@@ -220,10 +183,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -236,10 +197,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     let issuer = await contract.issuer.call();
@@ -262,10 +221,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     let stage = await contract.bountyStage.call();
@@ -284,10 +241,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     let stage = await contract.bountyStage.call();
@@ -306,23 +261,20 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
     await contract.activateBounty(3000, {from: accounts[0]});
     let stage = await contract.bountyStage.call();
     assert (stage == 1);
-    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[1]});
+    await contract.fulfillBounty("data", 0, {from: accounts[1]});
     let fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
 
     await contract.acceptFulfillment(0,0, {from: accounts[0]});
 
@@ -350,10 +302,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -362,13 +312,12 @@ contract('TokenBounty', function(accounts) {
     assert (stage == 1);
     /// first fulfillment
 
-    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[1]});
+    await contract.fulfillBounty("data", 0, {from: accounts[1]});
     let fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
 
     await contract.acceptFulfillment(0,0, {from: accounts[0]});
 
@@ -388,13 +337,13 @@ contract('TokenBounty', function(accounts) {
     assert (contractBalance == 2000);
 
     /// second fulfillment
-    await contract.fulfillBounty("data", "datatype", 1, {from: accounts[1]});
+    await contract.fulfillBounty("data", 1, {from: accounts[1]});
     fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     await contract.acceptFulfillment(0,1, {from: accounts[0]});
 
@@ -415,13 +364,13 @@ contract('TokenBounty', function(accounts) {
 
     /// third fulfillment
 
-    await contract.fulfillBounty("data", "datatype", 2, {from: accounts[1]});
+    await contract.fulfillBounty("data", 2, {from: accounts[1]});
     fulfillment = await contract.getFulfillment(0,2, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     await contract.acceptFulfillment(0,2, {from: accounts[0]});
 
@@ -447,10 +396,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -459,13 +406,13 @@ contract('TokenBounty', function(accounts) {
     assert (stage == 1);
     /// first fulfillment
 
-    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[1]});
+    await contract.fulfillBounty("data", 0, {from: accounts[1]});
     let fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     await contract.acceptFulfillment(0,0, {from: accounts[0]});
 
@@ -485,13 +432,13 @@ contract('TokenBounty', function(accounts) {
     assert (contractBalance == 2000);
 
     /// second fulfillment
-    await contract.fulfillBounty("data", "datatype", 1, {from: accounts[2]});
+    await contract.fulfillBounty("data", 1, {from: accounts[2]});
     fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[2]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     await contract.acceptFulfillment(0,1, {from: accounts[0]});
 
@@ -514,13 +461,13 @@ contract('TokenBounty', function(accounts) {
 
     /// third fulfillment
 
-    await contract.fulfillBounty("data", "datatype", 2, {from: accounts[3]});
+    await contract.fulfillBounty("data", 2, {from: accounts[3]});
     fulfillment = await contract.getFulfillment(0,2, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[3]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     await contract.acceptFulfillment(0,2, {from: accounts[0]});
 
@@ -548,23 +495,21 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
     await contract.activateBounty(3000, {from: accounts[0]});
     let stage = await contract.bountyStage.call();
     assert (stage == 1);
-    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[1]});
+    await contract.fulfillBounty("data", 0, {from: accounts[1]});
     let fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     await contract.acceptFulfillment(0,0, {from: accounts[0]});
 
@@ -594,10 +539,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             accounts[1],
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -605,7 +548,7 @@ contract('TokenBounty', function(accounts) {
     let stage = await contract.bountyStage.call();
     assert (stage == 1);
     try {
-      await contract.fulfillBounty("data", "datatype", 0, {from: accounts[1]});
+      await contract.fulfillBounty("data", 0, {from: accounts[1]});
     } catch(error){
       return utils.ensureException(error);
     }
@@ -615,10 +558,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -626,13 +567,13 @@ contract('TokenBounty', function(accounts) {
     let stage = await contract.bountyStage.call();
     assert (stage == 1);
     //first fulfillment
-    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[1]});
+    await contract.fulfillBounty("data", 0, {from: accounts[1]});
     let fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     await contract.acceptFulfillment(0,0, {from: accounts[0]});
 
@@ -641,13 +582,13 @@ contract('TokenBounty', function(accounts) {
     assert(fulfillment[1] == true);
     assert(numAccepted == 1);
     // Second fulfillment
-    await contract.fulfillBounty("data", "datatype", 1, {from: accounts[1]});
+    await contract.fulfillBounty("data", 1, {from: accounts[1]});
     fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     await contract.acceptFulfillment(0,1, {from: accounts[0]});
 
@@ -677,10 +618,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -688,13 +627,13 @@ contract('TokenBounty', function(accounts) {
     let stage = await contract.bountyStage.call();
     assert (stage == 1);
     //first fulfillment
-    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[1]});
+    await contract.fulfillBounty("data", 0, {from: accounts[1]});
     let fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     await contract.acceptFulfillment(0,0, {from: accounts[0]});
 
@@ -703,13 +642,13 @@ contract('TokenBounty', function(accounts) {
     assert(fulfillment[1] == true);
     assert(numAccepted == 1);
     // Second fulfillment
-    await contract.fulfillBounty("data", "datatype", 1, {from: accounts[1]});
+    await contract.fulfillBounty("data", 1, {from: accounts[1]});
     fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     await contract.acceptFulfillment(0,1, {from: accounts[0]});
 
@@ -719,13 +658,13 @@ contract('TokenBounty', function(accounts) {
     assert(numAccepted == 1);
 
     // Third fulfillment
-    await contract.fulfillBounty("data", "datatype", 1, {from: accounts[1]});
+    await contract.fulfillBounty("data", 1, {from: accounts[1]});
     fulfillment = await contract.getFulfillment(1,1, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     await contract.acceptFulfillment(1,1, {from: accounts[0]});
 
@@ -735,13 +674,13 @@ contract('TokenBounty', function(accounts) {
     assert(numAccepted == 2);
 
     // Fourth fulfillment
-    await contract.fulfillBounty("data", "datatype", 1, {from: accounts[1]});
+    await contract.fulfillBounty("data", 1, {from: accounts[1]});
     fulfillment = await contract.getFulfillment(2,1, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     try {
       await contract.acceptFulfillment(2,1, {from: accounts[0]});
@@ -755,10 +694,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -766,13 +703,13 @@ contract('TokenBounty', function(accounts) {
     let stage = await contract.bountyStage.call();
     assert (stage == 1);
     //first fulfillment
-    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[3]});
+    await contract.fulfillBounty("data", 0, {from: accounts[3]});
     let fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[3]);
     assert(fulfillment[3] == "data");
-    assert(fulfillment[4] == "datatype");
+
 
     await contract.acceptFulfillment(0,0, {from: accounts[0]});
 
@@ -792,10 +729,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -813,10 +748,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -835,10 +768,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -859,10 +790,8 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
@@ -872,7 +801,7 @@ contract('TokenBounty', function(accounts) {
     assert (stage == 1);
 
     try {
-      await contract.changeBounty(2628821098, "contact", "data", [900, 900, 900], 2700, 3, 0x0, bountyToken.address, {from: accounts[0]});
+      await contract.changeBounty(2628821098, "data", [900, 900, 900], 2700, 0x0, bountyToken.address, {from: accounts[0]});
     } catch(error){
       return utils.ensureException(error);
     }
@@ -884,16 +813,14 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
     await contract.activateBounty(3000, {from: accounts[0], value: 3000});
 
-    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[2]});
+    await contract.fulfillBounty("data", 0, {from: accounts[2]});
 
     await contract.acceptFulfillment(0,0, {from: accounts[0]});
 
@@ -914,16 +841,14 @@ contract('TokenBounty', function(accounts) {
 
     let contract = await TokenBounty.new(2528821098,
                                             "",
-                                            "",
                                             [1000,1000,1000],
                                             3000,
-                                            3,
                                             0x0,
                                             bountyToken.address);
     await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
     await contract.activateBounty(3000, {from: accounts[0], value: 3000});
 
-    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[2]});
+    await contract.fulfillBounty("data", 0, {from: accounts[2]});
 
     await contract.acceptFulfillment(0,0, {from: accounts[0]});
 
@@ -938,15 +863,15 @@ contract('TokenBounty', function(accounts) {
     balance = await bountyToken.balanceOf(contract.address);
     assert(balance == 4000);
 
-    await contract.fulfillBounty("data", "datatype", 0, {from: accounts[3]});
+    await contract.fulfillBounty("data", 0, {from: accounts[3]});
 
     await contract.acceptFulfillment(1,0, {from: accounts[0]});
 
-    await contract.fulfillBounty("data", "datatype", 1, {from: accounts[3]});
+    await contract.fulfillBounty("data", 1, {from: accounts[3]});
 
     await contract.acceptFulfillment(0,1, {from: accounts[0]});
 
-    await contract.fulfillBounty("data", "datatype", 2, {from: accounts[3]});
+    await contract.fulfillBounty("data", 2, {from: accounts[3]});
 
     await contract.acceptFulfillment(0,2, {from: accounts[0]});
 
