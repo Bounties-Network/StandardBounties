@@ -1,7 +1,6 @@
 pragma solidity ^0.4.11;
 import "./StandardBounty.sol";
 import "./inherited/HumanStandardToken.sol";
-import "./inherited/SafeMath.sol";
 
 
 /// @title TokenBounty
@@ -34,15 +33,15 @@ contract TokenBounty is StandardBounty {
   modifier validateFunding() {
     uint total = 0;
     for (uint i = 0 ; i < fulfillmentAmounts.length; i++){
-      total = SafeMath.add(total,  fulfillmentAmounts[i]);
+      total = total + fulfillmentAmounts[i];
     }
-    require (tokenContract.balanceOf(this) >= SafeMath.add(total, unpaidAmount()));
+    require (tokenContract.balanceOf(this) >= (total + unpaidAmount()));
 
     _;
   }
 
   modifier unpaidAmountRemains(uint _milestoneId) {
-      require(SafeMath.add(unpaidAmount(), fulfillmentAmounts[_milestoneId]) <= tokenContract.balanceOf(this));
+      require((unpaidAmount() + fulfillmentAmounts[_milestoneId]) <= tokenContract.balanceOf(this));
       _;
   }
 
@@ -81,19 +80,19 @@ contract TokenBounty is StandardBounty {
     /// the fulfiller their owed funds
     /// @param _fulfillmentId the index of the fulfillment being accepted
     /// @param _milestoneId the id of the milestone being paid
-    function fulfillmentPayment(uint _fulfillmentId, uint _milestoneId)
+    function fulfillmentPayment(uint _milestoneId, uint _fulfillmentId)
     public
-    validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
     validateMilestoneIndex(_milestoneId)
-    onlyFulfiller(_fulfillmentId, _milestoneId)
-    checkFulfillmentIsApprovedAndUnpaid(_fulfillmentId, _milestoneId)
+    validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
+    onlyFulfiller(_milestoneId, _fulfillmentId)
+    checkFulfillmentIsApprovedAndUnpaid(_milestoneId, _fulfillmentId)
     {
       tokenContract.transfer(fulfillments[_milestoneId][_fulfillmentId].fulfiller, fulfillmentAmounts[_milestoneId]);
       fulfillments[_milestoneId][_fulfillmentId].paid = true;
 
       numPaid[_milestoneId]++;
 
-      FulfillmentPaid(msg.sender, _fulfillmentId, _milestoneId);
+      FulfillmentPaid(msg.sender, _milestoneId, _fulfillmentId);
     }
 
     /// @dev killBounty(): drains the contract of it's remaining

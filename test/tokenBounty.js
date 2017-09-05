@@ -256,6 +256,87 @@ contract('TokenBounty', function(accounts) {
       return utils.ensureException(error);
     }
   });
+  it("verifies that changing a fulfillment works", async () => {
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    let contract = await TokenBounty.new(2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0,
+                                            bountyToken.address);
+    await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
+    await contract.activateBounty(3000, {from: accounts[0]});
+    let stage = await contract.bountyStage.call();
+    assert (stage == 1);
+    await contract.fulfillBounty("data",  0, {from: accounts[1]});
+    let fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
+    assert(fulfillment[0] == false);
+    assert(fulfillment[1] == false);
+    assert(fulfillment[2] == accounts[1]);
+    assert(fulfillment[3] == "data");
+
+    await contract.updateFulfillment("newData",0,0,{from: accounts[1]});
+    fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
+    assert(fulfillment[3] == "newData");
+
+
+    await contract.acceptFulfillment(0,0, {from: accounts[0]});
+  });
+  it("verifies that changing an accepted fulfillment fails", async () => {
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    let contract = await TokenBounty.new(2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0,
+                                            bountyToken.address);
+    await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
+    await contract.activateBounty(3000, {from: accounts[0]});
+    let stage = await contract.bountyStage.call();
+    assert (stage == 1);
+    await contract.fulfillBounty("data",  0, {from: accounts[1]});
+    let fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
+    assert(fulfillment[0] == false);
+    assert(fulfillment[1] == false);
+    assert(fulfillment[2] == accounts[1]);
+    assert(fulfillment[3] == "data");
+    await contract.acceptFulfillment(0,0, {from: accounts[0]});
+
+    try {
+      await contract.updateFulfillment("newData",0,0,{from: accounts[1]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+  });
+  it("verifies that changing someone else's fulfillment fails", async () => {
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    let contract = await TokenBounty.new(2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0,
+                                            bountyToken.address);
+    await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
+    await contract.activateBounty(3000, {from: accounts[0]});
+    let stage = await contract.bountyStage.call();
+    assert (stage == 1);
+    await contract.fulfillBounty("data",  0, {from: accounts[1]});
+    let fulfillment = await contract.getFulfillment(0,0, {from: accounts[0]});
+    assert(fulfillment[0] == false);
+    assert(fulfillment[1] == false);
+    assert(fulfillment[2] == accounts[1]);
+    assert(fulfillment[3] == "data");
+    await contract.acceptFulfillment(0,0, {from: accounts[0]});
+
+    try {
+      await contract.updateFulfillment("newData",0,0,{from: accounts[2]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+  });
   it("verifies that basic fulfillment-acceptance flow works", async () => {
     let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -338,25 +419,25 @@ contract('TokenBounty', function(accounts) {
 
     /// second fulfillment
     await contract.fulfillBounty("data", 1, {from: accounts[1]});
-    fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(1,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
 
 
-    await contract.acceptFulfillment(0,1, {from: accounts[0]});
+    await contract.acceptFulfillment(1,0, {from: accounts[0]});
 
-    fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(1,0, {from: accounts[0]});
     numAccepted = await contract.numAccepted.call(1);
     assert(fulfillment[1] == true);
     assert(numAccepted == 1);
 
     balance = await bountyToken.balanceOf(accounts[1]);
     assert(balance == 1000);
-    await contract.fulfillmentPayment(0,1, {from: accounts[1]});
+    await contract.fulfillmentPayment(1,0, {from: accounts[1]});
 
-    fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(1,0, {from: accounts[0]});
     assert(fulfillment[0] == true);
 
     contractBalance = await bountyToken.balanceOf(contract.address);
@@ -365,25 +446,25 @@ contract('TokenBounty', function(accounts) {
     /// third fulfillment
 
     await contract.fulfillBounty("data", 2, {from: accounts[1]});
-    fulfillment = await contract.getFulfillment(0,2, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(2,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
 
 
-    await contract.acceptFulfillment(0,2, {from: accounts[0]});
+    await contract.acceptFulfillment(2,0, {from: accounts[0]});
 
-    fulfillment = await contract.getFulfillment(0,2, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(2,0, {from: accounts[0]});
     numAccepted = await contract.numAccepted.call(2);
     assert(fulfillment[1] == true);
     assert(numAccepted == 1);
 
     balance = await bountyToken.balanceOf(accounts[1]);
     assert(balance == 2000);
-    await contract.fulfillmentPayment(0,2, {from: accounts[1]});
+    await contract.fulfillmentPayment(2,0, {from: accounts[1]});
 
-    fulfillment = await contract.getFulfillment(0,2, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(2,0, {from: accounts[0]});
     assert(fulfillment[0] == true);
 
     contractBalance = await bountyToken.balanceOf(contract.address);
@@ -433,27 +514,27 @@ contract('TokenBounty', function(accounts) {
 
     /// second fulfillment
     await contract.fulfillBounty("data", 1, {from: accounts[2]});
-    fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(1,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[2]);
     assert(fulfillment[3] == "data");
 
 
-    await contract.acceptFulfillment(0,1, {from: accounts[0]});
+    await contract.acceptFulfillment(1,0, {from: accounts[0]});
 
-    fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(1,0, {from: accounts[0]});
     numAccepted = await contract.numAccepted.call(1);
     assert(fulfillment[1] == true);
     assert(numAccepted == 1);
 
     balance = await bountyToken.balanceOf(accounts[2]);
     assert(balance == 0);
-    await contract.fulfillmentPayment(0,1, {from: accounts[2]});
+    await contract.fulfillmentPayment(1,0, {from: accounts[2]});
     balance = await bountyToken.balanceOf(accounts[2]);
     assert(balance == 1000);
 
-    fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(1,0, {from: accounts[0]});
     assert(fulfillment[0] == true);
 
     contractBalance = await bountyToken.balanceOf(contract.address);
@@ -462,27 +543,27 @@ contract('TokenBounty', function(accounts) {
     /// third fulfillment
 
     await contract.fulfillBounty("data", 2, {from: accounts[3]});
-    fulfillment = await contract.getFulfillment(0,2, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(2,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[3]);
     assert(fulfillment[3] == "data");
 
 
-    await contract.acceptFulfillment(0,2, {from: accounts[0]});
+    await contract.acceptFulfillment(2,0, {from: accounts[0]});
 
-    fulfillment = await contract.getFulfillment(0,2, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(2,0, {from: accounts[0]});
     numAccepted = await contract.numAccepted.call(2);
     assert(fulfillment[1] == true);
     assert(numAccepted == 1);
 
     balance = await bountyToken.balanceOf(accounts[3]);
     assert(balance == 0);
-    await contract.fulfillmentPayment(0,2, {from: accounts[3]});
+    await contract.fulfillmentPayment(2,0, {from: accounts[3]});
     balance = await bountyToken.balanceOf(accounts[3]);
     assert(balance == 1000);
 
-    fulfillment = await contract.getFulfillment(0,2, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(2,0, {from: accounts[0]});
     assert(fulfillment[0] == true);
 
     contractBalance = await bountyToken.balanceOf(contract.address);
@@ -583,16 +664,16 @@ contract('TokenBounty', function(accounts) {
     assert(numAccepted == 1);
     // Second fulfillment
     await contract.fulfillBounty("data", 1, {from: accounts[1]});
-    fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(1,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
 
 
-    await contract.acceptFulfillment(0,1, {from: accounts[0]});
+    await contract.acceptFulfillment(1,0, {from: accounts[0]});
 
-    fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(1,0, {from: accounts[0]});
     numAccepted = await contract.numAccepted.call(1);
     assert(fulfillment[1] == true);
     assert(numAccepted == 1);
@@ -606,7 +687,7 @@ contract('TokenBounty', function(accounts) {
     assert (balance == 2000);
 
     await contract.fulfillmentPayment(0,0, {from: accounts[1]});
-    await contract.fulfillmentPayment(0,1, {from: accounts[1]});
+    await contract.fulfillmentPayment(1,0, {from: accounts[1]});
 
     balance = await bountyToken.balanceOf(contract.address);
     assert (balance == 0);
@@ -643,16 +724,16 @@ contract('TokenBounty', function(accounts) {
     assert(numAccepted == 1);
     // Second fulfillment
     await contract.fulfillBounty("data", 1, {from: accounts[1]});
-    fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(1,0, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
     assert(fulfillment[3] == "data");
 
 
-    await contract.acceptFulfillment(0,1, {from: accounts[0]});
+    await contract.acceptFulfillment(1,0, {from: accounts[0]});
 
-    fulfillment = await contract.getFulfillment(0,1, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(1,0, {from: accounts[0]});
     numAccepted = await contract.numAccepted.call(1);
     assert(fulfillment[1] == true);
     assert(numAccepted == 1);
@@ -675,7 +756,7 @@ contract('TokenBounty', function(accounts) {
 
     // Fourth fulfillment
     await contract.fulfillBounty("data", 1, {from: accounts[1]});
-    fulfillment = await contract.getFulfillment(2,1, {from: accounts[0]});
+    fulfillment = await contract.getFulfillment(1,2, {from: accounts[0]});
     assert(fulfillment[0] == false);
     assert(fulfillment[1] == false);
     assert(fulfillment[2] == accounts[1]);
@@ -683,7 +764,7 @@ contract('TokenBounty', function(accounts) {
 
 
     try {
-      await contract.acceptFulfillment(2,1, {from: accounts[0]});
+      await contract.acceptFulfillment(1,2, {from: accounts[0]});
     } catch(error){
       return utils.ensureException(error);
     }
@@ -863,28 +944,28 @@ contract('TokenBounty', function(accounts) {
     balance = await bountyToken.balanceOf(contract.address);
     assert(balance == 4000);
 
-    await contract.fulfillBounty("data", 0, {from: accounts[3]});
-
-    await contract.acceptFulfillment(1,0, {from: accounts[0]});
-
-    await contract.fulfillBounty("data", 1, {from: accounts[3]});
+    await contract.fulfillBounty("data",  0, {from: accounts[3]});
 
     await contract.acceptFulfillment(0,1, {from: accounts[0]});
 
-    await contract.fulfillBounty("data", 2, {from: accounts[3]});
+    await contract.fulfillBounty("data",  1, {from: accounts[3]});
 
-    await contract.acceptFulfillment(0,2, {from: accounts[0]});
+    await contract.acceptFulfillment(1,0, {from: accounts[0]});
+
+    await contract.fulfillBounty("data",  2, {from: accounts[3]});
+
+    await contract.acceptFulfillment(2,0, {from: accounts[0]});
 
     let unpaid = await contract.unpaidAmount({from: accounts[0]});
     assert (unpaid == 4000);
 
     await contract.fulfillmentPayment(0,0, {from: accounts[2]});
 
-    await contract.fulfillmentPayment(1,0, {from: accounts[3]});
-
     await contract.fulfillmentPayment(0,1, {from: accounts[3]});
 
-    await contract.fulfillmentPayment(0,2, {from: accounts[3]});
+    await contract.fulfillmentPayment(1,0, {from: accounts[3]});
+
+    await contract.fulfillmentPayment(2,0, {from: accounts[3]});
 
     unpaid = await contract.unpaidAmount({from: accounts[0]});
     assert (unpaid == 0);

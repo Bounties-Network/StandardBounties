@@ -1,16 +1,26 @@
 pragma solidity ^0.4.11;
 
-import "./inherited/Factory.sol";
-import "./StandardBounty.sol";
-import "./TokenBounty.sol";
+import "./StandardBountyFactory.sol";
+import "./TokenBountyFactory.sol";
 
 
 
 /// @title Bounties factory, concept by Stefan George - <stefan.george@consensys.net>
 /// @author Mark Beylin <mark.beylin@consensys.net>, Gonçalo Sá <goncalo.sa@consensys.net>
-contract BountyFactory is Factory {
+contract BountyRegistry{
+
+    event ContractInstantiation(address sender, address instantiation);
+
+    StandardBountyFactory standardBountyFactory;
+    TokenBountyFactory tokenBountyFactory;
+
+
     address[] public instances;
     address public owner;
+
+    mapping(address => address[]) public instantiations;
+    mapping(address => bool) public isInstantiation;
+
 
     modifier onlyOwner(){
       require(msg.sender == owner);
@@ -28,8 +38,12 @@ contract BountyFactory is Factory {
     }
 
     /// @dev constructor for the factory
-    function BountyFactory(){
+    /// @param _standardBountyFactory the address of the already deployed standard bounty factory
+    /// @param _tokenBountyFactory the address of the already deployed token bounty factory
+    function BountyRegistry(address _standardBountyFactory, address _tokenBountyFactory){
       owner = msg.sender;
+      standardBountyFactory = StandardBountyFactory(_standardBountyFactory);
+      tokenBountyFactory = TokenBountyFactory(_tokenBountyFactory);
     }
 
     /// @dev Allows multiple creations of bounties
@@ -51,25 +65,43 @@ contract BountyFactory is Factory {
     {
     address bounty;
       if (_tokenContract != address(0)){
-        bounty = new StandardBounty(
-          _deadline,
-          _data,
-          _fulfillmentAmounts,
-          _totalFulfillmentAmounts,
-          _arbiter
-        );
+        bounty = standardBountyFactory.create(_deadline,
+                                              _data,
+                                              _fulfillmentAmounts,
+                                              _totalFulfillmentAmounts,
+                                              _arbiter);
       } else {
-        bounty = new TokenBounty(
-          _deadline,
-          _data,
-          _fulfillmentAmounts,
-          _totalFulfillmentAmounts,
-          _arbiter,
-          _tokenContract
-        );
+        bounty = tokenBountyFactory.create(_deadline,
+                                            _data,
+                                            _fulfillmentAmounts,
+                                            _totalFulfillmentAmounts,
+                                            _arbiter,
+                                            _tokenContract);
       }
-        instances.push(bounty);
         register(bounty);
+    }
+
+    /// @dev Returns number of instantiations by creator.
+    /// @param creator Contract creator.
+    /// @return Returns number of instantiations by creator.
+    function getInstantiationCount(address creator)
+        public
+        constant
+        returns (uint)
+    {
+        return instantiations[creator].length;
+    }
+
+
+    /// @dev Registers contract in factory registry.
+    /// @param _instantiation Address of contract instantiation.
+    function register(address _instantiation)
+    internal
+    {
+        isInstantiation[_instantiation] = true;
+        instances.push(_instantiation);
+        instantiations[msg.sender].push(_instantiation);
+        ContractInstantiation(msg.sender, _instantiation);
     }
 
    /// @dev Returns number of instances
@@ -93,6 +125,7 @@ contract BountyFactory is Factory {
    correctId(_bountyId, _bountyAddress)
    correctUser(_userId, _userAddress, _bountyAddress)
    {
+     delete isInstantiation[_bountyAddress];
      delete instances[_bountyId];
      delete instantiations[_userAddress][_userId];
 

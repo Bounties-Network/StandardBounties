@@ -1,4 +1,6 @@
-const BountyFactory = artifacts.require("../contracts/BountyFactory.sol");
+const BountyRegistry = artifacts.require("../contracts/BountyRegistry.sol");
+const StandardBountyFactory = artifacts.require("../contracts/StandardBountyFactory.sol")
+const TokenBountyFactory = artifacts.require("../contracts/TokenBountyFactory.sol")
 const StandardBounty = artifacts.require("../contracts/StandardBounty.sol");
 const HumanStandardToken = artifacts.require("../contracts/inherited/HumanStandardToken.sol");
 
@@ -11,7 +13,10 @@ contract('BountyFactory', function(accounts) {
 
   it("verifies that the owner is instantiated correctly", async () => {
 
-    let manager = await BountyFactory.new({from: accounts[0]});
+    let stbf = await StandardBountyFactory.new({from: accounts[0]});
+    let tbf = await TokenBountyFactory.new({from: accounts[0]});
+
+    let manager = await BountyRegistry.new(stbf.address, tbf.address, {from: accounts[0]});
 
     let owner = await manager.owner();
     assert (owner == accounts[0]);
@@ -20,7 +25,10 @@ contract('BountyFactory', function(accounts) {
 
   it("verifies that ownership can be transferred properly", async () => {
 
-    let manager = await BountyFactory.new({from: accounts[0]});
+    let stbf = await StandardBountyFactory.new({from: accounts[0]});
+    let tbf = await TokenBountyFactory.new({from: accounts[0]});
+
+    let manager = await BountyRegistry.new(stbf.address, tbf.address, {from: accounts[0]});
 
     let owner = await manager.owner();
     assert (owner == accounts[0]);
@@ -33,7 +41,10 @@ contract('BountyFactory', function(accounts) {
   });
   it("verifies that only the owner can transfer ownership ", async () => {
 
-    let manager = await BountyFactory.new({from: accounts[0]});
+    let stbf = await StandardBountyFactory.new({from: accounts[0]});
+    let tbf = await TokenBountyFactory.new({from: accounts[0]});
+
+    let manager = await BountyRegistry.new(stbf.address, tbf.address, {from: accounts[0]});
 
     let owner = await manager.owner();
     assert (owner == accounts[0]);
@@ -47,7 +58,10 @@ contract('BountyFactory', function(accounts) {
 
   it("verifies that bounty creation works", async () => {
 
-    let manager = await BountyFactory.new({from: accounts[0]});
+    let stbf = await StandardBountyFactory.new({from: accounts[0]});
+    let tbf = await TokenBountyFactory.new({from: accounts[0]});
+
+    let manager = await BountyRegistry.new(stbf.address, tbf.address, {from: accounts[0]});
 
     let owner = await manager.owner();
     assert (owner == accounts[0]);
@@ -60,7 +74,10 @@ contract('BountyFactory', function(accounts) {
 
   it("verifies that bounty creation works for token bounties too", async () => {
 
-    let manager = await BountyFactory.new({from: accounts[0]});
+    let stbf = await StandardBountyFactory.new({from: accounts[0]});
+    let tbf = await TokenBountyFactory.new({from: accounts[0]});
+
+    let manager = await BountyRegistry.new(stbf.address, tbf.address, {from: accounts[0]});
 
     let owner = await manager.owner();
     assert (owner == accounts[0]);
@@ -81,7 +98,10 @@ contract('BountyFactory', function(accounts) {
   });
   it("verifies that bounty creation with incorrect args fails", async () => {
 
-    let manager = await BountyFactory.new({from: accounts[0]});
+    let stbf = await StandardBountyFactory.new({from: accounts[0]});
+    let tbf = await TokenBountyFactory.new({from: accounts[0]});
+
+    let manager = await BountyRegistry.new(stbf.address, tbf.address, {from: accounts[0]});
 
     let owner = await manager.owner();
     assert (owner == accounts[0]);
@@ -97,7 +117,10 @@ contract('BountyFactory', function(accounts) {
 
   it("verifies that bounty removal works", async () => {
 
-    let manager = await BountyFactory.new({from: accounts[0]});
+    let stbf = await StandardBountyFactory.new({from: accounts[0]});
+    let tbf = await TokenBountyFactory.new({from: accounts[0]});
+
+    let manager = await BountyRegistry.new(stbf.address, tbf.address, {from: accounts[0]});
 
     let owner = await manager.owner();
     assert (owner == accounts[0]);
@@ -118,7 +141,10 @@ contract('BountyFactory', function(accounts) {
   });
   it("verifies that bounty removal fails for anyone but the owner", async () => {
 
-    let manager = await BountyFactory.new({from: accounts[0]});
+    let stbf = await StandardBountyFactory.new({from: accounts[0]});
+    let tbf = await TokenBountyFactory.new({from: accounts[0]});
+
+    let manager = await BountyRegistry.new(stbf.address, tbf.address, {from: accounts[0]});
 
     let owner = await manager.owner();
     assert (owner == accounts[0]);
@@ -139,7 +165,10 @@ contract('BountyFactory', function(accounts) {
   });
   it("verifies that bounty removal with wrong IDs fails", async () => {
 
-    let manager = await BountyFactory.new({from: accounts[0]});
+    let stbf = await StandardBountyFactory.new({from: accounts[0]});
+    let tbf = await TokenBountyFactory.new({from: accounts[0]});
+
+    let manager = await BountyRegistry.new(stbf.address, tbf.address, {from: accounts[0]});
 
     let owner = await manager.owner();
     assert (owner == accounts[0]);

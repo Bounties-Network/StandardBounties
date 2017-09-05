@@ -2,6 +2,10 @@
 
 `Version 0.0.1`
 
+## Summary
+
+A bounty is a simple mechanism for individuals or groups to pay out for the completion of tasks. The issuer of the bounty begins by deploying a new bounty contract, during which time any of the storage variables (like bounty requirements or payout amounts) can be altered. Once sufficient funds have been deposited into the contract, the issuer may activate the bounty, allowing bounty hunters to submit fulfillments for the various milestones. The issuer can then approve the submitted work, releasing the payout funds to the bounty hunter in question.
+
 
 ## Contract Details
 
@@ -26,7 +30,7 @@ A bounty can only be contributed to, activated, or fulfilled before the given de
 All data representing the requirements are stored off-chain, and their hash is updated here. Requirements and auxiliary data are mutable while the bounty is in the `Draft` stage, but becomes immutable when the bounty is activated, thereby "locking in" the terms of the contract, the requirements for acceptance for each milestone. These should be as rich as possible from the outset, to avoid conflicts stemming from task fulfillers believing they merited the bounty reward.
 
 `uint[] public fulfillmentAmounts`
-The total bounty amount is broken down into stepwise payments for each milestone, allowing different individuals to fulfill different pieces of a bounty task. This array stores the amount of wei (or ERC20 token) which will pay out for each milestone when work is accepted. The length of this array is the number of milestones.
+The total bounty amount is broken down into different payments for each milestone, allowing different individuals to fulfill different pieces of a bounty task. This array stores the amount of wei (or ERC20 token) which will pay out for each milestone when work is accepted. The length of this array is the number of milestones.
 
 `mapping(uint=>Fulfillment[]) public fulfillments`
 Work is submitted and a hash is stored on-chain, allowing any deliverable to be submitted for the same bounty.
@@ -36,7 +40,7 @@ Work is submitted and a hash is stored on-chain, allowing any deliverable to be 
 The number of submissions which have been accepted for each milestone.
 
 `mapping(uint=>uint) public numPaid`
-The number of submissions which have paid out to task fulfillers for each milestone. `numPaid[i]` is always strictly less than or equal to `numAccepted[i]`.
+The number of submissions which have paid out to task fulfillers for each milestone. `numPaid[i]` is always less than or equal to `numAccepted[i]`.
 
 ### External functions
 
@@ -119,41 +123,55 @@ function fulfillBounty(string _data, string _dataType, uint _milestoneId)
 }
 ```
 
+#### updateFulfillment()
+After a bounty has been fulfilled, the data representing the fulfillment deliverables can be changed or updated by the fulfiller, but only before the bounty has been accepted or paid. Individuals may only update the fulfillments which they personally submitted.
+```
+function updateFulfillment(string _data, uint _milestoneId, uint _fulfillmentId)
+public
+validateMilestoneIndex(_milestoneId)
+validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
+onlyFulfiller(_milestoneId, _fulfillmentId)
+notYetAccepted(_milestoneId, _fulfillmentId)
+{
+  fulfillments[_milestoneId][_fulfillmentId].data = _data;
+}
+```
+
 #### AcceptFulfillment()
 Submissions can be accepted by the issuer while the bounty is active, and the contract has sufficient funds to pay out all previously accepted submissions. Arbiters also have the ability to accept work, but should only do so after mediating between the issuer and fulfiller to resolve the conflict.
 
 ```
-function acceptFulfillment(uint _fulfillmentId, uint _milestoneId)
+function acceptFulfillment(uint _milestoneId, uint _fulfillmentId)
     public
     onlyIssuerOrArbiter
     isAtStage(BountyStages.Active)
     validateMilestoneIndex(_milestoneId)
-    validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
+    validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
     unpaidAmountRemains(_milestoneId)
 {
     fulfillments[_milestoneId][_fulfillmentId].accepted = true;
     numAccepted[_milestoneId]++;
 
-    FulfillmentAccepted(msg.sender, _fulfillmentId, _milestoneId);
+    FulfillmentAccepted(msg.sender, _milestoneId, _fulfillmentId);
 }
 ```
 
 #### FulfillmentPayment()
 Once an individuals submission has been accepted, they can claim their reward, transferring the Ether (or tokens) to the successful fulfiller. A payment can only be claimed once for each fulfillment which has been accepted.
 ```
-function fulfillmentPayment(uint _fulfillmentId, uint _milestoneId)
+function fulfillmentPayment(uint _milestoneId, uint _fulfillmentId)
     public
     validateMilestoneIndex(_milestoneId)
-    validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
-    onlyFulfiller(_fulfillmentId, _milestoneId)
-    checkFulfillmentIsApprovedAndUnpaid(_fulfillmentId, _milestoneId)
+    validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
+    onlyFulfiller(_milestoneId, _fulfillmentId)
+    checkFulfillmentIsApprovedAndUnpaid(_milestoneId, _fulfillmentId)
 {
     fulfillments[_milestoneId][_fulfillmentId].fulfiller.transfer(fulfillmentAmounts[_milestoneId]);
     fulfillments[_milestoneId][_fulfillmentId].paid = true;
 
     numPaid[_milestoneId]++;
 
-    FulfillmentPaid(msg.sender, _fulfillmentId, _milestoneId);
+    FulfillmentPaid(msg.sender, _milestoneId, _fulfillmentId);
 }
 ```
 
@@ -227,11 +245,11 @@ function changeBounty(uint _newDeadline,
 #### getFulfillment()
 Returns all of the information describing a given fulfillment for a given milestone.
 ```
-function getFulfillment(uint _fulfillmentId, uint _milestoneId)
+function getFulfillment(uint _milestoneId, uint _fulfillmentId)
     public
     constant
     validateMilestoneIndex(_milestoneId)
-    validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
+    validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
     returns (bool, bool, address, string, string)
 {
     return (fulfillments[_milestoneId][_fulfillmentId].paid,

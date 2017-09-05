@@ -12,9 +12,9 @@ contract StandardBounty {
    */
 
   event BountyActivated(address issuer);
-  event BountyFulfilled(address indexed fulfiller, uint256 indexed _fulfillmentId, uint256 indexed _milestoneId);
-  event FulfillmentAccepted(address indexed fulfiller, uint256 indexed _fulfillmentId, uint256 indexed _milestoneId);
-  event FulfillmentPaid(address indexed fulfiller, uint256 indexed _fulfillmentId, uint256 indexed _milestoneId);
+  event BountyFulfilled(address indexed fulfiller, uint256 indexed _milestoneId, uint256 indexed _fulfillmentId);
+  event FulfillmentAccepted(address indexed fulfiller, uint256 indexed _milestoneId, uint256 indexed _fulfillmentId);
+  event FulfillmentPaid(address indexed fulfiller, uint256 indexed _milestoneId, uint256 indexed _fulfillmentId);
   event BountyKilled();
   event ContributionAdded(address indexed contributor, uint256 value);
   event DeadlineExtended(uint newDeadline);
@@ -78,7 +78,7 @@ contract StandardBounty {
       _;
   }
 
-  modifier onlyFulfiller(uint _fulfillmentId, uint _milestoneId) {
+  modifier onlyFulfiller( uint _milestoneId, uint _fulfillmentId) {
       require(msg.sender == fulfillments[_milestoneId][_fulfillmentId].fulfiller);
       _;
   }
@@ -129,8 +129,8 @@ contract StandardBounty {
       _;
   }
 
-  modifier validateFulfillmentArrayIndex(uint index, uint _milestoneId) {
-      require(index < fulfillments[_milestoneId].length);
+  modifier validateFulfillmentArrayIndex(uint _milestoneId, uint _index) {
+      require(_index < fulfillments[_milestoneId].length);
       _;
   }
 
@@ -139,7 +139,7 @@ contract StandardBounty {
       _;
   }
 
-  modifier checkFulfillmentIsApprovedAndUnpaid(uint _fulfillmentId, uint _milestoneId) {
+  modifier checkFulfillmentIsApprovedAndUnpaid( uint _milestoneId, uint _fulfillmentId) {
       require(fulfillments[_milestoneId][_fulfillmentId].accepted && !fulfillments[_milestoneId][_fulfillmentId].paid);
       _;
   }
@@ -160,6 +160,10 @@ contract StandardBounty {
       _;
   }
 
+  modifier notYetAccepted( uint _milestoneId, uint _fulfillmentId){
+    require(fulfillments[_milestoneId][_fulfillmentId].accepted == false);
+    _;
+  }
 
   /*
    * Public functions
@@ -240,39 +244,53 @@ contract StandardBounty {
       BountyFulfilled(msg.sender, fulfillments[_milestoneId].length, _milestoneId);
   }
 
+  /// @dev updateFulfillment(): Submit updated data for a given fulfillment
+  /// @param _data the new data being submitted
+  /// @param _milestoneId the index of the milestone
+  /// @param _fulfillmentId the index of the fulfillment
+  function updateFulfillment(string _data, uint _milestoneId, uint _fulfillmentId)
+  public
+  validateMilestoneIndex(_milestoneId)
+  validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
+  onlyFulfiller(_milestoneId, _fulfillmentId)
+  notYetAccepted(_milestoneId, _fulfillmentId)
+  {
+    fulfillments[_milestoneId][_fulfillmentId].data = _data;
+  }
+
   /// @dev acceptFulfillment(): accept a given fulfillment
   /// @param _fulfillmentId the index of the fulfillment being accepted
   /// @param _milestoneId the id of the milestone being accepted
-  function acceptFulfillment(uint _fulfillmentId, uint _milestoneId)
+  function acceptFulfillment( uint _milestoneId, uint _fulfillmentId)
       public
       onlyIssuerOrArbiter
       isAtStage(BountyStages.Active)
       validateMilestoneIndex(_milestoneId)
-      validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
+      validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
       unpaidAmountRemains(_milestoneId)
   {
       fulfillments[_milestoneId][_fulfillmentId].accepted = true;
       numAccepted[_milestoneId]++;
 
-      FulfillmentAccepted(msg.sender, _fulfillmentId, _milestoneId);
+      FulfillmentAccepted(msg.sender, _milestoneId, _fulfillmentId);
   }
 
   /// @dev fulfillmentPayment(): pay the fulfiller for their work
   /// @param _fulfillmentId the index of the fulfillment being accepted
   /// @param _milestoneId the id of the milestone being paid
-  function fulfillmentPayment(uint _fulfillmentId, uint _milestoneId)
+  function fulfillmentPayment( uint _milestoneId, uint _fulfillmentId)
       public
       validateMilestoneIndex(_milestoneId)
-      validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
-      onlyFulfiller(_fulfillmentId, _milestoneId)
-      checkFulfillmentIsApprovedAndUnpaid(_fulfillmentId, _milestoneId)
+      validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
+      onlyFulfiller(_milestoneId, _fulfillmentId)
+      checkFulfillmentIsApprovedAndUnpaid(_milestoneId, _fulfillmentId)
   {
       fulfillments[_milestoneId][_fulfillmentId].fulfiller.transfer(fulfillmentAmounts[_milestoneId]);
       fulfillments[_milestoneId][_fulfillmentId].paid = true;
 
       numPaid[_milestoneId]++;
 
-      FulfillmentPaid(msg.sender, _fulfillmentId, _milestoneId);
+      FulfillmentPaid(msg.sender, _milestoneId, _fulfillmentId);
   }
 
   /// @dev killBounty(): drains the contract of it's remaining
@@ -343,11 +361,11 @@ contract StandardBounty {
   /// @param _fulfillmentId the index of the fulfillment to return
   /// @param _milestoneId the index of the milestone to return
   /// @return Returns a tuple for the fulfillment
-  function getFulfillment(uint _fulfillmentId, uint _milestoneId)
+  function getFulfillment( uint _milestoneId, uint _fulfillmentId)
       public
       constant
       validateMilestoneIndex(_milestoneId)
-      validateFulfillmentArrayIndex(_fulfillmentId, _milestoneId)
+      validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
       returns (bool, bool, address, string)
   {
       return (fulfillments[_milestoneId][_fulfillmentId].paid,
