@@ -285,11 +285,10 @@ contract StandardBounty {
       onlyFulfiller(_milestoneId, _fulfillmentId)
       checkFulfillmentIsApprovedAndUnpaid(_milestoneId, _fulfillmentId)
   {
-      fulfillments[_milestoneId][_fulfillmentId].fulfiller.transfer(fulfillmentAmounts[_milestoneId]);
       fulfillments[_milestoneId][_fulfillmentId].paid = true;
-
       numPaid[_milestoneId]++;
-
+      fulfillments[_milestoneId][_fulfillmentId].fulfiller.transfer(fulfillmentAmounts[_milestoneId]);
+      
       FulfillmentPaid(msg.sender, _milestoneId, _fulfillmentId);
   }
 
@@ -397,6 +396,15 @@ contract StandardBounty {
       returns (uint)
   {
       return fulfillments[_milestoneId].length;
+  }
+  /// @dev getNumMilestones() returns the number of milestones
+  /// @return Returns the number of fulfillments
+  function getNumMilestones()
+      public
+      constant
+      returns (uint)
+  {
+      return fulfillmentAmounts.length;
   }
 
   /// @dev unpaidAmount(): calculates the amount which

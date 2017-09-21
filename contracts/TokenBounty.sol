@@ -87,11 +87,9 @@ contract TokenBounty is StandardBounty {
     onlyFulfiller(_milestoneId, _fulfillmentId)
     checkFulfillmentIsApprovedAndUnpaid(_milestoneId, _fulfillmentId)
     {
-      tokenContract.transfer(fulfillments[_milestoneId][_fulfillmentId].fulfiller, fulfillmentAmounts[_milestoneId]);
       fulfillments[_milestoneId][_fulfillmentId].paid = true;
-
       numPaid[_milestoneId]++;
-
+      tokenContract.transfer(fulfillments[_milestoneId][_fulfillmentId].fulfiller, fulfillmentAmounts[_milestoneId]);
       FulfillmentPaid(msg.sender, _milestoneId, _fulfillmentId);
     }
 
