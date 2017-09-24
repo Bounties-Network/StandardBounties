@@ -64,7 +64,7 @@ contract BountyRegistry{
         public
     {
     address bounty;
-      if (_tokenContract != address(0)){
+      if (_tokenContract == address(0)){
         bounty = standardBountyFactory.create(_deadline,
                                               _data,
                                               _fulfillmentAmounts,
