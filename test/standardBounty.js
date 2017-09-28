@@ -872,7 +872,7 @@ contract('StandardBounty', function(accounts) {
 
     await contract.acceptFulfillment(2,0, {from: accounts[0]});
 
-    let unpaid = await contract.unpaidAmount({from: accounts[0]});
+    let unpaid = await contract.amountToPay();
     assert (unpaid == 4000);
 
     await contract.fulfillmentPayment(0,0, {from: accounts[2]});
@@ -883,12 +883,191 @@ contract('StandardBounty', function(accounts) {
 
     await contract.fulfillmentPayment(2,0, {from: accounts[3]});
 
-    unpaid = await contract.unpaidAmount({from: accounts[0]});
+    unpaid = await contract.amountToPay();
     assert (unpaid == 0);
 
     balance = await web3.eth.getBalance(contract.address);
     assert(balance == 0);
 
+  });
+
+  it("verifies that increasing a payout amount for an unaccepted fulfillment works", async () => {
+    let contract = await StandardBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0);
+    await contract.activateBounty(4000, {from: accounts[0], value: 4000});
+
+    await contract.increasePayout(0, 2000, {from: accounts[0]});
+
+    await contract.fulfillBounty("data", 0, {from: accounts[2]});
+
+    await contract.acceptFulfillment(0,0,{from: accounts[0]});
+
+    var balance = await web3.eth.getBalance(contract.address);
+    assert(balance == 4000);
+
+    await contract.fulfillmentPayment(0,0,{from: accounts[2]});
+
+    balance = await web3.eth.getBalance(contract.address);
+    assert(balance == 2000);
+
+  });
+  it("verifies that increasing a payout amount for an accepted fulfillment works", async () => {
+    let contract = await StandardBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0);
+    await contract.activateBounty(4000, {from: accounts[0], value: 4000});
+
+    await contract.fulfillBounty("data", 0, {from: accounts[2]});
+
+    await contract.acceptFulfillment(0,0,{from: accounts[0]});
+
+    await contract.increasePayout(0, 2000, {from: accounts[0]});
+
+    var balance = await web3.eth.getBalance(contract.address);
+    assert(balance == 4000);
+
+    await contract.fulfillmentPayment(0,0,{from: accounts[2]});
+
+    balance = await web3.eth.getBalance(contract.address);
+    assert(balance == 2000);
+  });
+  it("verifies that increasing a payout amount with too small of a balance fails", async () => {
+    let contract = await StandardBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0);
+    await contract.activateBounty(3000, {from: accounts[0], value: 3000});
+
+
+    try {
+      await contract.increasePayout(0, 2000, {from: accounts[0]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+  });
+  it("verifies that accepting a milestone too many times to pay out the remaining milestones, fails", async () => {
+    let contract = await StandardBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0);
+    await contract.activateBounty(3000, {from: accounts[0], value: 3000});
+
+    await contract.fulfillBounty("data", 0, {from: accounts[2]});
+    await contract.fulfillBounty("data", 0, {from: accounts[3]});
+    await contract.fulfillBounty("data", 1, {from: accounts[2]});
+    await contract.fulfillBounty("data", 2, {from: accounts[2]});
+
+    await contract.acceptFulfillment(0,0,{from: accounts[0]});
+
+    try {
+      await contract.acceptFulfillment(0,1,{from: accounts[0]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+  });
+  it("verifies that accepting a milestone too many times to pay out the remaining accepted milestones, fails", async () => {
+    let contract = await StandardBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0);
+    await contract.activateBounty(3000, {from: accounts[0], value: 3000});
+
+    await contract.fulfillBounty("data", 0, {from: accounts[2]});
+    await contract.fulfillBounty("data", 0, {from: accounts[3]});
+    await contract.fulfillBounty("data", 1, {from: accounts[2]});
+    await contract.fulfillBounty("data", 2, {from: accounts[2]});
+
+    await contract.acceptFulfillment(0,0,{from: accounts[0]});
+    await contract.acceptFulfillment(1,0,{from: accounts[0]});
+    await contract.acceptFulfillment(2,0,{from: accounts[0]});
+
+    try {
+      await contract.acceptFulfillment(0,1,{from: accounts[0]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+  });
+  it("verifies that increasing the payout with a lower amount fails", async () => {
+    let contract = await StandardBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0);
+    await contract.activateBounty(4000, {from: accounts[0], value: 4000});
+
+    try {
+      await contract.increasePayout(0, 900, {from: accounts[0]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+  });
+  it("verifies that increasing the payout for already approved milestones that would go over budget fails", async () => {
+    let contract = await StandardBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0);
+    await contract.activateBounty(5000, {from: accounts[0], value: 5000});
+
+    await contract.fulfillBounty("data", 0, {from: accounts[2]});
+    await contract.fulfillBounty("data", 0, {from: accounts[3]});
+    await contract.fulfillBounty("data", 1, {from: accounts[3]});
+    await contract.fulfillBounty("data", 2, {from: accounts[3]});
+
+    await contract.acceptFulfillment(0,0,{from: accounts[0]});
+    await contract.acceptFulfillment(0,1,{from: accounts[0]});
+    await contract.acceptFulfillment(1,0,{from: accounts[0]});
+    await contract.acceptFulfillment(2,0,{from: accounts[0]});
+
+    try {
+      await contract.increasePayout(0, 2000, {from: accounts[0]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+  });
+
+  it("verifies that increasing the payout for milestones which haven't been approved that would go over budget fails", async () => {
+    let contract = await StandardBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000,1000],
+                                            4000,
+                                            0x0);
+    await contract.activateBounty(5000, {from: accounts[0], value: 5000});
+
+    await contract.fulfillBounty("data", 0, {from: accounts[3]});
+    await contract.fulfillBounty("data", 1, {from: accounts[3]});
+    await contract.fulfillBounty("data", 2, {from: accounts[3]});
+    await contract.fulfillBounty("data", 3, {from: accounts[3]});
+
+
+    await contract.acceptFulfillment(0,0,{from: accounts[0]});
+    await contract.acceptFulfillment(1,0,{from: accounts[0]});
+
+
+    await contract.fulfillmentPayment(0,0,{from: accounts[3]});
+    await contract.fulfillmentPayment(1,0,{from: accounts[3]});
+
+    try {
+      await contract.increasePayout(2, 2000, {from: accounts[0]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
   });
 
 

@@ -34,13 +34,32 @@ contract TokenBounty is StandardBounty {
     for (uint i = 0 ; i < fulfillmentAmounts.length; i++){
       total = total + fulfillmentAmounts[i];
     }
-    require (tokenContract.balanceOf(this) >= (total + unpaidAmount()));
+    require (tokenContract.balanceOf(this) >= (total + amountToPay));
 
     _;
   }
 
+  modifier amountToPayRemains(uint _milestoneId) {
+      require((amountToPay + fulfillmentAmounts[_milestoneId]) <= tokenContract.balanceOf(this));
+      _;
+  }
+
   modifier unpaidAmountRemains(uint _milestoneId) {
-      require((unpaidAmount() + fulfillmentAmounts[_milestoneId]) <= tokenContract.balanceOf(this));
+      if (numAccepted[_milestoneId] != 0){
+        require((unpaidAmount + fulfillmentAmounts[_milestoneId]) <= tokenContract.balanceOf(this));
+      }
+      _;
+  }
+
+  modifier fundsRemainToPayUnpaidAmounts(uint _difference, uint _milestoneId){
+      if (numAccepted[_milestoneId] == 0){
+        require(tokenContract.balanceOf(this) >= (unpaidAmount + _difference));
+      }
+      _;
+  }
+
+  modifier fundsRemainForAmountToPay(uint _difference, uint _milestoneId){
+      require(tokenContract.balanceOf(this) >= (amountToPay + (_difference * (numAccepted[_milestoneId] - numPaid[_milestoneId]))));
       _;
   }
 
@@ -78,66 +97,105 @@ contract TokenBounty is StandardBounty {
   {
     tokenContract = StandardToken(_tokenAddress);
   }
-
-
-    /// @dev acceptFulfillment(): accept a given fulfillment, and send
-    /// the fulfiller their owed funds
-    /// @param _fulfillmentId the index of the fulfillment being accepted
-    /// @param _milestoneId the id of the milestone being paid
-    function fulfillmentPayment(uint _milestoneId, uint _fulfillmentId)
-    public
-    validateMilestoneIndex(_milestoneId)
-    validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
-    onlyFulfiller(_milestoneId, _fulfillmentId)
-    checkFulfillmentIsApprovedAndUnpaid(_milestoneId, _fulfillmentId)
-    {
-      fulfillments[_milestoneId][_fulfillmentId].paid = true;
-      numPaid[_milestoneId]++;
-      tokenContract.transfer(fulfillments[_milestoneId][_fulfillmentId].fulfiller, fulfillmentAmounts[_milestoneId]);
-      FulfillmentPaid(msg.sender, _milestoneId, _fulfillmentId);
-    }
-
-    /// @dev killBounty(): drains the contract of it's remaining
-    /// funds, and moves the bounty into stage 3 (dead) since it was
-    /// either killed in draft stage, or never accepted any fulfillments
-    function killBounty()
-    public
-    onlyIssuer
-    {
-      tokenContract.transfer(issuer, tokenContract.balanceOf(this) - unpaidAmount());
-
-      transitionToState(BountyStages.Dead);
-
-      BountyKilled();
-    }
-
-    /// @dev changeBounty(): allows the issuer to change all bounty storage
-    /// members simultaneously
-    /// @param _newIssuer the new address of the issuer
-    /// @param _newDeadline the new deadline for the bounty
-    /// @param _newData the new requirements of the bounty
-    /// @param _newFulfillmentAmounts the new fulfillment amounts
-    /// @param _tokenAddress the address of the token contract
-    function changeBounty(address _newIssuer,
-                          uint _newDeadline,
-                          string _newData,
-                          uint[] _newFulfillmentAmounts,
-                          uint _totalFulfillmentAmounts,
-                          address _newArbiter,
-                          address _tokenAddress)
-        public
-        onlyIssuer
-        validateDeadline(_newDeadline)
-        amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
-        isAtStage(BountyStages.Draft)
-    {
-      issuer = _newIssuer;
-      deadline = _newDeadline;
-      data = _newData;
-      fulfillmentAmounts = _newFulfillmentAmounts;
-      totalFulfillmentAmounts = _totalFulfillmentAmounts;
-      arbiter = _newArbiter;
-      tokenContract = HumanStandardToken(_tokenAddress);
-    }
-
+  /// @dev contribute(): a function allowing anyone to contribute ether to a
+  /// bounty, as long as it is still before its deadline. Shouldn't keep
+  /// ether by accident (hence 'value').
+  /// @param value the amount being contributed in ether to prevent accidental deposits
+  /// @notice Please note you funds will be at the mercy of the issuer
+  ///  and can be drained at any moment. Be careful!
+  function contribute (uint value)
+      public
+      payable
+      isBeforeDeadline
+      isNotDead
+      amountIsNotZero(value)
+      amountEqualsValue(value)
+  {
+      require(msg.value == 0);
+      ContributionAdded(msg.sender, value);
   }
+
+  /// @notice Send funds to activate the bug bounty
+  /// @dev activateBounty(): activate a bounty so it may pay out
+  /// @param value the amount being contributed in ether to prevent
+  /// accidental deposits
+  function activateBounty(uint value)
+      public
+      payable
+      isBeforeDeadline
+      onlyIssuer
+      amountEqualsValue(value)
+      validateFunding
+  {
+      require(msg.value == 0);
+      transitionToState(BountyStages.Active);
+
+      ContributionAdded(msg.sender, msg.value);
+      BountyActivated(msg.sender);
+  }
+
+
+  /// @dev fulfillmentPayment(): accept a given fulfillment, and send
+  /// the fulfiller their owed funds
+  /// @param _milestoneId the id of the milestone being paid
+  /// @param _fulfillmentId the index of the fulfillment being accepted
+  function fulfillmentPayment(uint _milestoneId, uint _fulfillmentId)
+  public
+  validateMilestoneIndex(_milestoneId)
+  validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
+  onlyFulfiller(_milestoneId, _fulfillmentId)
+  checkFulfillmentIsApprovedAndUnpaid(_milestoneId, _fulfillmentId)
+  {
+    fulfillments[_milestoneId][_fulfillmentId].paid = true;
+    numPaid[_milestoneId]++;
+    amountToPay -= fulfillmentAmounts[_milestoneId];
+
+    tokenContract.transfer(fulfillments[_milestoneId][_fulfillmentId].fulfiller, fulfillmentAmounts[_milestoneId]);
+    FulfillmentPaid(msg.sender, _milestoneId, _fulfillmentId);
+  }
+
+  /// @dev killBounty(): drains the contract of it's remaining
+  /// funds, and moves the bounty into stage 3 (dead) since it was
+  /// either killed in draft stage, or never accepted any fulfillments
+  function killBounty()
+  public
+  onlyIssuer
+  {
+    tokenContract.transfer(issuer, tokenContract.balanceOf(this) - amountToPay);
+
+    transitionToState(BountyStages.Dead);
+
+    BountyKilled();
+  }
+
+  /// @dev changeBounty(): allows the issuer to change all bounty storage
+  /// members simultaneously
+  /// @param _newIssuer the new address of the issuer
+  /// @param _newDeadline the new deadline for the bounty
+  /// @param _newData the new requirements of the bounty
+  /// @param _newFulfillmentAmounts the new fulfillment amounts
+  /// @param _totalFulfillmentAmounts the sum of the new fulfillment amounts
+  /// @param _tokenAddress the address of the token contract
+  function changeBounty(address _newIssuer,
+                        uint _newDeadline,
+                        string _newData,
+                        uint[] _newFulfillmentAmounts,
+                        uint _totalFulfillmentAmounts,
+                        address _newArbiter,
+                        address _tokenAddress)
+      public
+      onlyIssuer
+      validateDeadline(_newDeadline)
+      amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
+      isAtStage(BountyStages.Draft)
+  {
+    issuer = _newIssuer;
+    deadline = _newDeadline;
+    data = _newData;
+    fulfillmentAmounts = _newFulfillmentAmounts;
+    arbiter = _newArbiter;
+    unpaidAmount = _totalFulfillmentAmounts;
+    tokenContract = HumanStandardToken(_tokenAddress);
+  }
+
+}
