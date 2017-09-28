@@ -974,9 +974,4 @@ contract('TokenBounty', function(accounts) {
     assert(balance == 0);
 
   });
-
-
-
-
-
 });

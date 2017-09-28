@@ -187,10 +187,4 @@ contract('BountyFactory', function(accounts) {
     }
 
   });
-
-
-
-
-
-
 });

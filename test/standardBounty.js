@@ -842,9 +842,4 @@ contract('StandardBounty', function(accounts) {
     assert(balance == 0);
 
   });
-
-
-
-
-
 });
