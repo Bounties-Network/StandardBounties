@@ -70,7 +70,7 @@ contract StandardBounty {
       _;
   }
   modifier onlyIssuerOrArbiter() {
-      require(msg.sender == issuer || msg.sender == arbiter);
+      require(msg.sender == issuer || (msg.sender == arbiter && arbiter != address(0)));
       _;
   }
   modifier notIssuerOrArbiter() {
@@ -139,6 +139,11 @@ contract StandardBounty {
       _;
   }
 
+  modifier fulfillmentNotYetAccepted(uint _milestoneId, uint _fulfillmentId) {
+      require(fulfillments[_milestoneId][_fulfillmentId].accepted == false);
+      _;
+  }
+
   modifier checkFulfillmentIsApprovedAndUnpaid( uint _milestoneId, uint _fulfillmentId) {
       require(fulfillments[_milestoneId][_fulfillmentId].accepted && !fulfillments[_milestoneId][_fulfillmentId].paid);
       _;
@@ -170,12 +175,14 @@ contract StandardBounty {
    */
 
   /// @dev StandardBounty(): instantiates a new draft bounty
+  /// @param _issuer the address of the intended issuer of the bounty
   /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
   /// @param _data the requirements of the bounty
   /// @param _fulfillmentAmounts the amount of wei to be paid out for each successful fulfillment
   /// @param _totalFulfillmentAmounts the sum of the individual fulfillment amounts
   /// @param _arbiter the address of the arbiter who can mediate claims
   function StandardBounty(
+      address _issuer,
       uint _deadline,
       string _data,
       uint256[] _fulfillmentAmounts,
@@ -185,12 +192,11 @@ contract StandardBounty {
       amountsNotZeroAndEqualSum(_fulfillmentAmounts, _totalFulfillmentAmounts)
       validateDeadline(_deadline)
   {
-      issuer = tx.origin; //this allows for the issuance of a bounty using a factory
+      issuer = _issuer;
       bountyStage = BountyStages.Draft;
       deadline = _deadline;
       data = _data;
       arbiter = _arbiter;
-
       fulfillmentAmounts = _fulfillmentAmounts;
       totalFulfillmentAmounts = _totalFulfillmentAmounts;
   }
@@ -241,7 +247,7 @@ contract StandardBounty {
   {
       fulfillments[_milestoneId].push(Fulfillment(false, false, msg.sender, _data));
 
-      BountyFulfilled(msg.sender, fulfillments[_milestoneId].length, _milestoneId);
+      BountyFulfilled(msg.sender, (fulfillments[_milestoneId].length - 1), _milestoneId);
   }
 
   /// @dev updateFulfillment(): Submit updated data for a given fulfillment
@@ -267,6 +273,7 @@ contract StandardBounty {
       isAtStage(BountyStages.Active)
       validateMilestoneIndex(_milestoneId)
       validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
+      fulfillmentNotYetAccepted(_milestoneId, _fulfillmentId)
       unpaidAmountRemains(_milestoneId)
   {
       fulfillments[_milestoneId][_fulfillmentId].accepted = true;
@@ -288,7 +295,7 @@ contract StandardBounty {
       fulfillments[_milestoneId][_fulfillmentId].paid = true;
       numPaid[_milestoneId]++;
       fulfillments[_milestoneId][_fulfillmentId].fulfiller.transfer(fulfillmentAmounts[_milestoneId]);
-      
+
       FulfillmentPaid(msg.sender, _milestoneId, _fulfillmentId);
   }
 
@@ -331,12 +338,14 @@ contract StandardBounty {
 
   /// @dev changeBounty(): allows the issuer to change all bounty storage
   /// members simultaneously
+  /// @param _issuer the new address of the issuer
   /// @param _newDeadline the new deadline for the bounty
   /// @param _newData the new requirements of the bounty
   /// @param _newFulfillmentAmounts the new fulfillment amounts
   /// @param _totalFulfillmentAmounts the sum of the individual fulfillment amounts
   /// @param _newArbiter the new address of the arbiter
-  function changeBounty(uint _newDeadline,
+  function changeBounty(address _issuer,
+                        uint _newDeadline,
                         string _newData,
                         uint[] _newFulfillmentAmounts,
                         uint _totalFulfillmentAmounts,
@@ -347,6 +356,7 @@ contract StandardBounty {
       amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
       isAtStage(BountyStages.Draft)
   {
+    issuer = _issuer;
     deadline = _newDeadline;
     data = _newData;
     fulfillmentAmounts = _newFulfillmentAmounts;

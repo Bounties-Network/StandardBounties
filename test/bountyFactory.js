@@ -66,7 +66,7 @@ contract('BountyFactory', function(accounts) {
     let owner = await manager.owner();
     assert (owner == accounts[0]);
 
-    let bounty = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[0]});
+    let bounty = await manager.create(accounts[0], 2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[0]});
 
     let bounty0 = await manager.instances(0);
     assert (bounty.logs[0].args.instantiation == bounty0);
@@ -82,14 +82,14 @@ contract('BountyFactory', function(accounts) {
     let owner = await manager.owner();
     assert (owner == accounts[0]);
 
-    let bounty = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[0]});
+    let bounty = await manager.create(accounts[0], 2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[0]});
 
     let bounty0 = await manager.instances(0);
     assert (bounty.logs[0].args.instantiation == bounty0);
 
     let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
-    bounty = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0, bountyToken.address, {from: accounts[0]});
+    bounty = await manager.create(accounts[0], 2528821098,"",[1000,1000,1000],3000,0x0, bountyToken.address, {from: accounts[0]});
     bounty0 = await manager.instances(1);
 
     assert (bounty.logs[0].args.instantiation == bounty0);
@@ -108,7 +108,7 @@ contract('BountyFactory', function(accounts) {
 
 
     try {
-      await manager.create(2528821098,"",[0,1000,1000],3000,0x0,0x0, {from: accounts[0]});
+      await manager.create(accounts[0], 2528821098,"",[0,1000,1000],3000,0x0,0x0, {from: accounts[0]});
     } catch(error){
       return utils.ensureException(error);
     }
@@ -125,8 +125,8 @@ contract('BountyFactory', function(accounts) {
     let owner = await manager.owner();
     assert (owner == accounts[0]);
 
-    let bounty = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
-    let bounty2 = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
+    let bounty = await manager.create(accounts[0], 2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
+    let bounty2 = await manager.create(accounts[0], 2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
 
 
     let bounty0 = await manager.instances(0);
@@ -149,8 +149,8 @@ contract('BountyFactory', function(accounts) {
     let owner = await manager.owner();
     assert (owner == accounts[0]);
 
-    let bounty = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
-    let bounty2 = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
+    let bounty = await manager.create(accounts[0], 2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
+    let bounty2 = await manager.create(accounts[0], 2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
 
 
     let bounty0 = await manager.instances(0);
@@ -173,8 +173,8 @@ contract('BountyFactory', function(accounts) {
     let owner = await manager.owner();
     assert (owner == accounts[0]);
 
-    let bounty = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
-    let bounty2 = await manager.create(2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
+    let bounty = await manager.create(accounts[0], 2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
+    let bounty2 = await manager.create(accounts[0], 2528821098,"",[1000,1000,1000],3000,0x0,0x0, {from: accounts[1]});
 
 
     let bounty0 = await manager.instances(0);
