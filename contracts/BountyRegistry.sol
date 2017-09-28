@@ -5,7 +5,7 @@ import "./TokenBountyFactory.sol";
 
 
 
-/// @title Bounties factory, concept by Stefan George - <stefan.george@consensys.net>
+/// @title Bounties factory
 /// @author Mark Beylin <mark.beylin@consensys.net>, Gonçalo Sá <goncalo.sa@consensys.net>
 contract BountyRegistry{
 
@@ -47,6 +47,7 @@ contract BountyRegistry{
     }
 
     /// @dev Allows multiple creations of bounties
+    /// @param _issuer the address of the issuer
     /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
     /// @param _data the requirements of the bounty
     /// @param _fulfillmentAmounts the amount of wei to be paid out for each successful fulfillment
@@ -54,6 +55,7 @@ contract BountyRegistry{
     /// @param _tokenContract if the bounty pays out in tokens, the address of the token contract
 
     function create(
+      address _issuer,
       uint _deadline,
       string _data,
       uint[] _fulfillmentAmounts,
@@ -65,13 +67,15 @@ contract BountyRegistry{
     {
     address bounty;
       if (_tokenContract == address(0)){
-        bounty = standardBountyFactory.create(_deadline,
+        bounty = standardBountyFactory.create(_issuer,
+                                              _deadline,
                                               _data,
                                               _fulfillmentAmounts,
                                               _totalFulfillmentAmounts,
                                               _arbiter);
       } else {
-        bounty = tokenBountyFactory.create(_deadline,
+        bounty = tokenBountyFactory.create(_issuer,
+                                            _deadline,
                                             _data,
                                             _fulfillmentAmounts,
                                             _totalFulfillmentAmounts,

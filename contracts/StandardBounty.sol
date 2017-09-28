@@ -33,13 +33,14 @@ contract StandardBounty {
   string public data; // a hash of data representing the requirements for each milestone of the bounty, along with any associated files
 
   uint[] public fulfillmentAmounts; // the amount of wei to be rewarded to the user who fulfills the i'th milestone
-  uint public totalFulfillmentAmounts; // the sum of the payouts for the various milestones
 
   mapping(uint=>Fulfillment[]) public fulfillments; // all submitted fulfillments for each milestone
 
   mapping(uint=>uint) public numAccepted; // the number of accepted fulfillments for each milestone
   mapping(uint=>uint) public numPaid; // the number of paid fulfillments for each milestone
 
+  uint public amountToPay; // the sum of the various outstanding payouts
+  uint public unpaidAmount; // the sub of the milestone fulfillment amounts which have not yet been paid out
   /*
    * Enums
    */
@@ -70,7 +71,7 @@ contract StandardBounty {
       _;
   }
   modifier onlyIssuerOrArbiter() {
-      require(msg.sender == issuer || msg.sender == arbiter);
+      require(msg.sender == issuer || (msg.sender == arbiter && arbiter != address(0)));
       _;
   }
   modifier notIssuerOrArbiter() {
@@ -139,30 +140,56 @@ contract StandardBounty {
       _;
   }
 
+  modifier fulfillmentNotYetAccepted(uint _milestoneId, uint _fulfillmentId) {
+      require(fulfillments[_milestoneId][_fulfillmentId].accepted == false);
+      _;
+  }
+  modifier newFulfillmentAmountIsIncrease(uint _newFulfillmentAmount, uint _milestoneId) {
+      require(fulfillmentAmounts[_milestoneId] < _newFulfillmentAmount);
+      _;
+  }
+
   modifier checkFulfillmentIsApprovedAndUnpaid( uint _milestoneId, uint _fulfillmentId) {
       require(fulfillments[_milestoneId][_fulfillmentId].accepted && !fulfillments[_milestoneId][_fulfillmentId].paid);
       _;
   }
 
   modifier validateFunding() {
-
       uint total = 0;
       for (uint i = 0 ; i < fulfillmentAmounts.length; i++){
           total = total +  fulfillmentAmounts[i];
       }
+      require (this.balance >= (total + amountToPay));
+      _;
+  }
 
-      require (this.balance >= (total + unpaidAmount()));
+  modifier amountToPayRemains(uint _milestoneId) {
+      require((amountToPay + fulfillmentAmounts[_milestoneId]) <= this.balance);
       _;
   }
 
   modifier unpaidAmountRemains(uint _milestoneId) {
-      require((unpaidAmount() + fulfillmentAmounts[_milestoneId]) <= this.balance);
+      if (numAccepted[_milestoneId] != 0){
+        require((unpaidAmount + fulfillmentAmounts[_milestoneId]) <= this.balance);
+      }
       _;
   }
 
   modifier notYetAccepted( uint _milestoneId, uint _fulfillmentId){
-    require(fulfillments[_milestoneId][_fulfillmentId].accepted == false);
-    _;
+      require(fulfillments[_milestoneId][_fulfillmentId].accepted == false);
+      _;
+  }
+
+  modifier fundsRemainToPayUnpaidAmounts(uint _difference, uint _milestoneId){
+      if (numAccepted[_milestoneId] == 0){
+        require(this.balance >= (unpaidAmount + _difference));
+      }
+      _;
+  }
+
+  modifier fundsRemainForAmountToPay(uint _difference, uint _milestoneId){
+      require(this.balance >= (amountToPay + (_difference * (numAccepted[_milestoneId] - numPaid[_milestoneId]))));
+      _;
   }
 
   /*
@@ -170,12 +197,14 @@ contract StandardBounty {
    */
 
   /// @dev StandardBounty(): instantiates a new draft bounty
+  /// @param _issuer the address of the intended issuer of the bounty
   /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
   /// @param _data the requirements of the bounty
   /// @param _fulfillmentAmounts the amount of wei to be paid out for each successful fulfillment
   /// @param _totalFulfillmentAmounts the sum of the individual fulfillment amounts
   /// @param _arbiter the address of the arbiter who can mediate claims
   function StandardBounty(
+      address _issuer,
       uint _deadline,
       string _data,
       uint256[] _fulfillmentAmounts,
@@ -185,14 +214,14 @@ contract StandardBounty {
       amountsNotZeroAndEqualSum(_fulfillmentAmounts, _totalFulfillmentAmounts)
       validateDeadline(_deadline)
   {
-      issuer = tx.origin; //this allows for the issuance of a bounty using a factory
+      issuer = _issuer;
       bountyStage = BountyStages.Draft;
       deadline = _deadline;
       data = _data;
       arbiter = _arbiter;
-
       fulfillmentAmounts = _fulfillmentAmounts;
-      totalFulfillmentAmounts = _totalFulfillmentAmounts;
+      amountToPay = 0;
+      unpaidAmount = _totalFulfillmentAmounts;
   }
 
   /// @dev contribute(): a function allowing anyone to contribute ether to a
@@ -203,6 +232,7 @@ contract StandardBounty {
   ///  and can be drained at any moment. Be careful!
   function contribute (uint value)
       payable
+      public
       isBeforeDeadline
       isNotDead
       amountIsNotZero(value)
@@ -241,7 +271,7 @@ contract StandardBounty {
   {
       fulfillments[_milestoneId].push(Fulfillment(false, false, msg.sender, _data));
 
-      BountyFulfilled(msg.sender, fulfillments[_milestoneId].length, _milestoneId);
+      BountyFulfilled(msg.sender, (fulfillments[_milestoneId].length - 1), _milestoneId);
   }
 
   /// @dev updateFulfillment(): Submit updated data for a given fulfillment
@@ -267,9 +297,15 @@ contract StandardBounty {
       isAtStage(BountyStages.Active)
       validateMilestoneIndex(_milestoneId)
       validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
+      fulfillmentNotYetAccepted(_milestoneId, _fulfillmentId)
+      amountToPayRemains(_milestoneId)
       unpaidAmountRemains(_milestoneId)
   {
       fulfillments[_milestoneId][_fulfillmentId].accepted = true;
+      amountToPay += fulfillmentAmounts[_milestoneId];
+      if (numAccepted[_milestoneId] == 0){
+        unpaidAmount -= fulfillmentAmounts[_milestoneId];
+      }
       numAccepted[_milestoneId]++;
 
       FulfillmentAccepted(msg.sender, _milestoneId, _fulfillmentId);
@@ -287,8 +323,10 @@ contract StandardBounty {
   {
       fulfillments[_milestoneId][_fulfillmentId].paid = true;
       numPaid[_milestoneId]++;
+      amountToPay -= fulfillmentAmounts[_milestoneId];
+
       fulfillments[_milestoneId][_fulfillmentId].fulfiller.transfer(fulfillmentAmounts[_milestoneId]);
-      
+
       FulfillmentPaid(msg.sender, _milestoneId, _fulfillmentId);
   }
 
@@ -299,8 +337,7 @@ contract StandardBounty {
       public
       onlyIssuer
   {
-      issuer.transfer(this.balance - unpaidAmount());
-
+      issuer.transfer(this.balance - amountToPay);
       transitionToState(BountyStages.Dead);
 
       BountyKilled();
@@ -331,12 +368,14 @@ contract StandardBounty {
 
   /// @dev changeBounty(): allows the issuer to change all bounty storage
   /// members simultaneously
+  /// @param _issuer the new address of the issuer
   /// @param _newDeadline the new deadline for the bounty
   /// @param _newData the new requirements of the bounty
   /// @param _newFulfillmentAmounts the new fulfillment amounts
   /// @param _totalFulfillmentAmounts the sum of the individual fulfillment amounts
   /// @param _newArbiter the new address of the arbiter
-  function changeBounty(uint _newDeadline,
+  function changeBounty(address _issuer,
+                        uint _newDeadline,
                         string _newData,
                         uint[] _newFulfillmentAmounts,
                         uint _totalFulfillmentAmounts,
@@ -347,12 +386,32 @@ contract StandardBounty {
       amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
       isAtStage(BountyStages.Draft)
   {
+    issuer = _issuer;
     deadline = _newDeadline;
     data = _newData;
     fulfillmentAmounts = _newFulfillmentAmounts;
-    totalFulfillmentAmounts = _totalFulfillmentAmounts;
+    unpaidAmount = _totalFulfillmentAmounts;
     arbiter = _newArbiter;
   }
+
+  /// @dev increasePayout(): allows the issuer to increase a given fulfillment
+  /// amount in the active stage
+  /// @param _milestoneId the fulfillment in question
+  /// @param _newFulfillmentAmount the new payout amount for a given fulfillment
+  function increasePayout(uint _milestoneId, uint _newFulfillmentAmount)
+  public
+  onlyIssuer
+  newFulfillmentAmountIsIncrease(_newFulfillmentAmount, _milestoneId)
+  fundsRemainToPayUnpaidAmounts(_newFulfillmentAmount - fulfillmentAmounts[_milestoneId], _milestoneId)
+  fundsRemainForAmountToPay(_newFulfillmentAmount - fulfillmentAmounts[_milestoneId], _milestoneId){
+    uint difference = _newFulfillmentAmount - fulfillmentAmounts[_milestoneId];
+    amountToPay += ((numAccepted[_milestoneId] - numPaid[_milestoneId]) * difference);
+    if (numAccepted[_milestoneId] == 0){
+      unpaidAmount += difference;
+    }
+    fulfillmentAmounts[_milestoneId] = _newFulfillmentAmount;
+  }
+
 
 
 
@@ -405,19 +464,6 @@ contract StandardBounty {
       returns (uint)
   {
       return fulfillmentAmounts.length;
-  }
-
-  /// @dev unpaidAmount(): calculates the amount which
-  /// the bounty has yet to pay out
-  /// @return Returns the amount of Wei or tokens owed
-  function unpaidAmount()
-      public
-      constant
-      returns (uint amount)
-  {
-      for (uint i = 0; i < fulfillmentAmounts.length; i++){
-          amount = (amount + (fulfillmentAmounts[i]* (numAccepted[i]- numPaid[i])));
-      }
   }
 
   /*
