@@ -169,7 +169,9 @@ contract StandardBounty {
   }
 
   modifier unpaidAmountRemains(uint _milestoneId) {
-      require((unpaidAmount + fulfillmentAmounts[_milestoneId]) <= this.balance);
+      if (numAccepted[_milestoneId] != 0){
+        require((unpaidAmount + fulfillmentAmounts[_milestoneId]) <= this.balance);
+      }
       _;
   }
 
@@ -178,13 +180,15 @@ contract StandardBounty {
       _;
   }
 
-  modifier fundsRemainToPayUnpaidAmounts(uint _difference){
-      require(this.balance >= (unpaidAmount + _difference));
+  modifier fundsRemainToPayUnpaidAmounts(uint _difference, uint _milestoneId){
+      if (numAccepted[_milestoneId] == 0){
+        require(this.balance >= (unpaidAmount + _difference));
+      }
       _;
   }
 
-  modifier fundsRemainForAmountToPay(uint _difference){
-      require(this.balance >= (amountToPay + _difference));
+  modifier fundsRemainForAmountToPay(uint _difference, uint _milestoneId){
+      require(this.balance >= (amountToPay + (_difference * (numAccepted[_milestoneId] - numPaid[_milestoneId]))));
       _;
   }
 
@@ -228,6 +232,7 @@ contract StandardBounty {
   ///  and can be drained at any moment. Be careful!
   function contribute (uint value)
       payable
+      public
       isBeforeDeadline
       isNotDead
       amountIsNotZero(value)
@@ -332,7 +337,7 @@ contract StandardBounty {
       public
       onlyIssuer
   {
-      issuer.transfer(this.balance - amountToPay)
+      issuer.transfer(this.balance - amountToPay);
       transitionToState(BountyStages.Dead);
 
       BountyKilled();
@@ -392,13 +397,13 @@ contract StandardBounty {
   /// @dev increasePayout(): allows the issuer to increase a given fulfillment
   /// amount in the active stage
   /// @param _newFulfillmentAmount the new payout amount for a given fulfillment
-  /// @param _fulfillmentId the fulfillment in question
+  /// @param _milestoneId the fulfillment in question
   function increasePayout(uint _newFulfillmentAmount, uint _milestoneId)
   public
   onlyIssuer
   newFulfillmentAmountIsIncrease(_newFulfillmentAmount, _milestoneId)
-  fundsRemainToPayUnpaidAmounts(_newFulfillmentAmount - fulfillmentAmounts[_milestoneId])
-  fundsRemainForAmountToPay(_newFulfillmentAmount - fulfillmentAmounts[_milestoneId]){
+  fundsRemainToPayUnpaidAmounts(_newFulfillmentAmount - fulfillmentAmounts[_milestoneId], _milestoneId)
+  fundsRemainForAmountToPay(_newFulfillmentAmount - fulfillmentAmounts[_milestoneId], _milestoneId){
     uint difference = _newFulfillmentAmount - fulfillmentAmounts[_milestoneId];
     amountToPay += ((numAccepted[_milestoneId] - numPaid[_milestoneId]) * difference);
     if (numAccepted[_milestoneId] == 0){

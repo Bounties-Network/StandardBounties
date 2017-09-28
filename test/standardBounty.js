@@ -872,7 +872,7 @@ contract('StandardBounty', function(accounts) {
 
     await contract.acceptFulfillment(2,0, {from: accounts[0]});
 
-    let unpaid = await contract.unpaidAmount({from: accounts[0]});
+    let unpaid = await contract.amountToPay();
     assert (unpaid == 4000);
 
     await contract.fulfillmentPayment(0,0, {from: accounts[2]});
@@ -883,7 +883,7 @@ contract('StandardBounty', function(accounts) {
 
     await contract.fulfillmentPayment(2,0, {from: accounts[3]});
 
-    unpaid = await contract.unpaidAmount({from: accounts[0]});
+    unpaid = await contract.amountToPay();
     assert (unpaid == 0);
 
     balance = await web3.eth.getBalance(contract.address);

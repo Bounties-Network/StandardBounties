@@ -45,17 +45,21 @@ contract TokenBounty is StandardBounty {
   }
 
   modifier unpaidAmountRemains(uint _milestoneId) {
-      require((unpaidAmount + fulfillmentAmounts[_milestoneId]) <= tokenContract.balanceOf(this));
+      if (numAccepted[_milestoneId] != 0){
+        require((unpaidAmount + fulfillmentAmounts[_milestoneId]) <= tokenContract.balanceOf(this));
+      }
       _;
   }
 
-  modifier fundsRemainToPayUnpaidAmounts(uint _difference){
-      require(tokenContract.balanceOf(this) >= (unpaidAmount + _difference));
+  modifier fundsRemainToPayUnpaidAmounts(uint _difference, uint _milestoneId){
+      if (numAccepted[_milestoneId] == 0){
+        require(tokenContract.balanceOf(this) >= (unpaidAmount + _difference));
+      }
       _;
   }
 
-  modifier fundsRemainForAmountToPay(uint _difference){
-      require(tokenContract.balanceOf(this) >= (amountToPay + _difference));
+  modifier fundsRemainForAmountToPay(uint _difference, uint _milestoneId){
+      require(tokenContract.balanceOf(this) >= (amountToPay + (_difference * (numAccepted[_milestoneId] - numPaid[_milestoneId]))));
       _;
   }
 
@@ -100,11 +104,14 @@ contract TokenBounty is StandardBounty {
   /// @notice Please note you funds will be at the mercy of the issuer
   ///  and can be drained at any moment. Be careful!
   function contribute (uint value)
+      public
+      payable
       isBeforeDeadline
       isNotDead
       amountIsNotZero(value)
       amountEqualsValue(value)
   {
+      require(msg.value == 0);
       ContributionAdded(msg.sender, value);
   }
 
@@ -114,11 +121,13 @@ contract TokenBounty is StandardBounty {
   /// accidental deposits
   function activateBounty(uint value)
       public
+      payable
       isBeforeDeadline
       onlyIssuer
       amountEqualsValue(value)
       validateFunding
   {
+      require(msg.value == 0);
       transitionToState(BountyStages.Active);
 
       ContributionAdded(msg.sender, msg.value);
@@ -185,6 +194,7 @@ contract TokenBounty is StandardBounty {
     data = _newData;
     fulfillmentAmounts = _newFulfillmentAmounts;
     arbiter = _newArbiter;
+    unpaidAmount = _totalFulfillmentAmounts;
     tokenContract = HumanStandardToken(_tokenAddress);
   }
 
