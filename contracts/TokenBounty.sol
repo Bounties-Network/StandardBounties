@@ -22,7 +22,6 @@ contract TokenBounty is StandardBounty {
 
 
   modifier amountEqualsValue(uint value) {
-      require(value  <= tokenContract.allowance(msg.sender, this));
       if (value != 0){
         require(tokenContract.transferFrom(msg.sender, this, value));
       }
@@ -52,11 +51,15 @@ contract TokenBounty is StandardBounty {
   */
 
   /// @dev TokenBounty(): instantiates a new draft token bounty
+  /// @param _issuer the address of the intended issuer of the bounty
   /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
   /// @param _data the requirements of the bounty
   /// @param _fulfillmentAmounts the amount of wei to be paid out for each successful fulfillment
+  /// @param _totalFulfillmentAmounts the sum of the individual fulfillment amounts
+  /// @param _arbiter the address of the arbiter who can mediate claims
   /// @param _tokenAddress the address of the token contract
   function TokenBounty(
+    address _issuer,
     uint _deadline,
     string _data,
     uint[] _fulfillmentAmounts,
@@ -65,6 +68,7 @@ contract TokenBounty is StandardBounty {
     address _tokenAddress
     )
     StandardBounty(
+      _issuer,
       _deadline,
       _data,
       _fulfillmentAmounts,
@@ -109,11 +113,13 @@ contract TokenBounty is StandardBounty {
 
     /// @dev changeBounty(): allows the issuer to change all bounty storage
     /// members simultaneously
+    /// @param _newIssuer the new address of the issuer
     /// @param _newDeadline the new deadline for the bounty
     /// @param _newData the new requirements of the bounty
     /// @param _newFulfillmentAmounts the new fulfillment amounts
     /// @param _tokenAddress the address of the token contract
-    function changeBounty(uint _newDeadline,
+    function changeBounty(address _newIssuer,
+                          uint _newDeadline,
                           string _newData,
                           uint[] _newFulfillmentAmounts,
                           uint _totalFulfillmentAmounts,
@@ -125,6 +131,7 @@ contract TokenBounty is StandardBounty {
         amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
         isAtStage(BountyStages.Draft)
     {
+      issuer = _newIssuer;
       deadline = _newDeadline;
       data = _newData;
       fulfillmentAmounts = _newFulfillmentAmounts;
