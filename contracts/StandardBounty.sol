@@ -396,9 +396,9 @@ contract StandardBounty {
 
   /// @dev increasePayout(): allows the issuer to increase a given fulfillment
   /// amount in the active stage
-  /// @param _newFulfillmentAmount the new payout amount for a given fulfillment
   /// @param _milestoneId the fulfillment in question
-  function increasePayout(uint _newFulfillmentAmount, uint _milestoneId)
+  /// @param _newFulfillmentAmount the new payout amount for a given fulfillment
+  function increasePayout(uint _milestoneId, uint _newFulfillmentAmount)
   public
   onlyIssuer
   newFulfillmentAmountIsIncrease(_newFulfillmentAmount, _milestoneId)

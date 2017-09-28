@@ -1023,6 +1023,189 @@ contract('TokenBounty', function(accounts) {
     assert(balance == 0);
 
   });
+  it("verifies that increasing a payout amount for an unaccepted fulfillment works", async () => {
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    let contract = await TokenBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0,
+                                            bountyToken.address);
+    await bountyToken.approve(contract.address, 4000, {from: accounts[0]});
+    await contract.activateBounty(4000, {from: accounts[0]});
+
+    await contract.increasePayout(0, 2000, {from: accounts[0]});
+
+    await contract.fulfillBounty("data", 0, {from: accounts[2]});
+
+    await contract.acceptFulfillment(0,0,{from: accounts[0]});
+
+    var balance = await bountyToken.balanceOf(contract.address);
+    assert(balance == 4000);
+
+    await contract.fulfillmentPayment(0,0,{from: accounts[2]});
+
+    balance = await bountyToken.balanceOf(contract.address);
+    assert(balance == 2000);
+
+  });
+  it("verifies that increasing a payout amount for an accepted fulfillment works", async () => {
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    let contract = await TokenBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0,
+                                            bountyToken.address);
+    await bountyToken.approve(contract.address, 4000, {from: accounts[0]});
+    await contract.activateBounty(4000, {from: accounts[0]});
+
+    await contract.fulfillBounty("data", 0, {from: accounts[2]});
+
+    await contract.acceptFulfillment(0,0,{from: accounts[0]});
+
+    await contract.increasePayout(0, 2000, {from: accounts[0]});
+
+    var balance = await bountyToken.balanceOf(contract.address);
+    assert(balance == 4000);
+
+    await contract.fulfillmentPayment(0,0,{from: accounts[2]});
+
+    balance = await bountyToken.balanceOf(contract.address);
+    assert(balance == 2000);
+  });
+  it("verifies that increasing a payout amount with too small of a balance fails", async () => {
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    let contract = await TokenBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0,
+                                            bountyToken.address);
+    await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
+    await contract.activateBounty(3000, {from: accounts[0]});
+
+
+    try {
+      await contract.increasePayout(0, 2000, {from: accounts[0]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+  });
+  it("verifies that accepting a milestone too many times to pay out the remaining milestones, fails", async () => {
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    let contract = await TokenBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0,
+                                            bountyToken.address);
+    await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
+    await contract.activateBounty(3000, {from: accounts[0]});
+
+    await contract.fulfillBounty("data", 0, {from: accounts[2]});
+    await contract.fulfillBounty("data", 0, {from: accounts[3]});
+    await contract.fulfillBounty("data", 1, {from: accounts[2]});
+    await contract.fulfillBounty("data", 2, {from: accounts[2]});
+
+    await contract.acceptFulfillment(0,0,{from: accounts[0]});
+
+    try {
+      await contract.acceptFulfillment(0,1,{from: accounts[0]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+  });
+  it("verifies that accepting a milestone too many times to pay out the remaining accepted milestones, fails", async () => {
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    let contract = await TokenBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0,
+                                            bountyToken.address);
+    await bountyToken.approve(contract.address, 3000, {from: accounts[0]});
+    await contract.activateBounty(3000, {from: accounts[0]});
+
+    await contract.fulfillBounty("data", 0, {from: accounts[2]});
+    await contract.fulfillBounty("data", 0, {from: accounts[3]});
+    await contract.fulfillBounty("data", 1, {from: accounts[2]});
+    await contract.fulfillBounty("data", 2, {from: accounts[2]});
+
+    await contract.acceptFulfillment(0,0,{from: accounts[0]});
+    await contract.acceptFulfillment(1,0,{from: accounts[0]});
+    await contract.acceptFulfillment(2,0,{from: accounts[0]});
+
+    try {
+      await contract.acceptFulfillment(0,1,{from: accounts[0]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+  });
+  it("verifies that increasing the payout with a lower amount fails", async () => {
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    let contract = await TokenBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0,
+                                            bountyToken.address);
+    await bountyToken.approve(contract.address, 4000, {from: accounts[0]});
+    await contract.activateBounty(4000, {from: accounts[0]});
+
+    try {
+      await contract.increasePayout(0, 900, {from: accounts[0]});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+  });
+  it("verifies that contributing with ether fails", async () => {
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    let contract = await TokenBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0,
+                                            bountyToken.address);
+    await bountyToken.approve(contract.address, 4000, {from: accounts[0]});
+
+    try {
+      await contract.contribute(4000, {from: accounts[0], value: 4000});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+  });
+  it("verifies that activating with ether fails", async () => {
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+    let contract = await TokenBounty.new(accounts[0],
+                                            2528821098,
+                                            "",
+                                            [1000,1000,1000],
+                                            3000,
+                                            0x0,
+                                            bountyToken.address);
+    await bountyToken.approve(contract.address, 4000, {from: accounts[0]});
+
+    try {
+      await contract.activateBounty(4000, {from: accounts[0], value: 4000});
+    } catch(error){
+      return utils.ensureException(error);
+    }
+  });
 
 
 
