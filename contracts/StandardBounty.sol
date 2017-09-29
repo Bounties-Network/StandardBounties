@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.17;
 
 
 /// @title StandardBounties
@@ -27,6 +27,7 @@ contract StandardBounties {
   address public owner;
 
   Bounty[] public bounties;
+  BountyFulfillments[] public works;
 
   /*
    * Enums
@@ -49,12 +50,15 @@ contract StandardBounties {
     uint deadline;
     string data;
     uint[] fulfillmentAmounts;
-    mapping(uint=>Fulfillment[]) fulfillments;
-    mapping(uint=>uint) numAccepted;
-    mapping(uint=>uint) numPaid;
     uint amountToPay;
     uint unpaidAmount;
     uint balance;
+  }
+
+  struct BountyFulfillments{
+    mapping(uint=>Fulfillment[]) fulfillments;
+    mapping(uint=>uint) numAccepted;
+    mapping(uint=>uint) numPaid;
   }
 
   struct Fulfillment {
@@ -89,7 +93,7 @@ contract StandardBounties {
   }
 
   modifier onlyFulfiller(uint _bountyId, uint _milestoneId, uint _fulfillmentId) {
-      require(msg.sender == bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].fulfiller);
+      require(msg.sender == works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].fulfiller);
       _;
   }
    modifier amountIsNotZero(uint amount) {
@@ -140,7 +144,7 @@ contract StandardBounties {
   }
 
   modifier validateFulfillmentArrayIndex(uint _bountyId, uint _milestoneId, uint _index) {
-      require(_index < bounties[_bountyId].fulfillments[_milestoneId].length);
+      require(_index < works[_bountyId].fulfillments[_milestoneId].length);
       _;
   }
 
@@ -150,7 +154,7 @@ contract StandardBounties {
   }
 
   modifier fulfillmentNotYetAccepted(uint _bountyId, uint _milestoneId, uint _fulfillmentId) {
-      require(bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted == false);
+      require(works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted == false);
       _;
   }
   modifier newFulfillmentAmountIsIncrease(uint _bountyId, uint _milestoneId, uint _newFulfillmentAmount) {
@@ -159,7 +163,7 @@ contract StandardBounties {
   }
 
   modifier checkFulfillmentIsApprovedAndUnpaid(uint _bountyId, uint _milestoneId, uint _fulfillmentId) {
-      require(bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted && !bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].paid);
+      require(works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted && !works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].paid);
       _;
   }
 
@@ -172,34 +176,30 @@ contract StandardBounties {
       _;
   }
 
-  modifier amountToPayRemains(uint _bountyId, uint _milestoneId) {
+  modifier duesRemain(uint _bountyId, uint _milestoneId) {
+      if (works[_bountyId].numAccepted[_milestoneId] != 0){
+        require((bounties[_bountyId].unpaidAmount + bounties[_bountyId].fulfillmentAmounts[_milestoneId]) <= bounties[_bountyId].balance);
+      }
       require((bounties[_bountyId].amountToPay +
                bounties[_bountyId].fulfillmentAmounts[_milestoneId])
                  <= bounties[_bountyId].balance);
       _;
   }
 
-  modifier unpaidAmountRemains(uint _bountyId, uint _milestoneId) {
-      if (bounties[_bountyId].numAccepted[_milestoneId] != 0){
-        require((bounties[_bountyId].unpaidAmount + bounties[_bountyId].fulfillmentAmounts[_milestoneId]) <= bounties[_bountyId].balance);
-      }
-      _;
-  }
-
   modifier notYetAccepted(uint _bountyId, uint _milestoneId, uint _fulfillmentId){
-      require(bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted == false);
+      require(works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted == false);
       _;
   }
 
   modifier fundsRemainToPayDues(uint _bountyId, uint _milestoneId, uint _difference){
-      if (bounties[_bountyId].numAccepted[_milestoneId] == 0){
+      if (works[_bountyId].numAccepted[_milestoneId] == 0){
         require(bounties[_bountyId].balance >= (bounties[_bountyId].unpaidAmount + _difference));
       }
       require(bounties[_bountyId].balance >=
         (bounties[_bountyId].amountToPay +
         (_difference *
-          (bounties[_bountyId].numAccepted[_milestoneId] -
-           bounties[_bountyId].numPaid[_milestoneId]))));
+          (works[_bountyId].numAccepted[_milestoneId] -
+           works[_bountyId].numPaid[_milestoneId]))));
       _;
   }
 
@@ -238,7 +238,7 @@ contract StandardBounties {
       validateDeadline(_deadline)
       returns (uint)
   {
-      Bounty newBounty;
+      Bounty storage newBounty;
       newBounty.issuer = _issuer;
       newBounty.bountyStage = BountyStages.Draft;
       newBounty.deadline = _deadline;
@@ -248,6 +248,8 @@ contract StandardBounties {
       newBounty.amountToPay = 0;
       newBounty.unpaidAmount = _totalFulfillmentAmounts;
       bounties.push(newBounty);
+
+      works.push(BountyFulfillments());
 
       BountyIssued(bounties.length - 1);
       return (bounties.length - 1);
@@ -303,9 +305,9 @@ contract StandardBounties {
       validateMilestoneIndex(_bountyId, _milestoneId)
       notIssuerOrArbiter(_bountyId)
   {
-      bounties[_bountyId].fulfillments[_milestoneId].push(Fulfillment(false, false, msg.sender, _data));
+      works[_bountyId].fulfillments[_milestoneId].push(Fulfillment(false, false, msg.sender, _data));
 
-      BountyFulfilled(_bountyId, msg.sender, (bounties[_bountyId].fulfillments[_milestoneId].length - 1), _milestoneId);
+      BountyFulfilled(_bountyId, msg.sender, (works[_bountyId].fulfillments[_milestoneId].length - 1), _milestoneId);
   }
 
   /// @dev updateFulfillment(): Submit updated data for a given fulfillment
@@ -320,7 +322,7 @@ contract StandardBounties {
       onlyFulfiller(_bountyId, _milestoneId, _fulfillmentId)
       notYetAccepted(_bountyId, _milestoneId, _fulfillmentId)
   {
-      bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].data = _data;
+      works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].data = _data;
   }
 
   /// @dev acceptFulfillment(): accept a given fulfillment
@@ -334,15 +336,14 @@ contract StandardBounties {
       validateMilestoneIndex(_bountyId, _milestoneId)
       validateFulfillmentArrayIndex(_bountyId, _milestoneId, _fulfillmentId)
       fulfillmentNotYetAccepted(_bountyId, _milestoneId, _fulfillmentId)
-      amountToPayRemains(_bountyId, _milestoneId)
-      unpaidAmountRemains(_bountyId, _milestoneId)
+      duesRemain(_bountyId, _milestoneId)
   {
-      bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted = true;
+      works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted = true;
       bounties[_bountyId].amountToPay += bounties[_bountyId].fulfillmentAmounts[_milestoneId];
-      if (bounties[_bountyId].numAccepted[_milestoneId] == 0){
+      if (works[_bountyId].numAccepted[_milestoneId] == 0){
         bounties[_bountyId].unpaidAmount -= bounties[_bountyId].fulfillmentAmounts[_milestoneId];
       }
-      bounties[_bountyId].numAccepted[_milestoneId]++;
+      works[_bountyId].numAccepted[_milestoneId]++;
 
       FulfillmentAccepted(_bountyId, msg.sender, _milestoneId, _fulfillmentId);
   }
@@ -358,12 +359,12 @@ contract StandardBounties {
       onlyFulfiller(_bountyId, _milestoneId, _fulfillmentId)
       checkFulfillmentIsApprovedAndUnpaid(_bountyId, _milestoneId, _fulfillmentId)
   {
-      bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].paid = true;
-      bounties[_bountyId].numPaid[_milestoneId]++;
+      works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].paid = true;
+      works[_bountyId].numPaid[_milestoneId]++;
       bounties[_bountyId].amountToPay -= bounties[_bountyId].fulfillmentAmounts[_milestoneId];
       bounties[_bountyId].balance -= bounties[_bountyId].fulfillmentAmounts[_milestoneId];
 
-      bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].fulfiller.transfer(bounties[_bountyId].fulfillmentAmounts[_milestoneId]);
+      works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].fulfiller.transfer(bounties[_bountyId].fulfillmentAmounts[_milestoneId]);
 
       FulfillmentPaid(_bountyId, msg.sender, _milestoneId, _fulfillmentId);
   }
@@ -407,33 +408,66 @@ contract StandardBounties {
       bounties[_bountyId].issuer = _newIssuer;
   }
 
-  /// @dev changeBounty(): allows the issuer to change all bounty storage
-  /// members simultaneously
-  /// @param _issuer the new address of the issuer
+  /// @dev changeBountyIssuer(): allows the issuer to change a bounty's issuer
+  /// @param _newIssuer the new address of the issuer
+  function changeBountyIssuer(uint _bountyId, address _newIssuer)
+      public
+      validateBountyArrayIndex(_bountyId)
+      onlyIssuer(_bountyId)
+      isAtStage(_bountyId, BountyStages.Draft)
+  {
+      bounties[_bountyId].issuer = _newIssuer;
+      BountyChanged(_bountyId);
+  }
+
+  /// @dev changeBountyDeadline(): allows the issuer to change a bounty's issuer
   /// @param _newDeadline the new deadline for the bounty
-  /// @param _newData the new requirements of the bounty
-  /// @param _newFulfillmentAmounts the new fulfillment amounts
-  /// @param _totalFulfillmentAmounts the sum of the individual fulfillment amounts
-  /// @param _newArbiter the new address of the arbiter
-  function changeBounty(uint _bountyId,
-                        address _issuer,
-                        uint _newDeadline,
-                        string _newData,
-                        uint[] _newFulfillmentAmounts,
-                        uint _totalFulfillmentAmounts,
-                        address _newArbiter)
+  function changeBountyDeadline(uint _bountyId, uint _newDeadline)
       public
       validateBountyArrayIndex(_bountyId)
       onlyIssuer(_bountyId)
       validateDeadline(_newDeadline)
-      amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
       isAtStage(_bountyId, BountyStages.Draft)
   {
-      bounties[_bountyId].issuer = _issuer;
       bounties[_bountyId].deadline = _newDeadline;
+      BountyChanged(_bountyId);
+  }
+
+  /// @dev changeData(): allows the issuer to change a bounty's issuer
+  /// @param _newData the new requirements of the bounty
+  function changeBountyData(uint _bountyId, string _newData)
+      public
+      validateBountyArrayIndex(_bountyId)
+      onlyIssuer(_bountyId)
+      isAtStage(_bountyId, BountyStages.Draft)
+  {
       bounties[_bountyId].data = _newData;
+      BountyChanged(_bountyId);
+  }
+
+  /// @dev changeBountyFulfillmentAmounts(): allows the issuer to change a bounty's issuer
+  /// @param _newFulfillmentAmounts the new fulfillment amounts
+  /// @param _totalFulfillmentAmounts the sum of the individual fulfillment amounts
+  function changeBountyFulfillmentAmounts(uint _bountyId, uint[] _newFulfillmentAmounts, uint _totalFulfillmentAmounts)
+      public
+      validateBountyArrayIndex(_bountyId)
+      onlyIssuer(_bountyId)
+      isAtStage(_bountyId, BountyStages.Draft)
+      amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
+  {
       bounties[_bountyId].fulfillmentAmounts = _newFulfillmentAmounts;
       bounties[_bountyId].unpaidAmount = _totalFulfillmentAmounts;
+      BountyChanged(_bountyId);
+  }
+
+  /// @dev changeBountyArbiter(): allows the issuer to change a bounty's issuer
+  /// @param _newArbiter the new address of the arbiter
+  function changeBountyArbiter(uint _bountyId, address _newArbiter)
+      public
+      validateBountyArrayIndex(_bountyId)
+      onlyIssuer(_bountyId)
+      isAtStage(_bountyId, BountyStages.Draft)
+  {
       bounties[_bountyId].arbiter = _newArbiter;
       BountyChanged(_bountyId);
   }
@@ -450,8 +484,8 @@ contract StandardBounties {
       fundsRemainToPayDues(_bountyId, (_newFulfillmentAmount - bounties[_bountyId].fulfillmentAmounts[_milestoneId]), _milestoneId)
   {
     uint difference = _newFulfillmentAmount - bounties[_bountyId].fulfillmentAmounts[_milestoneId];
-    bounties[_bountyId].amountToPay += ((bounties[_bountyId].numAccepted[_milestoneId] - bounties[_bountyId].numPaid[_milestoneId]) * difference);
-    if (bounties[_bountyId].numAccepted[_milestoneId] == 0){
+    bounties[_bountyId].amountToPay += ((works[_bountyId].numAccepted[_milestoneId] - works[_bountyId].numPaid[_milestoneId]) * difference);
+    if (works[_bountyId].numAccepted[_milestoneId] == 0){
       bounties[_bountyId].unpaidAmount += difference;
     }
     bounties[_bountyId].fulfillmentAmounts[_milestoneId] = _newFulfillmentAmount;
@@ -469,10 +503,10 @@ contract StandardBounties {
       validateFulfillmentArrayIndex(_bountyId, _milestoneId, _fulfillmentId)
       returns (bool, bool, address, string)
   {
-      return (bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].paid,
-              bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted,
-              bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].fulfiller,
-              bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].data);
+      return (works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].paid,
+              works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted,
+              works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].fulfiller,
+              works[_bountyId].fulfillments[_milestoneId][_fulfillmentId].data);
   }
 
   /// @dev getBounty(): Returns the details of the bounty
@@ -499,7 +533,7 @@ contract StandardBounties {
       validateMilestoneIndex(_bountyId, _milestoneId)
       returns (uint)
   {
-      return bounties[_bountyId].fulfillments[_milestoneId].length;
+      return works[_bountyId].fulfillments[_milestoneId].length;
   }
   /// @dev getNumMilestones() returns the number of milestones
   /// @return Returns the number of fulfillments
