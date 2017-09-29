@@ -1,46 +1,33 @@
 pragma solidity ^0.4.11;
 
 
-/// @title StandardBounty
+/// @title StandardBounties
 /// @dev Used to pay out individuals or groups for task fulfillment through
 /// stepwise work submission, acceptance, and payment
 /// @author Mark Beylin <mark.beylin@consensys.net>, Gonçalo Sá <goncalo.sa@consensys.net>
-contract StandardBounty {
+contract StandardBounties {
 
   /*
    * Events
    */
-
-  event BountyActivated(address issuer);
-  event BountyFulfilled(address indexed fulfiller, uint256 indexed _milestoneId, uint256 indexed _fulfillmentId);
-  event FulfillmentAccepted(address indexed fulfiller, uint256 indexed _milestoneId, uint256 indexed _fulfillmentId);
-  event FulfillmentPaid(address indexed fulfiller, uint256 indexed _milestoneId, uint256 indexed _fulfillmentId);
-  event BountyKilled();
-  event ContributionAdded(address indexed contributor, uint256 value);
-  event DeadlineExtended(uint newDeadline);
+  event BountyIssued(uint bountyId);
+  event BountyActivated(uint bountyId, address issuer);
+  event BountyFulfilled(uint bountyId, address indexed fulfiller, uint256 indexed _milestoneId, uint256 indexed _fulfillmentId);
+  event FulfillmentAccepted(uint bountyId, address indexed fulfiller, uint256 indexed _milestoneId, uint256 indexed _fulfillmentId);
+  event FulfillmentPaid(uint bountyId, address indexed fulfiller, uint256 indexed _milestoneId, uint256 indexed _fulfillmentId);
+  event BountyKilled(uint bountyId);
+  event ContributionAdded(uint bountyId, address indexed contributor, uint256 value);
+  event DeadlineExtended(uint bountyId, uint newDeadline);
+  event BountyChanged(uint bountyId);
 
   /*
    * Storage
    */
 
-  address public issuer; // the creator of the bounty
+  address public owner;
 
-  address public arbiter; // should mediate conflicts, has the power to accept work
+  Bounty[] public bounties;
 
-  BountyStages public bountyStage; // the stage of the bounty
-
-  uint public deadline; // unix timestamp before which all work must be submitted
-  string public data; // a hash of data representing the requirements for each milestone of the bounty, along with any associated files
-
-  uint[] public fulfillmentAmounts; // the amount of wei to be rewarded to the user who fulfills the i'th milestone
-
-  mapping(uint=>Fulfillment[]) public fulfillments; // all submitted fulfillments for each milestone
-
-  mapping(uint=>uint) public numAccepted; // the number of accepted fulfillments for each milestone
-  mapping(uint=>uint) public numPaid; // the number of paid fulfillments for each milestone
-
-  uint public amountToPay; // the sum of the various outstanding payouts
-  uint public unpaidAmount; // the sub of the milestone fulfillment amounts which have not yet been paid out
   /*
    * Enums
    */
@@ -55,6 +42,21 @@ contract StandardBounty {
    * Structs
    */
 
+  struct Bounty {
+    address issuer;
+    address arbiter;
+    BountyStages bountyStage;
+    uint deadline;
+    string data;
+    uint[] fulfillmentAmounts;
+    mapping(uint=>Fulfillment[]) fulfillments;
+    mapping(uint=>uint) numAccepted;
+    mapping(uint=>uint) numPaid;
+    uint amountToPay;
+    uint unpaidAmount;
+    uint balance;
+  }
+
   struct Fulfillment {
       bool paid;
       bool accepted;
@@ -65,130 +67,139 @@ contract StandardBounty {
   /*
    * Modifiers
    */
+  modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+  }
+  modifier validateBountyArrayIndex(uint _bountyId){
+    require(_bountyId < bounties.length);
+    _;
+  }
+  modifier onlyIssuer(uint _bountyId) {
+      require(msg.sender == bounties[_bountyId].issuer);
+      _;
+  }
+  modifier onlyIssuerOrArbiter(uint _bountyId) {
+      require(msg.sender == bounties[_bountyId].issuer || (msg.sender == bounties[_bountyId].arbiter && bounties[_bountyId].arbiter != address(0)));
+      _;
+  }
+  modifier notIssuerOrArbiter(uint _bountyId) {
+      require(msg.sender != bounties[_bountyId].issuer && msg.sender != bounties[_bountyId].arbiter);
+      _;
+  }
 
-  modifier onlyIssuer() {
-      require(msg.sender == issuer);
-      _;
-  }
-  modifier onlyIssuerOrArbiter() {
-      require(msg.sender == issuer || (msg.sender == arbiter && arbiter != address(0)));
-      _;
-  }
-  modifier notIssuerOrArbiter() {
-      require(msg.sender != issuer && msg.sender != arbiter);
-      _;
-  }
-
-  modifier onlyFulfiller( uint _milestoneId, uint _fulfillmentId) {
-      require(msg.sender == fulfillments[_milestoneId][_fulfillmentId].fulfiller);
+  modifier onlyFulfiller(uint _bountyId, uint _milestoneId, uint _fulfillmentId) {
+      require(msg.sender == bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].fulfiller);
       _;
   }
    modifier amountIsNotZero(uint amount) {
       require(amount != 0);
       _;
   }
-  modifier amountsNotZeroAndEqualSum(uint[] amounts, uint _sum) {
+  modifier amountsNotZeroAndEqualSum(uint[] _amounts, uint _sum) {
       uint sum = 0;
       uint oldSum = 0;
-      for (uint i = 0; i < amounts.length; i++){
+      for (uint i = 0; i < _amounts.length; i++){
           oldSum = sum;
-          sum = oldSum + amounts[i];
+          sum = oldSum + _amounts[i];
           require(sum > oldSum);
       }
       require (sum == _sum);
       _;
   }
 
-  modifier amountEqualsValue(uint amount) {
-      require((amount * 1 wei) == msg.value);
+  modifier amountEqualsValue(uint _amount) {
+      require((_amount * 1 wei) == msg.value);
       _;
   }
 
-  modifier isBeforeDeadline() {
-      require(now < deadline);
+  modifier isBeforeDeadline(uint _bountyId) {
+      require(now < bounties[_bountyId].deadline);
       _;
   }
 
-  modifier validateDeadline(uint newDeadline) {
-      require(newDeadline > now);
+  modifier validateDeadline(uint _newDeadline) {
+      require(_newDeadline > now);
       _;
   }
 
-  modifier newDeadlineIsValid(uint newDeadline) {
-      require(newDeadline > deadline);
+  modifier newDeadlineIsValid(uint _bountyId, uint _newDeadline) {
+      require(_newDeadline > bounties[_bountyId].deadline);
       _;
   }
 
-  modifier isAtStage(BountyStages desiredStage) {
-      require(bountyStage == desiredStage);
+  modifier isAtStage(uint _bountyId, BountyStages _desiredStage) {
+      require(bounties[_bountyId].bountyStage == _desiredStage);
       _;
   }
 
 
-  modifier isNotDead() {
-      require(bountyStage != BountyStages.Dead);
+  modifier isNotDead(uint _bountyId) {
+      require(bounties[_bountyId].bountyStage != BountyStages.Dead);
       _;
   }
 
-  modifier validateFulfillmentArrayIndex(uint _milestoneId, uint _index) {
-      require(_index < fulfillments[_milestoneId].length);
+  modifier validateFulfillmentArrayIndex(uint _bountyId, uint _milestoneId, uint _index) {
+      require(_index < bounties[_bountyId].fulfillments[_milestoneId].length);
       _;
   }
 
-  modifier validateMilestoneIndex(uint _milestoneId){
-      require(_milestoneId < fulfillmentAmounts.length);
+  modifier validateMilestoneIndex(uint _bountyId, uint _milestoneId){
+      require(_milestoneId < bounties[_bountyId].fulfillmentAmounts.length);
       _;
   }
 
-  modifier fulfillmentNotYetAccepted(uint _milestoneId, uint _fulfillmentId) {
-      require(fulfillments[_milestoneId][_fulfillmentId].accepted == false);
+  modifier fulfillmentNotYetAccepted(uint _bountyId, uint _milestoneId, uint _fulfillmentId) {
+      require(bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted == false);
       _;
   }
-  modifier newFulfillmentAmountIsIncrease(uint _newFulfillmentAmount, uint _milestoneId) {
-      require(fulfillmentAmounts[_milestoneId] < _newFulfillmentAmount);
-      _;
-  }
-
-  modifier checkFulfillmentIsApprovedAndUnpaid( uint _milestoneId, uint _fulfillmentId) {
-      require(fulfillments[_milestoneId][_fulfillmentId].accepted && !fulfillments[_milestoneId][_fulfillmentId].paid);
+  modifier newFulfillmentAmountIsIncrease(uint _bountyId, uint _milestoneId, uint _newFulfillmentAmount) {
+      require(bounties[_bountyId].fulfillmentAmounts[_milestoneId] < _newFulfillmentAmount);
       _;
   }
 
-  modifier validateFunding() {
+  modifier checkFulfillmentIsApprovedAndUnpaid(uint _bountyId, uint _milestoneId, uint _fulfillmentId) {
+      require(bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted && !bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].paid);
+      _;
+  }
+
+  modifier validateFunding(uint _bountyId) {
       uint total = 0;
-      for (uint i = 0 ; i < fulfillmentAmounts.length; i++){
-          total = total +  fulfillmentAmounts[i];
+      for (uint i = 0 ; i < bounties[_bountyId].fulfillmentAmounts.length; i++){
+          total = total + bounties[_bountyId].fulfillmentAmounts[i];
       }
-      require (this.balance >= (total + amountToPay));
+      require (bounties[_bountyId].balance >= (total + bounties[_bountyId].amountToPay));
       _;
   }
 
-  modifier amountToPayRemains(uint _milestoneId) {
-      require((amountToPay + fulfillmentAmounts[_milestoneId]) <= this.balance);
+  modifier amountToPayRemains(uint _bountyId, uint _milestoneId) {
+      require((bounties[_bountyId].amountToPay +
+               bounties[_bountyId].fulfillmentAmounts[_milestoneId])
+                 <= bounties[_bountyId].balance);
       _;
   }
 
-  modifier unpaidAmountRemains(uint _milestoneId) {
-      if (numAccepted[_milestoneId] != 0){
-        require((unpaidAmount + fulfillmentAmounts[_milestoneId]) <= this.balance);
-      }
-      _;
-  }
-
-  modifier notYetAccepted( uint _milestoneId, uint _fulfillmentId){
-      require(fulfillments[_milestoneId][_fulfillmentId].accepted == false);
-      _;
-  }
-
-  modifier fundsRemainToPayUnpaidAmounts(uint _difference, uint _milestoneId){
-      if (numAccepted[_milestoneId] == 0){
-        require(this.balance >= (unpaidAmount + _difference));
+  modifier unpaidAmountRemains(uint _bountyId, uint _milestoneId) {
+      if (bounties[_bountyId].numAccepted[_milestoneId] != 0){
+        require((bounties[_bountyId].unpaidAmount + bounties[_bountyId].fulfillmentAmounts[_milestoneId]) <= bounties[_bountyId].balance);
       }
       _;
   }
 
-  modifier fundsRemainForAmountToPay(uint _difference, uint _milestoneId){
-      require(this.balance >= (amountToPay + (_difference * (numAccepted[_milestoneId] - numPaid[_milestoneId]))));
+  modifier notYetAccepted(uint _bountyId, uint _milestoneId, uint _fulfillmentId){
+      require(bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted == false);
+      _;
+  }
+
+  modifier fundsRemainToPayDues(uint _bountyId, uint _milestoneId, uint _difference){
+      if (bounties[_bountyId].numAccepted[_milestoneId] == 0){
+        require(bounties[_bountyId].balance >= (bounties[_bountyId].unpaidAmount + _difference));
+      }
+      require(bounties[_bountyId].balance >=
+        (bounties[_bountyId].amountToPay +
+        (_difference *
+          (bounties[_bountyId].numAccepted[_milestoneId] -
+           bounties[_bountyId].numPaid[_milestoneId]))));
       _;
   }
 
@@ -196,14 +207,25 @@ contract StandardBounty {
    * Public functions
    */
 
-  /// @dev StandardBounty(): instantiates a new draft bounty
+
+  /// @dev StandardBounties(): instantiates
+  /// @param _owner the issuer of the standardbounties contract, who has the
+  /// ability to remove bounties
+  function StandardBounties(address _owner)
+      public
+  {
+      owner = _owner;
+  }
+
+
+  /// @dev issueBounty(): instantiates a new draft bounty
   /// @param _issuer the address of the intended issuer of the bounty
   /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
   /// @param _data the requirements of the bounty
   /// @param _fulfillmentAmounts the amount of wei to be paid out for each successful fulfillment
   /// @param _totalFulfillmentAmounts the sum of the individual fulfillment amounts
   /// @param _arbiter the address of the arbiter who can mediate claims
-  function StandardBounty(
+  function issueBounty(
       address _issuer,
       uint _deadline,
       string _data,
@@ -211,159 +233,178 @@ contract StandardBounty {
       uint _totalFulfillmentAmounts,
       address _arbiter
   )
+      public
       amountsNotZeroAndEqualSum(_fulfillmentAmounts, _totalFulfillmentAmounts)
       validateDeadline(_deadline)
+      returns (uint)
   {
-      issuer = _issuer;
-      bountyStage = BountyStages.Draft;
-      deadline = _deadline;
-      data = _data;
-      arbiter = _arbiter;
-      fulfillmentAmounts = _fulfillmentAmounts;
-      amountToPay = 0;
-      unpaidAmount = _totalFulfillmentAmounts;
+      Bounty newBounty;
+      newBounty.issuer = _issuer;
+      newBounty.bountyStage = BountyStages.Draft;
+      newBounty.deadline = _deadline;
+      newBounty.data = _data;
+      newBounty.arbiter = _arbiter;
+      newBounty.fulfillmentAmounts = _fulfillmentAmounts;
+      newBounty.amountToPay = 0;
+      newBounty.unpaidAmount = _totalFulfillmentAmounts;
+      bounties.push(newBounty);
+
+      BountyIssued(bounties.length - 1);
+      return (bounties.length - 1);
   }
 
   /// @dev contribute(): a function allowing anyone to contribute ether to a
   /// bounty, as long as it is still before its deadline. Shouldn't keep
   /// ether by accident (hence 'value').
-  /// @param value the amount being contributed in ether to prevent accidental deposits
+  /// @param _value the amount being contributed in ether to prevent accidental deposits
   /// @notice Please note you funds will be at the mercy of the issuer
   ///  and can be drained at any moment. Be careful!
-  function contribute (uint value)
+  function contribute (uint _bountyId, uint _value)
       payable
       public
-      isBeforeDeadline
-      isNotDead
-      amountIsNotZero(value)
-      amountEqualsValue(value)
+      isBeforeDeadline(_bountyId)
+      isNotDead(_bountyId)
+      validateBountyArrayIndex(_bountyId)
+      amountIsNotZero(_value)
+      amountEqualsValue(_value)
   {
-      ContributionAdded(msg.sender, value);
+      bounties[_bountyId].balance += _value;
+      ContributionAdded(_bountyId, msg.sender, _value);
   }
 
   /// @notice Send funds to activate the bug bounty
   /// @dev activateBounty(): activate a bounty so it may pay out
-  /// @param value the amount being contributed in ether to prevent
+  /// @param _value the amount being contributed in ether to prevent
   /// accidental deposits
-  function activateBounty(uint value)
+  function activateBounty(uint _bountyId, uint _value)
       payable
       public
-      isBeforeDeadline
-      onlyIssuer
-      amountEqualsValue(value)
-      validateFunding
+      isBeforeDeadline(_bountyId)
+      onlyIssuer(_bountyId)
+      validateBountyArrayIndex(_bountyId)
+      amountEqualsValue(_value)
+      validateFunding(_bountyId)
   {
-      transitionToState(BountyStages.Active);
+      bounties[_bountyId].balance += _value;
+      transitionToState(_bountyId, BountyStages.Active);
 
-      ContributionAdded(msg.sender, msg.value);
-      BountyActivated(msg.sender);
+      ContributionAdded(_bountyId, msg.sender, msg.value);
+      BountyActivated(_bountyId, msg.sender);
   }
 
   /// @dev fulfillBounty(): submit a fulfillment for the given bounty
-  /// @param _data the data artifacts representing the fulfillment of the bounty
   /// @param _milestoneId the id of the milestone being fulfilled
-  function fulfillBounty(string _data, uint _milestoneId)
+  /// @param _data the data artifacts representing the fulfillment of the bounty
+  function fulfillBounty(uint _bountyId, uint _milestoneId, string _data)
       public
-      isAtStage(BountyStages.Active)
-      isBeforeDeadline
-      validateMilestoneIndex(_milestoneId)
-      notIssuerOrArbiter
+      validateBountyArrayIndex(_bountyId)
+      isAtStage(_bountyId, BountyStages.Active)
+      isBeforeDeadline(_bountyId)
+      validateMilestoneIndex(_bountyId, _milestoneId)
+      notIssuerOrArbiter(_bountyId)
   {
-      fulfillments[_milestoneId].push(Fulfillment(false, false, msg.sender, _data));
+      bounties[_bountyId].fulfillments[_milestoneId].push(Fulfillment(false, false, msg.sender, _data));
 
-      BountyFulfilled(msg.sender, (fulfillments[_milestoneId].length - 1), _milestoneId);
+      BountyFulfilled(_bountyId, msg.sender, (bounties[_bountyId].fulfillments[_milestoneId].length - 1), _milestoneId);
   }
 
   /// @dev updateFulfillment(): Submit updated data for a given fulfillment
-  /// @param _data the new data being submitted
   /// @param _milestoneId the index of the milestone
   /// @param _fulfillmentId the index of the fulfillment
-  function updateFulfillment(string _data, uint _milestoneId, uint _fulfillmentId)
-  public
-  validateMilestoneIndex(_milestoneId)
-  validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
-  onlyFulfiller(_milestoneId, _fulfillmentId)
-  notYetAccepted(_milestoneId, _fulfillmentId)
+  /// @param _data the new data being submitted
+  function updateFulfillment(uint _bountyId, uint _milestoneId, uint _fulfillmentId, string _data)
+      public
+      validateBountyArrayIndex(_bountyId)
+      validateMilestoneIndex(_bountyId, _milestoneId)
+      validateFulfillmentArrayIndex(_bountyId, _milestoneId, _fulfillmentId)
+      onlyFulfiller(_bountyId, _milestoneId, _fulfillmentId)
+      notYetAccepted(_bountyId, _milestoneId, _fulfillmentId)
   {
-    fulfillments[_milestoneId][_fulfillmentId].data = _data;
+      bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].data = _data;
   }
 
   /// @dev acceptFulfillment(): accept a given fulfillment
   /// @param _fulfillmentId the index of the fulfillment being accepted
   /// @param _milestoneId the id of the milestone being accepted
-  function acceptFulfillment( uint _milestoneId, uint _fulfillmentId)
+  function acceptFulfillment(uint _bountyId, uint _milestoneId, uint _fulfillmentId)
       public
-      onlyIssuerOrArbiter
-      isAtStage(BountyStages.Active)
-      validateMilestoneIndex(_milestoneId)
-      validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
-      fulfillmentNotYetAccepted(_milestoneId, _fulfillmentId)
-      amountToPayRemains(_milestoneId)
-      unpaidAmountRemains(_milestoneId)
+      validateBountyArrayIndex(_bountyId)
+      onlyIssuerOrArbiter(_bountyId)
+      isAtStage(_bountyId, BountyStages.Active)
+      validateMilestoneIndex(_bountyId, _milestoneId)
+      validateFulfillmentArrayIndex(_bountyId, _milestoneId, _fulfillmentId)
+      fulfillmentNotYetAccepted(_bountyId, _milestoneId, _fulfillmentId)
+      amountToPayRemains(_bountyId, _milestoneId)
+      unpaidAmountRemains(_bountyId, _milestoneId)
   {
-      fulfillments[_milestoneId][_fulfillmentId].accepted = true;
-      amountToPay += fulfillmentAmounts[_milestoneId];
-      if (numAccepted[_milestoneId] == 0){
-        unpaidAmount -= fulfillmentAmounts[_milestoneId];
+      bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted = true;
+      bounties[_bountyId].amountToPay += bounties[_bountyId].fulfillmentAmounts[_milestoneId];
+      if (bounties[_bountyId].numAccepted[_milestoneId] == 0){
+        bounties[_bountyId].unpaidAmount -= bounties[_bountyId].fulfillmentAmounts[_milestoneId];
       }
-      numAccepted[_milestoneId]++;
+      bounties[_bountyId].numAccepted[_milestoneId]++;
 
-      FulfillmentAccepted(msg.sender, _milestoneId, _fulfillmentId);
+      FulfillmentAccepted(_bountyId, msg.sender, _milestoneId, _fulfillmentId);
   }
 
   /// @dev fulfillmentPayment(): pay the fulfiller for their work
   /// @param _fulfillmentId the index of the fulfillment being accepted
   /// @param _milestoneId the id of the milestone being paid
-  function fulfillmentPayment( uint _milestoneId, uint _fulfillmentId)
+  function fulfillmentPayment(uint _bountyId, uint _milestoneId, uint _fulfillmentId)
       public
-      validateMilestoneIndex(_milestoneId)
-      validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
-      onlyFulfiller(_milestoneId, _fulfillmentId)
-      checkFulfillmentIsApprovedAndUnpaid(_milestoneId, _fulfillmentId)
+      validateBountyArrayIndex(_bountyId)
+      validateMilestoneIndex(_bountyId, _milestoneId)
+      validateFulfillmentArrayIndex(_bountyId, _milestoneId, _fulfillmentId)
+      onlyFulfiller(_bountyId, _milestoneId, _fulfillmentId)
+      checkFulfillmentIsApprovedAndUnpaid(_bountyId, _milestoneId, _fulfillmentId)
   {
-      fulfillments[_milestoneId][_fulfillmentId].paid = true;
-      numPaid[_milestoneId]++;
-      amountToPay -= fulfillmentAmounts[_milestoneId];
+      bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].paid = true;
+      bounties[_bountyId].numPaid[_milestoneId]++;
+      bounties[_bountyId].amountToPay -= bounties[_bountyId].fulfillmentAmounts[_milestoneId];
+      bounties[_bountyId].balance -= bounties[_bountyId].fulfillmentAmounts[_milestoneId];
 
-      fulfillments[_milestoneId][_fulfillmentId].fulfiller.transfer(fulfillmentAmounts[_milestoneId]);
+      bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].fulfiller.transfer(bounties[_bountyId].fulfillmentAmounts[_milestoneId]);
 
-      FulfillmentPaid(msg.sender, _milestoneId, _fulfillmentId);
+      FulfillmentPaid(_bountyId, msg.sender, _milestoneId, _fulfillmentId);
   }
 
   /// @dev killBounty(): drains the contract of it's remaining
   /// funds, and moves the bounty into stage 3 (dead) since it was
   /// either killed in draft stage, or never accepted any fulfillments
-  function killBounty()
+  function killBounty(uint _bountyId)
       public
-      onlyIssuer
+      validateBountyArrayIndex(_bountyId)
+      onlyIssuer(_bountyId)
   {
-      issuer.transfer(this.balance - amountToPay);
-      transitionToState(BountyStages.Dead);
+      bounties[_bountyId].issuer.transfer(bounties[_bountyId].balance - bounties[_bountyId].amountToPay);
+      transitionToState(_bountyId, BountyStages.Dead);
 
-      BountyKilled();
+      BountyKilled(_bountyId);
   }
 
   /// @dev extendDeadline(): allows the issuer to add more time to the
   /// bounty, allowing it to continue accepting fulfillments
   /// @param _newDeadline the new deadline in timestamp format
-  function extendDeadline(uint _newDeadline)
+  function extendDeadline(uint _bountyId, uint _newDeadline)
       public
-      onlyIssuer
-      newDeadlineIsValid(_newDeadline)
+      validateBountyArrayIndex(_bountyId)
+      onlyIssuer(_bountyId)
+      newDeadlineIsValid(_bountyId, _newDeadline)
   {
-      deadline = _newDeadline;
+      bounties[_bountyId].deadline = _newDeadline;
 
-      DeadlineExtended(_newDeadline);
+      DeadlineExtended(_bountyId, _newDeadline);
   }
 
   /// @dev transferIssuer(): allows the issuer to transfer ownership of the
   /// bounty to some new address
   /// @param _newIssuer the address of the new issuer
-  function transferIssuer(address _newIssuer)
-  public
-  onlyIssuer
+  function transferIssuer(uint _bountyId, address _newIssuer)
+      public
+      validateBountyArrayIndex(_bountyId)
+      onlyIssuer(_bountyId)
   {
-    issuer = _newIssuer;
+      bounties[_bountyId].issuer = _newIssuer;
   }
 
   /// @dev changeBounty(): allows the issuer to change all bounty storage
@@ -374,96 +415,101 @@ contract StandardBounty {
   /// @param _newFulfillmentAmounts the new fulfillment amounts
   /// @param _totalFulfillmentAmounts the sum of the individual fulfillment amounts
   /// @param _newArbiter the new address of the arbiter
-  function changeBounty(address _issuer,
+  function changeBounty(uint _bountyId,
+                        address _issuer,
                         uint _newDeadline,
                         string _newData,
                         uint[] _newFulfillmentAmounts,
                         uint _totalFulfillmentAmounts,
                         address _newArbiter)
       public
-      onlyIssuer
+      validateBountyArrayIndex(_bountyId)
+      onlyIssuer(_bountyId)
       validateDeadline(_newDeadline)
       amountsNotZeroAndEqualSum(_newFulfillmentAmounts, _totalFulfillmentAmounts)
-      isAtStage(BountyStages.Draft)
+      isAtStage(_bountyId, BountyStages.Draft)
   {
-    issuer = _issuer;
-    deadline = _newDeadline;
-    data = _newData;
-    fulfillmentAmounts = _newFulfillmentAmounts;
-    unpaidAmount = _totalFulfillmentAmounts;
-    arbiter = _newArbiter;
+      bounties[_bountyId].issuer = _issuer;
+      bounties[_bountyId].deadline = _newDeadline;
+      bounties[_bountyId].data = _newData;
+      bounties[_bountyId].fulfillmentAmounts = _newFulfillmentAmounts;
+      bounties[_bountyId].unpaidAmount = _totalFulfillmentAmounts;
+      bounties[_bountyId].arbiter = _newArbiter;
+      BountyChanged(_bountyId);
   }
 
   /// @dev increasePayout(): allows the issuer to increase a given fulfillment
   /// amount in the active stage
   /// @param _milestoneId the fulfillment in question
   /// @param _newFulfillmentAmount the new payout amount for a given fulfillment
-  function increasePayout(uint _milestoneId, uint _newFulfillmentAmount)
-  public
-  onlyIssuer
-  newFulfillmentAmountIsIncrease(_newFulfillmentAmount, _milestoneId)
-  fundsRemainToPayUnpaidAmounts(_newFulfillmentAmount - fulfillmentAmounts[_milestoneId], _milestoneId)
-  fundsRemainForAmountToPay(_newFulfillmentAmount - fulfillmentAmounts[_milestoneId], _milestoneId){
-    uint difference = _newFulfillmentAmount - fulfillmentAmounts[_milestoneId];
-    amountToPay += ((numAccepted[_milestoneId] - numPaid[_milestoneId]) * difference);
-    if (numAccepted[_milestoneId] == 0){
-      unpaidAmount += difference;
+  function increasePayout(uint _bountyId, uint _milestoneId, uint _newFulfillmentAmount)
+      public
+      validateBountyArrayIndex(_bountyId)
+      onlyIssuer(_bountyId)
+      newFulfillmentAmountIsIncrease(_bountyId, _milestoneId, _newFulfillmentAmount)
+      fundsRemainToPayDues(_bountyId, (_newFulfillmentAmount - bounties[_bountyId].fulfillmentAmounts[_milestoneId]), _milestoneId)
+  {
+    uint difference = _newFulfillmentAmount - bounties[_bountyId].fulfillmentAmounts[_milestoneId];
+    bounties[_bountyId].amountToPay += ((bounties[_bountyId].numAccepted[_milestoneId] - bounties[_bountyId].numPaid[_milestoneId]) * difference);
+    if (bounties[_bountyId].numAccepted[_milestoneId] == 0){
+      bounties[_bountyId].unpaidAmount += difference;
     }
-    fulfillmentAmounts[_milestoneId] = _newFulfillmentAmount;
+    bounties[_bountyId].fulfillmentAmounts[_milestoneId] = _newFulfillmentAmount;
   }
-
-
-
 
   /// @dev getFulfillment(): Returns the fulfillment at a given index
   /// @param _fulfillmentId the index of the fulfillment to return
   /// @param _milestoneId the index of the milestone to return
   /// @return Returns a tuple for the fulfillment
-  function getFulfillment( uint _milestoneId, uint _fulfillmentId)
+  function getFulfillment(uint _bountyId, uint _milestoneId, uint _fulfillmentId)
       public
       constant
-      validateMilestoneIndex(_milestoneId)
-      validateFulfillmentArrayIndex(_milestoneId, _fulfillmentId)
+      validateBountyArrayIndex(_bountyId)
+      validateMilestoneIndex(_bountyId, _milestoneId)
+      validateFulfillmentArrayIndex(_bountyId, _milestoneId, _fulfillmentId)
       returns (bool, bool, address, string)
   {
-      return (fulfillments[_milestoneId][_fulfillmentId].paid,
-              fulfillments[_milestoneId][_fulfillmentId].accepted,
-              fulfillments[_milestoneId][_fulfillmentId].fulfiller,
-              fulfillments[_milestoneId][_fulfillmentId].data);
+      return (bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].paid,
+              bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].accepted,
+              bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].fulfiller,
+              bounties[_bountyId].fulfillments[_milestoneId][_fulfillmentId].data);
   }
 
   /// @dev getBounty(): Returns the details of the bounty
   /// @return Returns a tuple for the bounty
-  function getBounty()
+  function getBounty(uint _bountyId)
       public
       constant
+      validateBountyArrayIndex(_bountyId)
       returns (address, uint, uint, string)
   {
-      return (issuer,
-              uint(bountyStage),
-              deadline,
-              data);
+      return (bounties[_bountyId].issuer,
+              uint(bounties[_bountyId].bountyStage),
+              bounties[_bountyId].deadline,
+              bounties[_bountyId].data);
   }
 
   /// @dev getNumFulfillments() returns the number of fulfillments for a given milestone
   /// @param _milestoneId the ID of the milestone
   /// @return Returns the number of fulfillments
-  function getNumFulfillments(uint _milestoneId)
+  function getNumFulfillments(uint _bountyId, uint _milestoneId)
       public
       constant
-      validateMilestoneIndex(_milestoneId)
+      validateBountyArrayIndex(_bountyId)
+      validateMilestoneIndex(_bountyId, _milestoneId)
       returns (uint)
   {
-      return fulfillments[_milestoneId].length;
+      return bounties[_bountyId].fulfillments[_milestoneId].length;
   }
   /// @dev getNumMilestones() returns the number of milestones
   /// @return Returns the number of fulfillments
-  function getNumMilestones()
+  function getNumMilestones(uint _bountyId)
       public
       constant
+      validateBountyArrayIndex(_bountyId)
       returns (uint)
   {
-      return fulfillmentAmounts.length;
+      return bounties[_bountyId].fulfillmentAmounts.length;
   }
 
   /*
@@ -474,9 +520,9 @@ contract StandardBounty {
   /// state passed in the parameter `_newStage` given the
   /// conditions stated in the body of the function
   /// @param _newStage the new stage to transition to
-  function transitionToState(BountyStages _newStage)
+  function transitionToState(uint _bountyId, BountyStages _newStage)
       internal
   {
-      bountyStage = _newStage;
+      bounties[_bountyId].bountyStage = _newStage;
   }
 }
