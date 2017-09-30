@@ -1,5 +1,5 @@
- pragma solidity ^0.4.17;
- import "./inherited/HumanStandardToken.sol"
+pragma solidity ^0.4.17;
+import "./inherited/HumanStandardToken.sol"
 
 /// @title StandardBounties
 /// @dev Used to pay out individuals or groups for task fulfillment through
@@ -48,17 +48,16 @@ contract StandardBounties {
    */
 
   struct Bounty {
-    address issuer;
-    uint deadline;
-    string data;
-    uint fulfillmentAmount;
-    address arbiter;
-    bool paysTokens;
-    BountyStages bountyStage;
-    uint owedAmount;
-    uint balance;
+      address issuer;
+      uint deadline;
+      string data;
+      uint fulfillmentAmount;
+      address arbiter;
+      bool paysTokens;
+      BountyStages bountyStage;
+      uint owedAmount;
+      uint balance;
   }
-
 
   struct Fulfillment {
       bool paid;
@@ -86,13 +85,13 @@ contract StandardBounties {
       _;
   }
 
-  modifier notIssuerOrArbiter(uint _bountyId) {
-      require(msg.sender != bounties[_bountyId].issuer && msg.sender != bounties[_bountyId].arbiter);
+  modifier onlyFulfiller(uint _bountyId, uint _fulfillmentId) {
+      require(msg.sender == fulfillments[_bountyId][_fulfillmentId].fulfiller);
       _;
   }
 
-  modifier onlyFulfiller(uint _bountyId, uint _fulfillmentId) {
-      require(msg.sender == fulfillments[_bountyId][_fulfillmentId].fulfiller);
+  modifier amountIsNotZero(uint _amount) {
+      require(_amount != 0);
       _;
   }
 
@@ -129,10 +128,6 @@ contract StandardBounties {
       _;
   }
 
-  modifier validateFunding(uint _bountyId) {
-        require (bounties[_bountyId].balance >= (bounties[_bountyId].fulfillmentAmount + bounties[_bountyId].owedAmount));
-      _;
-  }
   modifier notYetAccepted(uint _bountyId, uint _fulfillmentId){
       require(fulfillments[_bountyId][_fulfillmentId].accepted == false);
       _;
@@ -151,7 +146,6 @@ contract StandardBounties {
   {
       owner = _owner;
   }
-
 
   /// @dev issueBounty(): instantiates a new draft bounty
   /// @param _issuer the address of the intended issuer of the bounty
@@ -172,6 +166,7 @@ contract StandardBounties {
   )
       public
       validateDeadline(_deadline)
+      amountIsNotZero(_fulfillmentAmount)
       returns (uint)
   {
       bounties.push(Bounty(_issuer, _deadline, _data, _fulfillmentAmount, _arbiter, _paysTokens, BountyStages.Draft, 0, 0));
@@ -182,13 +177,54 @@ contract StandardBounties {
       return (bounties.length - 1);
   }
 
-  modifier isNotDead(uint _bountyId) {
-      require(bounties[_bountyId].bountyStage != BountyStages.Dead);
-      _;
+  /// @dev issueAndActivateBounty(): instantiates a new draft bounty
+  /// @param _issuer the address of the intended issuer of the bounty
+  /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
+  /// @param _data the requirements of the bounty
+  /// @param _fulfillmentAmount the amount of wei to be paid out for each successful fulfillment
+  /// @param _arbiter the address of the arbiter who can mediate claims
+  /// @param _paysTokens whether the bounty pays in tokens or in ETH
+  /// @param _tokenContract the address of the contract if _paysTokens is true
+  /// @param _value the total number of tokens being deposited upon activation
+  function issueAndActivateBounty(
+      address _issuer,
+      uint _deadline,
+      string _data,
+      uint256 _fulfillmentAmount,
+      address _arbiter,
+      bool _paysTokens,
+      address _tokenContract,
+      uint256 _value
+  )
+      public
+      payable
+      validateDeadline(_deadline)
+      amountIsNotZero(_fulfillmentAmount)
+      returns (uint)
+  {
+      require (_value >= _fulfillmentAmount);
+      if (_paysTokens){
+        require(msg.value == 0);
+        tokenContracts[bounties.length] = HumanStandardToken(_tokenContract);
+        require(tokenContracts[bounties.length].transferFrom(msg.sender, this, _value));
+      } else {
+        require((_value * 1 wei) == msg.value);
+      }
+      bounties.push(Bounty(_issuer,
+                            _deadline,
+                            _data,
+                            _fulfillmentAmount,
+                            _arbiter,
+                            _paysTokens,
+                            BountyStages.Active,
+                            0,
+                            _value));
+      BountyIssued(bounties.length - 1);
+      return (bounties.length - 1);
   }
 
-  modifier amountIsNotZero(uint _amount) {
-      require(_amount != 0);
+  modifier isNotDead(uint _bountyId) {
+      require(bounties[_bountyId].bountyStage != BountyStages.Dead);
       _;
   }
 
@@ -216,6 +252,11 @@ contract StandardBounties {
       ContributionAdded(_bountyId, msg.sender, _value);
   }
 
+  modifier validateFunding(uint _bountyId) {
+        require (bounties[_bountyId].balance >= (bounties[_bountyId].fulfillmentAmount + bounties[_bountyId].owedAmount));
+      _;
+  }
+
   /// @notice Send funds to activate the bug bounty
   /// @dev activateBounty(): activate a bounty so it may pay out
   /// @param _bountyId the index of the bounty
@@ -238,6 +279,11 @@ contract StandardBounties {
 
       ContributionAdded(_bountyId, msg.sender, msg.value);
       BountyActivated(_bountyId, msg.sender);
+  }
+
+  modifier notIssuerOrArbiter(uint _bountyId) {
+      require(msg.sender != bounties[_bountyId].issuer && msg.sender != bounties[_bountyId].arbiter);
+      _;
   }
 
   /// @dev fulfillBounty(): submit a fulfillment for the given bounty
@@ -516,12 +562,15 @@ contract StandardBounties {
       public
       constant
       validateBountyArrayIndex(_bountyId)
-      returns (address, uint, uint, string)
+      returns (address, uint, uint, bool, uint, uint, uint)
   {
       return (bounties[_bountyId].issuer,
-              uint(bounties[_bountyId].bountyStage),
               bounties[_bountyId].deadline,
-              bounties[_bountyId].data);
+              bounties[_bountyId].fulfillmentAmount,
+              bounties[_bountyId].paysTokens,
+              uint(bounties[_bountyId].bountyStage),
+              bounties[_bountyId].owedAmount,
+              bounties[_bountyId].balance);
   }
 
   /// @dev getNumFulfillments() returns the number of fulfillments for a given milestone
