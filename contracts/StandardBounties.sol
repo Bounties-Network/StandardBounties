@@ -506,7 +506,7 @@ contract StandardBounties {
   {
       if (bounties[_bountyId].balance > 0){
         if (bounties[_bountyId].paysTokens){
-            tokenContracts[_bountyId].transferFrom(this, bounties[_bountyId].issuer, bounties[_bountyId].balance);
+            require(tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, bounties[_bountyId].balance));
         } else {
             bounties[_bountyId].issuer.transfer(bounties[_bountyId].balance);
         }

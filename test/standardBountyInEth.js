@@ -8,7 +8,7 @@ const BN = require(`bn.js`);
 contract('StandardBounties', function(accounts) {
 
 
-  it("[ETH] Verifies that the StandardBounties registry ", async () => {
+  it("[ETH] Verifies that the StandardBounties registry works", async () => {
 
     let registry = await StandardBounties.new(accounts[0]);
 
@@ -1481,6 +1481,7 @@ contract('StandardBounties', function(accounts) {
     await registry.changeBountyPaysTokens(0, true, 0x0, {from: accounts[0]});
     bounty = await registry.getBounty(0);
     balance = await web3.eth.getBalance(registry.address);
+    assert(bounty[3] == true);
     assert(bounty[6] == 0);
     assert(balance == 0);
 
