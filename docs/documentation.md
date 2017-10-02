@@ -107,11 +107,11 @@ function issueAndActivateBounty(
     payable
     validateDeadline(_deadline)
     amountIsNotZero(_fulfillmentAmount)
+    validateNotTooManyBounties
     returns (uint)
 {
     require (_value >= _fulfillmentAmount);
     if (_paysTokens){
-      require(msg.value == 0);
       tokenContracts[bounties.length] = HumanStandardToken(_tokenContract);
       require(tokenContracts[bounties.length].transferFrom(msg.sender, this, _value));
     } else {
@@ -127,6 +127,8 @@ function issueAndActivateBounty(
                           0,
                           _value));
     BountyIssued(bounties.length - 1);
+    ContributionAdded(bounties.length - 1, msg.sender, _value);
+    BountyActivated(bounties.length - 1, msg.sender);
     return (bounties.length - 1);
 }
 ```
@@ -143,9 +145,6 @@ function contribute (uint _bountyId, uint _value)
     amountIsNotZero(_value)
     transferredAmountEqualsValue(_bountyId, _value)
 {
-    if (bounties[_bountyId].paysTokens){
-      require(msg.value == 0);
-    }
     bounties[_bountyId].balance += _value;
 
     ContributionAdded(_bountyId, msg.sender, _value);
@@ -163,15 +162,12 @@ function activateBounty(uint _bountyId, uint _value)
     validateBountyArrayIndex(_bountyId)
     transferredAmountEqualsValue(_bountyId, _value)
 {
-    if (bounties[_bountyId].paysTokens){
-      require(msg.value == 0);
-    }
     bounties[_bountyId].balance += _value;
     require (bounties[_bountyId].balance >=
             (bounties[_bountyId].fulfillmentAmount + bounties[_bountyId].owedAmount));
     transitionToState(_bountyId, BountyStages.Active);
 
-    ContributionAdded(_bountyId, msg.sender, msg.value);
+    ContributionAdded(_bountyId, msg.sender, _value);
     BountyActivated(_bountyId, msg.sender);
 }
 ```
@@ -383,16 +379,23 @@ function changeBountyPaysTokens(uint _bountyId, bool _newPaysTokens, address _ne
 #### increasePayout()
 The issuer of the bounty can increase the payout of the bounty even in the `Active` stage, as long as the balance of their bounty is sufficient to pay out any accepted fulfillments.
 ```
-function increasePayout(uint _bountyId, uint _newFulfillmentAmount)
+function increasePayout(uint _bountyId, uint _newFulfillmentAmount, uint _value)
     public
+    payable
     validateBountyArrayIndex(_bountyId)
     onlyIssuer(_bountyId)
     newFulfillmentAmountIsIncrease(_bountyId, _newFulfillmentAmount)
-    fundsRemainToPayOwed(_bountyId, (_newFulfillmentAmount - bounties[_bountyId].fulfillmentAmount))
+    transferredAmountEqualsValue(_bountyId, _value)
 {
-    bounties[_bountyId].owedAmount += ((numAccepted[_bountyId] - numPaid[_bountyId]) *
-                                      (_newFulfillmentAmount - bounties[_bountyId].fulfillmentAmount));
+    bounties[_bountyId].balance += _value;
+    uint newOwedAmount = (bounties[_bountyId].owedAmount +
+                          ((_newFulfillmentAmount - bounties[_bountyId].fulfillmentAmount)
+                             * (numAccepted[_bountyId] - numPaid[_bountyId])));
+    require(bounties[_bountyId].balance >= newOwedAmount);
+    bounties[_bountyId].owedAmount = newOwedAmount;
     bounties[_bountyId].fulfillmentAmount = _newFulfillmentAmount;
+    ContributionAdded(_bountyId, msg.sender, _value);
+    PayoutIncreased(_bountyId, _newFulfillmentAmount);
 }
 ```
 
