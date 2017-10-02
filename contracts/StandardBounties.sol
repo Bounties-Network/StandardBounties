@@ -13,12 +13,16 @@ contract StandardBounties {
   event BountyIssued(uint bountyId);
   event BountyActivated(uint bountyId, address issuer);
   event BountyFulfilled(uint bountyId, address indexed fulfiller, uint256 indexed _fulfillmentId);
+  event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId);
   event FulfillmentAccepted(uint bountyId, address indexed fulfiller, uint256 indexed _fulfillmentId);
   event FulfillmentPaid(uint bountyId, address indexed fulfiller, uint256 indexed _fulfillmentId);
   event BountyKilled(uint bountyId);
   event ContributionAdded(uint bountyId, address indexed contributor, uint256 value);
   event DeadlineExtended(uint bountyId, uint newDeadline);
   event BountyChanged(uint bountyId);
+  event IssuerTransferred(uint _bountyId, address indexed _newIssuer);
+  event PayoutIncreased(uint _bountyId, uint _newFulfillmentAmount);
+
 
   /*
    * Storage
@@ -220,6 +224,8 @@ contract StandardBounties {
                             0,
                             _value));
       BountyIssued(bounties.length - 1);
+      ContributionAdded(bounties.length - 1, msg.sender, msg.value);
+      BountyActivated(bounties.length - 1, msg.sender);
       return (bounties.length - 1);
   }
 
@@ -309,6 +315,7 @@ contract StandardBounties {
       notYetAccepted(_bountyId, _fulfillmentId)
   {
       fulfillments[_bountyId][_fulfillmentId].data = _data;
+      FulfillmentUpdated(_bountyId, _fulfillmentId);
   }
 
   modifier onlyIssuerOrArbiter(uint _bountyId) {
@@ -426,20 +433,9 @@ contract StandardBounties {
       onlyIssuer(_bountyId)
   {
       bounties[_bountyId].issuer = _newIssuer;
+      IssuerTransferred(_bountyId, _newIssuer);
   }
 
-  /// @dev changeBountyIssuer(): allows the issuer to change a bounty's issuer
-  /// @param _bountyId the index of the bounty
-  /// @param _newIssuer the new address of the issuer
-  function changeBountyIssuer(uint _bountyId, address _newIssuer)
-      public
-      validateBountyArrayIndex(_bountyId)
-      onlyIssuer(_bountyId)
-      isAtStage(_bountyId, BountyStages.Draft)
-  {
-      bounties[_bountyId].issuer = _newIssuer;
-      BountyChanged(_bountyId);
-  }
 
   /// @dev changeBountyDeadline(): allows the issuer to change a bounty's issuer
   /// @param _bountyId the index of the bounty
@@ -543,6 +539,7 @@ contract StandardBounties {
       bounties[_bountyId].owedAmount += ((numAccepted[_bountyId] - numPaid[_bountyId]) *
                                         (_newFulfillmentAmount - bounties[_bountyId].fulfillmentAmount));
       bounties[_bountyId].fulfillmentAmount = _newFulfillmentAmount;
+      PayoutIncreased(_bountyId, _newFulfillmentAmount);
   }
 
   /// @dev getFulfillment(): Returns the fulfillment at a given index

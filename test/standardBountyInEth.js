@@ -918,24 +918,6 @@ contract('StandardBounties', function(accounts) {
       return utils.ensureException(error);
     }
   });
-
-  it("[ETH] verifies that I can change the issuer of a draft bounty", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                false,
-                                0x0,
-                                {from: accounts[0]});
-    await registry.changeBountyIssuer(0, accounts[1], {from: accounts[0]});
-
-    let bounty = await registry.getBounty(0);
-    assert(bounty[0] == accounts[1]);
-
-  });
   it("[ETH] verifies that I can change the deadline of a draft bounty", async () => {
     let registry = await StandardBounties.new(accounts[0]);
 
@@ -1023,25 +1005,6 @@ contract('StandardBounties', function(accounts) {
 
   });
 
-  it("[ETH] verifies that I can't change the issuer of an active bounty", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                false,
-                                0x0,
-                                {from: accounts[0]});
-    await registry.activateBounty(0, 1000, {from: accounts[0], value: 1000});
-    try {
-      await registry.changeBountyIssuer(0, accounts[1], {from: accounts[0]});
-    } catch(error){
-      return utils.ensureException(error);
-    }
-
-  });
   it("[ETH] verifies that I can't change the deadline of an active bounty", async () => {
     let registry = await StandardBounties.new(accounts[0]);
 

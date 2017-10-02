@@ -1032,25 +1032,6 @@ contract('StandardBounties', function(accounts) {
       return utils.ensureException(error);
     }
   });
-
-  it("[TOKENS] verifies that I can change the issuer of a draft bounty", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                true,
-                                bountyToken.address,
-                                {from: accounts[0]});
-    await registry.changeBountyIssuer(0, accounts[1], {from: accounts[0]});
-
-    let bounty = await registry.getBounty(0);
-    assert(bounty[0] == accounts[1]);
-
-  });
   it("[TOKENS] verifies that I can change the deadline of a draft bounty", async () => {
     let registry = await StandardBounties.new(accounts[0]);
     let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
@@ -1140,28 +1121,6 @@ contract('StandardBounties', function(accounts) {
 
     arbiter = await registry.getBountyArbiter(0);
     assert(arbiter == accounts[2]);
-
-  });
-
-  it("[TOKENS] verifies that I can't change the issuer of an active bounty", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                true,
-                                bountyToken.address,
-                                {from: accounts[0]});
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-    await registry.activateBounty(0, 1000, {from: accounts[0]});
-    try {
-      await registry.changeBountyIssuer(0, accounts[1], {from: accounts[0]});
-    } catch(error){
-      return utils.ensureException(error);
-    }
 
   });
   it("[TOKENS] verifies that I can't change the deadline of an active bounty", async () => {
