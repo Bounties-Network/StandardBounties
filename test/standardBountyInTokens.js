@@ -1368,7 +1368,54 @@ contract('StandardBounties', function(accounts) {
     assert(bounty[5] == 0);
     assert(bounty[6] == 2000);
 
-    await registry.increasePayout(0,2000, {from: accounts[0]});
+    await registry.increasePayout(0,2000, 0, {from: accounts[0]});
+
+    bounty = await registry.getBounty(0);
+    assert(bounty[2] == 2000);
+    assert(bounty[5] == 0);
+    assert(bounty[6] == 2000);
+
+    await registry.acceptFulfillment(0,0, {from: accounts[0]});
+    bounty = await registry.getBounty(0);
+    assert(bounty[5] == 2000);
+    assert(bounty[6] == 2000);
+
+    await registry.fulfillmentPayment(0,0,{from: accounts[1]});
+    bounty = await registry.getBounty(0);
+    assert(bounty[5] == 0);
+    assert(bounty[6] == 0);
+
+
+  });
+  it("[TOKENS] verifies that increasing a payout amount with value works", async () => {
+    let registry = await StandardBounties.new(accounts[0]);
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0],
+                                2528821098,
+                                "data",
+                                1000,
+                                0x0,
+                                true,
+                                bountyToken.address,
+                                {from: accounts[0]});
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+    await registry.activateBounty(0,1000, {from: accounts[0]});
+
+    let bounty = await registry.getBounty(0);
+    assert(bounty[2] == 1000);
+    assert(bounty[5] == 0);
+    assert(bounty[6] == 1000);
+
+    await registry.fulfillBounty(0, "data", {from: accounts[1]});
+
+    bounty = await registry.getBounty(0);
+    assert(bounty[2] == 1000);
+    assert(bounty[5] == 0);
+    assert(bounty[6] == 1000);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+    await registry.increasePayout(0,2000, 1000, {from: accounts[0]});
 
     bounty = await registry.getBounty(0);
     assert(bounty[2] == 2000);
@@ -1415,7 +1462,7 @@ contract('StandardBounties', function(accounts) {
     assert(bounty[5] == 1000);
     assert(bounty[6] == 2000);
 
-    await registry.increasePayout(0,2000, {from: accounts[0]});
+    await registry.increasePayout(0,2000, 0, {from: accounts[0]});
 
     bounty = await registry.getBounty(0);
     assert(bounty[2] == 2000);
@@ -1466,7 +1513,7 @@ contract('StandardBounties', function(accounts) {
     assert(bounty[5] == 2000);
     assert(bounty[6] == 5000);
 
-    await registry.increasePayout(0,2000, {from: accounts[0]});
+    await registry.increasePayout(0,2000, 0, {from: accounts[0]});
 
     bounty = await registry.getBounty(0);
     assert(bounty[2] == 2000);
@@ -1510,7 +1557,7 @@ contract('StandardBounties', function(accounts) {
     await registry.acceptFulfillment(0,1, {from: accounts[0]});
 
     try {
-      await registry.increasePayout(0,2000, {from: accounts[0]});
+      await registry.increasePayout(0,2000, 0, {from: accounts[0]});
     } catch(error){
       return utils.ensureException(error);
     }
@@ -1540,7 +1587,7 @@ contract('StandardBounties', function(accounts) {
     await registry.acceptFulfillment(0,1, {from: accounts[0]});
 
     try {
-      await registry.increasePayout(0,900, {from: accounts[0]});
+      await registry.increasePayout(0,900, 0, {from: accounts[0]});
     } catch(error){
       return utils.ensureException(error);
     }

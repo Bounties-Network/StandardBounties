@@ -84,7 +84,7 @@ contract StandardBounties {
     _;
   }
 
-  modifier validateNotTooManyFulfillments(_bountyId){
+  modifier validateNotTooManyFulfillments(uint _bountyId){
     require((fulfillments[_bountyId].length + 1) > fulfillments[_bountyId].length);
     _;
   }
@@ -116,6 +116,7 @@ contract StandardBounties {
           require(tokenContracts[_bountyId].transferFrom(msg.sender, this, _amount));
         }
         require((tokenContracts[_bountyId].balanceOf(this) - oldBalance) == _amount);
+        require(msg.value == 0);
       } else {
         require((_amount * 1 wei) == msg.value);
       }
@@ -220,7 +221,6 @@ contract StandardBounties {
   {
       require (_value >= _fulfillmentAmount);
       if (_paysTokens){
-        require(msg.value == 0);
         tokenContracts[bounties.length] = HumanStandardToken(_tokenContract);
         require(tokenContracts[bounties.length].transferFrom(msg.sender, this, _value));
       } else {
@@ -236,7 +236,7 @@ contract StandardBounties {
                             0,
                             _value));
       BountyIssued(bounties.length - 1);
-      ContributionAdded(bounties.length - 1, msg.sender, msg.value);
+      ContributionAdded(bounties.length - 1, msg.sender, _value);
       BountyActivated(bounties.length - 1, msg.sender);
       return (bounties.length - 1);
   }
@@ -262,9 +262,6 @@ contract StandardBounties {
       amountIsNotZero(_value)
       transferredAmountEqualsValue(_bountyId, _value)
   {
-      if (bounties[_bountyId].paysTokens){
-        require(msg.value == 0);
-      }
       bounties[_bountyId].balance += _value;
 
       ContributionAdded(_bountyId, msg.sender, _value);
@@ -283,15 +280,12 @@ contract StandardBounties {
       validateBountyArrayIndex(_bountyId)
       transferredAmountEqualsValue(_bountyId, _value)
   {
-      if (bounties[_bountyId].paysTokens){
-        require(msg.value == 0);
-      }
       bounties[_bountyId].balance += _value;
       require (bounties[_bountyId].balance >=
               (bounties[_bountyId].fulfillmentAmount + bounties[_bountyId].owedAmount));
       transitionToState(_bountyId, BountyStages.Active);
 
-      ContributionAdded(_bountyId, msg.sender, msg.value);
+      ContributionAdded(_bountyId, msg.sender, _value);
       BountyActivated(_bountyId, msg.sender);
   }
 
@@ -531,27 +525,27 @@ contract StandardBounties {
       _;
   }
 
-  modifier fundsRemainToPayOwed(uint _bountyId, uint _difference){
-      require(bounties[_bountyId].balance >=
-        (bounties[_bountyId].owedAmount +
-        (_difference * (numAccepted[_bountyId] - numPaid[_bountyId]))));
-      _;
-  }
-
   /// @dev increasePayout(): allows the issuer to increase a given fulfillment
   /// amount in the active stage
   /// @param _bountyId the index of the bounty
   /// @param _newFulfillmentAmount the new fulfillment amount
-  function increasePayout(uint _bountyId, uint _newFulfillmentAmount)
+  /// @param _value the value of the additional deposit being added
+  function increasePayout(uint _bountyId, uint _newFulfillmentAmount, uint _value)
       public
+      payable
       validateBountyArrayIndex(_bountyId)
       onlyIssuer(_bountyId)
       newFulfillmentAmountIsIncrease(_bountyId, _newFulfillmentAmount)
-      fundsRemainToPayOwed(_bountyId, (_newFulfillmentAmount - bounties[_bountyId].fulfillmentAmount))
+      transferredAmountEqualsValue(_bountyId, _value)
   {
-      bounties[_bountyId].owedAmount += ((numAccepted[_bountyId] - numPaid[_bountyId]) *
-                                        (_newFulfillmentAmount - bounties[_bountyId].fulfillmentAmount));
+      bounties[_bountyId].balance += _value;
+      uint newOwedAmount = (bounties[_bountyId].owedAmount +
+                            ((_newFulfillmentAmount - bounties[_bountyId].fulfillmentAmount)
+                               * (numAccepted[_bountyId] - numPaid[_bountyId])));
+      require(bounties[_bountyId].balance >= newOwedAmount);
+      bounties[_bountyId].owedAmount = newOwedAmount;
       bounties[_bountyId].fulfillmentAmount = _newFulfillmentAmount;
+      ContributionAdded(_bountyId, msg.sender, _value);
       PayoutIncreased(_bountyId, _newFulfillmentAmount);
   }
 
