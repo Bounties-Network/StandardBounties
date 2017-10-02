@@ -591,6 +591,7 @@ contract StandardBounties {
   {
       return (bounties[_bountyId].arbiter);
   }
+
   /// @dev getBountyData(): Returns the data of the bounty
   /// @param _bountyId the index of the bounty
   /// @return Returns a string for the bounty data
@@ -601,6 +602,18 @@ contract StandardBounties {
       returns (string)
   {
       return (bounties[_bountyId].data);
+  }
+
+  /// @dev getBountyToken(): Returns the token contract of the bounty
+  /// @param _bountyId the index of the bounty
+  /// @return Returns an address for the token that the bounty uses
+  function getBountyToken(uint _bountyId)
+      public
+      constant
+      validateBountyArrayIndex(_bountyId)
+      returns (address)
+  {
+      return (tokenContracts[_bountyId]);
   }
 
   /// @dev getNumFulfillments() returns the number of fulfillments for a given milestone
