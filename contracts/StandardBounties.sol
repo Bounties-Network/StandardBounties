@@ -620,6 +620,16 @@ contract StandardBounties {
       return (tokenContracts[_bountyId]);
   }
 
+  /// @dev getNumBounties() returns the number of bounties in the registry
+  /// @return Returns the number of bounties
+  function getNumFulfillments(uint _bountyId)
+      public
+      constant
+      returns (uint)
+  {
+      return bounties.length;
+  }
+
   /// @dev getNumFulfillments() returns the number of fulfillments for a given milestone
   /// @param _bountyId the index of the bounty
   /// @return Returns the number of fulfillments
