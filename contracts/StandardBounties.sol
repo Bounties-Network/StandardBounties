@@ -78,8 +78,14 @@ contract StandardBounties {
     require(msg.sender == owner);
     _;
   }
+
   modifier validateNotTooManyBounties(){
     require((bounties.length + 1) > bounties.length);
+    _;
+  }
+
+  modifier validateNotTooManyFulfillments(_bountyId){
+    require((fulfillments[_bountyId].length + 1) > fulfillments[_bountyId].length);
     _;
   }
 
@@ -300,6 +306,7 @@ contract StandardBounties {
   function fulfillBounty(uint _bountyId, string _data)
       public
       validateBountyArrayIndex(_bountyId)
+      validateNotTooManyFulfillments(_bountyId)
       isAtStage(_bountyId, BountyStages.Active)
       isBeforeDeadline(_bountyId)
       notIssuerOrArbiter(_bountyId)
