@@ -78,6 +78,10 @@ contract StandardBounties {
     require(msg.sender == owner);
     _;
   }
+  modifier validateNotTooManyBounties(){
+    require((bounties.length + 1) > bounties.length);
+    _;
+  }
 
   modifier validateBountyArrayIndex(uint _bountyId){
     require(_bountyId < bounties.length);
@@ -171,6 +175,7 @@ contract StandardBounties {
       public
       validateDeadline(_deadline)
       amountIsNotZero(_fulfillmentAmount)
+      validateNotTooManyBounties
       returns (uint)
   {
       bounties.push(Bounty(_issuer, _deadline, _data, _fulfillmentAmount, _arbiter, _paysTokens, BountyStages.Draft, 0, 0));
@@ -204,6 +209,7 @@ contract StandardBounties {
       payable
       validateDeadline(_deadline)
       amountIsNotZero(_fulfillmentAmount)
+      validateNotTooManyBounties
       returns (uint)
   {
       require (_value >= _fulfillmentAmount);
