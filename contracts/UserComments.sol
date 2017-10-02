@@ -4,7 +4,7 @@ pragma solidity ^0.4.11;
 /// @title User Comments
 /// @author Mark Beylin <mark.beylin@consensys.net>
 
-contract UserComments{
+contract UserComments {
     event CommentAdded(string _comment, address _from, address _to, uint _time);
 
     struct Comment{

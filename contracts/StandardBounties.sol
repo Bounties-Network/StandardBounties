@@ -1,5 +1,5 @@
-pragma solidity ^0.4.17;
-import "./inherited/HumanStandardToken.sol"
+pragma solidity ^0.4.11;
+import "./inherited/HumanStandardToken.sol";
 
 /// @title StandardBounties
 /// @dev Used to pay out individuals or groups for task fulfillment through
@@ -252,11 +252,6 @@ contract StandardBounties {
       ContributionAdded(_bountyId, msg.sender, _value);
   }
 
-  modifier validateFunding(uint _bountyId) {
-        require (bounties[_bountyId].balance >= (bounties[_bountyId].fulfillmentAmount + bounties[_bountyId].owedAmount));
-      _;
-  }
-
   /// @notice Send funds to activate the bug bounty
   /// @dev activateBounty(): activate a bounty so it may pay out
   /// @param _bountyId the index of the bounty
@@ -269,12 +264,13 @@ contract StandardBounties {
       onlyIssuer(_bountyId)
       validateBountyArrayIndex(_bountyId)
       transferredAmountEqualsValue(_bountyId, _value)
-      validateFunding(_bountyId)
   {
       if (bounties[_bountyId].paysTokens){
         require(msg.value == 0);
       }
       bounties[_bountyId].balance += _value;
+      require (bounties[_bountyId].balance >=
+              (bounties[_bountyId].fulfillmentAmount + bounties[_bountyId].owedAmount));
       transitionToState(_bountyId, BountyStages.Active);
 
       ContributionAdded(_bountyId, msg.sender, msg.value);
@@ -388,13 +384,14 @@ contract StandardBounties {
       validateBountyArrayIndex(_bountyId)
       onlyIssuer(_bountyId)
   {
+      transitionToState(_bountyId, BountyStages.Dead);
       if (bounties[_bountyId].paysTokens){
         tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer,
                                           (bounties[_bountyId].balance - bounties[_bountyId].owedAmount));
       } else {
         bounties[_bountyId].issuer.transfer(bounties[_bountyId].balance - bounties[_bountyId].owedAmount);
       }
-      transitionToState(_bountyId, BountyStages.Dead);
+      bounties[_bountyId].balance = bounties[_bountyId].owedAmount;
 
       BountyKilled(_bountyId);
   }
@@ -497,15 +494,25 @@ contract StandardBounties {
       BountyChanged(_bountyId);
   }
 
-  /// @dev changeBountyTokenContract(): allows the issuer to change a bounty's issuer
+  /// @dev changeBountyPaysTokens(): allows the issuer to change a bounty's issuer
   /// @param _bountyId the index of the bounty
+  /// @param _newPaysTokens the new bool for whether the contract pays tokens
   /// @param _newTokenContract the new address of the token
-  function changeBountyTokenContract(uint _bountyId, address _newTokenContract)
+  function changeBountyPaysTokens(uint _bountyId, bool _newPaysTokens, address _newTokenContract)
       public
       validateBountyArrayIndex(_bountyId)
       onlyIssuer(_bountyId)
       isAtStage(_bountyId, BountyStages.Draft)
   {
+      if (bounties[_bountyId].balance > 0){
+        if (bounties[_bountyId].paysTokens){
+            tokenContracts[_bountyId].transferFrom(this, bounties[_bountyId].issuer, bounties[_bountyId].balance);
+        } else {
+            bounties[_bountyId].issuer.transfer(bounties[_bountyId].balance);
+        }
+        bounties[_bountyId].balance = 0;
+      }
+      bounties[_bountyId].paysTokens = _newPaysTokens;
       tokenContracts[_bountyId] = HumanStandardToken(_newTokenContract);
       BountyChanged(_bountyId);
   }
@@ -571,6 +578,29 @@ contract StandardBounties {
               uint(bounties[_bountyId].bountyStage),
               bounties[_bountyId].owedAmount,
               bounties[_bountyId].balance);
+  }
+
+  /// @dev getBountyArbiter(): Returns the arbiter of the bounty
+  /// @param _bountyId the index of the bounty
+  /// @return Returns an address for the arbiter of the bounty
+  function getBountyArbiter(uint _bountyId)
+      public
+      constant
+      validateBountyArrayIndex(_bountyId)
+      returns (address)
+  {
+      return (bounties[_bountyId].arbiter);
+  }
+  /// @dev getBountyData(): Returns the data of the bounty
+  /// @param _bountyId the index of the bounty
+  /// @return Returns a string for the bounty data
+  function getBountyData(uint _bountyId)
+      public
+      constant
+      validateBountyArrayIndex(_bountyId)
+      returns (string)
+  {
+      return (bounties[_bountyId].data);
   }
 
   /// @dev getNumFulfillments() returns the number of fulfillments for a given milestone
