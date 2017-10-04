@@ -622,7 +622,7 @@ contract StandardBounties {
 
   /// @dev getNumBounties() returns the number of bounties in the registry
   /// @return Returns the number of bounties
-  function getNumBounties(uint _bountyId)
+  function getNumBounties()
       public
       constant
       returns (uint)

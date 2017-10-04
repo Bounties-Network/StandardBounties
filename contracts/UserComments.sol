@@ -11,6 +11,8 @@ contract UserComments {
       string comment;
       address from;
       address to;
+      bool aboutBounty;
+      uint bountyId;
       uint time;
     }
 
@@ -18,6 +20,7 @@ contract UserComments {
     mapping (address => mapping (address => Comment)) public commentsMap;
     mapping (address => Comment[]) public commentsAboutUser;
     mapping (address => Comment[]) public commentsByUser;
+    mapping (uint => Comment[]) public commentsAboutBounty;
 
     modifier isValidAboutIndex(address _about, uint i){
       require (i < commentsAboutUser[_about].length);
@@ -28,11 +31,16 @@ contract UserComments {
       _;
     }
 
-    function addComment(string _comment, address _to)
-    public {
-      commentsMap[msg.sender][_to] = Comment(_comment, msg.sender, _to, block.timestamp);
-      commentsAboutUser[_to].push(commentsMap[msg.sender][_to]);
-      commentsByUser[msg.sender].push(commentsMap[msg.sender][_to]);
+    function addComment(string _comment, address _to, bool _aboutBounty, uint _bountyId)
+    public
+    {
+      commentsByUser[msg.sender].push(Comment(_comment, msg.sender, _to, _aboutBounty, _bountyId, block.timestamp));
+      if (_aboutBounty){
+        commentsAboutBounty[_bountyId].push(commentsByUser[msg.sender][commentsByUser[msg.sender].length - 1]);
+      } else {
+        commentsAboutUser[_to].push(commentsByUser[msg.sender][commentsByUser[msg.sender].length - 1]);
+        commentsMap[msg.sender][_to] = commentsByUser[msg.sender][commentsByUser[msg.sender].length - 1];
+      }
       CommentAdded(_comment, msg.sender, _to, block.timestamp);
     }
 
@@ -41,6 +49,13 @@ contract UserComments {
     constant
     returns (uint){
       return commentsAboutUser[_user].length;
+    }
+
+    function numCommentsAboutBounty(uint _bountyId)
+    public
+    constant
+    returns (uint){
+      return commentsAboutBounty[_bountyId].length;
     }
 
     function numCommentsByUser(address _user)
@@ -54,10 +69,9 @@ contract UserComments {
     isValidAboutIndex(_about, _commentId)
     public
     constant
-    returns (string, address, address, uint){
+    returns (string, address, uint){
       return (commentsAboutUser[_about][_commentId].comment,
               commentsAboutUser[_about][_commentId].from,
-              commentsAboutUser[_about][_commentId].to,
               commentsAboutUser[_about][_commentId].time);
     }
 
@@ -65,10 +79,11 @@ contract UserComments {
     isValidByIndex(_by, _commentId)
     public
     constant
-    returns (string, address, address, uint){
+    returns (string, address, bool, uint, uint){
       return (commentsByUser[_by][_commentId].comment,
-              commentsByUser[_by][_commentId].from,
               commentsByUser[_by][_commentId].to,
+              commentsByUser[_by][_commentId].aboutBounty,
+              commentsByUser[_by][_commentId].bountyId,
               commentsByUser[_by][_commentId].time);
     }
 
@@ -80,5 +95,13 @@ contract UserComments {
               commentsMap[_from][_to].from,
               commentsMap[_from][_to].to,
               commentsMap[_from][_to].time);
+    }
+    function getCommentAboutBounty(uint _bountyId, uint _commentId)
+    public
+    constant
+    returns (string, address, uint){
+      return (commentsAboutBounty[_bountyId][_commentId].comment,
+              commentsAboutBounty[_bountyId][_commentId].from,
+              commentsAboutBounty[_bountyId][_commentId].time);
     }
 }
