@@ -79,6 +79,7 @@ function issueBounty(
     public
     validateDeadline(_deadline)
     amountIsNotZero(_fulfillmentAmount)
+    validateNotTooManyBounties
     returns (uint)
 {
     bounties.push(Bounty(_issuer, _deadline, _data, _fulfillmentAmount, _arbiter, _paysTokens, BountyStages.Draft, 0, 0));
@@ -179,6 +180,7 @@ Once the bounty is active, anyone can fulfill it and submit the necessary delive
 function fulfillBounty(uint _bountyId, string _data)
     public
     validateBountyArrayIndex(_bountyId)
+    validateNotTooManyFulfillments(_bountyId)
     isAtStage(_bountyId, BountyStages.Active)
     isBeforeDeadline(_bountyId)
     notIssuerOrArbiter(_bountyId)
@@ -200,6 +202,7 @@ function updateFulfillment(uint _bountyId, uint _fulfillmentId, string _data)
     notYetAccepted(_bountyId, _fulfillmentId)
 {
     fulfillments[_bountyId][_fulfillmentId].data = _data;
+    FulfillmentUpdated(_bountyId, _fulfillmentId);
 }
 ```
 
@@ -257,13 +260,13 @@ function killBounty(uint _bountyId)
     onlyIssuer(_bountyId)
 {
     transitionToState(_bountyId, BountyStages.Dead);
-    if (bounties[_bountyId].paysTokens){
-      tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer,
-                                        (bounties[_bountyId].balance - bounties[_bountyId].owedAmount));
-    } else {
-      bounties[_bountyId].issuer.transfer(bounties[_bountyId].balance - bounties[_bountyId].owedAmount);
-    }
+    uint difference = bounties[_bountyId].balance - bounties[_bountyId].owedAmount;
     bounties[_bountyId].balance = bounties[_bountyId].owedAmount;
+    if (bounties[_bountyId].paysTokens){
+      tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, difference);
+    } else {
+      bounties[_bountyId].issuer.transfer(difference);
+    }
 
     BountyKilled(_bountyId);
 }
@@ -293,6 +296,7 @@ function transferIssuer(uint _bountyId, address _newIssuer)
     onlyIssuer(_bountyId)
 {
     bounties[_bountyId].issuer = _newIssuer;
+    IssuerTransferred(_bountyId, _newIssuer);
 }
 ```
 
@@ -363,12 +367,13 @@ function changeBountyPaysTokens(uint _bountyId, bool _newPaysTokens, address _ne
     isAtStage(_bountyId, BountyStages.Draft)
 {
     if (bounties[_bountyId].balance > 0){
-      if (bounties[_bountyId].paysTokens){
-          require(tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, bounties[_bountyId].balance));
-      } else {
-          bounties[_bountyId].issuer.transfer(bounties[_bountyId].balance);
-      }
+      uint oldBalance = bounties[_bountyId].balance;
       bounties[_bountyId].balance = 0;
+      if (bounties[_bountyId].paysTokens){
+          require(tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, oldBalance));
+      } else {
+          bounties[_bountyId].issuer.transfer(oldBalance);
+      }
     }
     bounties[_bountyId].paysTokens = _newPaysTokens;
     tokenContracts[_bountyId] = HumanStandardToken(_newTokenContract);
@@ -471,6 +476,18 @@ function getBountyToken(uint _bountyId)
     returns (address)
 {
     return (tokenContracts[_bountyId]);
+}
+```
+
+#### getNumBounties()
+Returns the number of bounties which exist on the registry
+```
+function getNumBounties()
+    public
+    constant
+    returns (uint)
+{
+    return bounties.length;
 }
 ```
 
