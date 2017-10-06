@@ -382,7 +382,7 @@ contract StandardBounties {
       bounties[_bountyId].balance -= bounties[_bountyId].fulfillmentAmount;
 
       if (bounties[_bountyId].paysTokens){
-        tokenContracts[_bountyId].transfer(fulfillments[_bountyId][_fulfillmentId].fulfiller, bounties[_bountyId].fulfillmentAmount);
+        require(tokenContracts[_bountyId].transfer(fulfillments[_bountyId][_fulfillmentId].fulfiller, bounties[_bountyId].fulfillmentAmount));
       } else {
         fulfillments[_bountyId][_fulfillmentId].fulfiller.transfer(bounties[_bountyId].fulfillmentAmount);
       }
@@ -401,12 +401,13 @@ contract StandardBounties {
       transitionToState(_bountyId, BountyStages.Dead);
       uint difference = bounties[_bountyId].balance - bounties[_bountyId].owedAmount;
       bounties[_bountyId].balance = bounties[_bountyId].owedAmount;
-      if (bounties[_bountyId].paysTokens){
-        tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, difference);
-      } else {
-        bounties[_bountyId].issuer.transfer(difference);
+      if (difference != 0){
+        if (bounties[_bountyId].paysTokens){
+          require(tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, difference));
+        } else {
+          bounties[_bountyId].issuer.transfer(difference);
+        }
       }
-
       BountyKilled(_bountyId);
   }
 
@@ -507,17 +508,19 @@ contract StandardBounties {
       onlyIssuer(_bountyId)
       isAtStage(_bountyId, BountyStages.Draft)
   {
+      HumanStandardToken oldToken = tokenContracts[_bountyId];
+      bool oldPaysTokens = bounties[_bountyId].paysTokens;
+      bounties[_bountyId].paysTokens = _newPaysTokens;
+      tokenContracts[_bountyId] = HumanStandardToken(_newTokenContract);
       if (bounties[_bountyId].balance > 0){
         uint oldBalance = bounties[_bountyId].balance;
         bounties[_bountyId].balance = 0;
-        if (bounties[_bountyId].paysTokens){
-            require(tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, oldBalance));
+        if (oldPaysTokens){
+            require(oldToken.transfer(bounties[_bountyId].issuer, oldBalance));
         } else {
             bounties[_bountyId].issuer.transfer(oldBalance);
         }
       }
-      bounties[_bountyId].paysTokens = _newPaysTokens;
-      tokenContracts[_bountyId] = HumanStandardToken(_newTokenContract);
       BountyChanged(_bountyId);
   }
 
