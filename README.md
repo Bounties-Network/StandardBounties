@@ -63,7 +63,32 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
 
 ## 3. Development
 
-All the extension bounty types **musn't** break the state transitions as described above.
+Any application can take advantage of the bounties network registry, which is currently deployed on the Main Ethereum Network at `0x8c9fe49Cd196BDafCD0B7C3078fa9823d247564a`. The `bountiesnetwork.eth` name will also always resolve to the most up-to-date registry version for the Bounties Network.
+
+#### Data Schema
+
+StandardBounties employs an off-chain storage data model, where the `data` field of each bounty and fulfillment, is a hash of a JSON object, which is stored in a distributed manner on IPFS.
+The schema for the bounty data field is:
+```
+{
+  title: // A string representing the title of the bounty
+  description: // A string representing the description of the bounty, including all requirements
+  sourceFileName: // A string representing the name of the file
+  sourceFileHash: // The IPFS hash of the file associated with the bounty
+  contact: // A string representing the preferred contact method of the issuer of the bounty
+  categories: // an array of strings, representing the categories of tasks which are being requested
+}
+```
+The data schema for the fulfillment data field is:
+```
+{
+  description: // A string representing the description of the fulfillment, and any necessary links to works
+  sourceFileName: // A string representing the name of the file being submitted
+  sourceFileHash: // A string representing the IPFS hash of the file being submitted
+}
+```
+
+If you're building on the StandardBounties and would like to add additional data fields, please submit a pull request on this repo.
 
 ## 4. Documentation
 
