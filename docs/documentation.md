@@ -1,6 +1,6 @@
 # StandardBounties Complete Documentation
 
-`Version 0.0.1`
+`Version 1.0.0`
 
 ## Summary
 
@@ -18,7 +18,19 @@ The issuer is the creator of the bounty, and has full control over administering
 A bounty can only be contributed to, activated, or fulfilled before the given deadline, however fulfillments can be accepted even after the deadline has passed. This deadline can be moved forward or backwards in the draft stage, but once the bounty is activated it can only be extended. This helps maintain the contractual nature of the relationship, where issuers cannot move deadlines forward arbitrarily while individuals are fulfilling the tasks.
 
 `string public data`
-All data representing the requirements are stored off-chain, and their hash is updated here. Requirements and auxiliary data are mutable while the bounty is in the `Draft` stage, but becomes immutable when the bounty is activated, thereby "locking in" the terms of the contract, the requirements for acceptance for each milestone. These should be as rich as possible from the outset, to avoid conflicts stemming from task fulfillers believing they merited the bounty reward.
+All data representing the requirements are stored off-chain on IPFS, and their hash is updated here. Requirements and auxiliary data are mutable while the bounty is in the `Draft` stage, but becomes immutable when the bounty is activated, thereby "locking in" the terms of the contract, the requirements for acceptance for each milestone. These should be as rich as possible from the outset, to avoid conflicts stemming from task fulfillers believing they merited the bounty reward.
+
+The schema for the bounty data field is:
+```
+{
+  title: // A string representing the title of the bounty
+  description: // A string representing the description of the bounty, including all requirements
+  sourceFileName: // A string representing the name of the file
+  sourceFileHash: // The IPFS hash of the file associated with the bounty
+  contact: // A string representing the preferred contact method of the issuer of the bounty
+  categories: // an array of strings, representing the categories of tasks which are being requested
+}
+```
 
 `uint public fulfillmentAmount`
 The number of units which the bounty pays out for successful completion, either in wei or in token units for the relevant contract.
