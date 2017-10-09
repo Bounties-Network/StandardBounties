@@ -63,7 +63,7 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
 
 ## 3. Development
 
-Any application can take advantage of the bounties network registry, which is currently deployed on the Main Ethereum Network at `0x8c9fe49Cd196BDafCD0B7C3078fa9823d247564a`. The `bountiesnetwork.eth` name will also always resolve to the most up-to-date registry version for the Bounties Network.
+Any application can take advantage of the bounties network registry, which is currently deployed on the Main Ethereum Network at `0x8c9fe49Cd196BDafCD0B7C3078fa9823d247564a`. The `BountiesNetwork.eth` name will also always resolve to the most up-to-date registry version for the Bounties Network.
 
 #### Data Schema
 
@@ -88,7 +88,7 @@ The data schema for the fulfillment data field is:
 }
 ```
 
-If you're building on the StandardBounties and would like to add additional data fields, please submit a pull request on this repo.
+**If you're building on the StandardBounties and would like to add additional data fields, please submit a pull request on this repo.**
 
 ## 4. Documentation
 
