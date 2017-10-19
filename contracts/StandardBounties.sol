@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity 0.4.15;
 import "./inherited/HumanStandardToken.sol";
 
 /// @title StandardBounties
@@ -16,7 +16,7 @@ contract StandardBounties {
   event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId);
   event FulfillmentAccepted(uint bountyId, address indexed fulfiller, uint256 indexed _fulfillmentId);
   event FulfillmentPaid(uint bountyId, address indexed fulfiller, uint256 indexed _fulfillmentId);
-  event BountyKilled(uint bountyId);
+  event BountyKilled(uint bountyId, address indexed issuer);
   event ContributionAdded(uint bountyId, address indexed contributor, uint256 value);
   event DeadlineExtended(uint bountyId, uint newDeadline);
   event BountyChanged(uint bountyId);
@@ -74,11 +74,6 @@ contract StandardBounties {
    * Modifiers
    */
 
-  modifier onlyOwner() {
-    require(msg.sender == owner);
-    _;
-  }
-
   modifier validateNotTooManyBounties(){
     require((bounties.length + 1) > bounties.length);
     _;
@@ -111,12 +106,13 @@ contract StandardBounties {
 
   modifier transferredAmountEqualsValue(uint _bountyId, uint _amount) {
       if (bounties[_bountyId].paysTokens){
+        require(msg.value == 0);
         uint oldBalance = tokenContracts[_bountyId].balanceOf(this);
         if (_amount != 0){
           require(tokenContracts[_bountyId].transferFrom(msg.sender, this, _amount));
         }
         require((tokenContracts[_bountyId].balanceOf(this) - oldBalance) == _amount);
-        require(msg.value == 0);
+
       } else {
         require((_amount * 1 wei) == msg.value);
       }
@@ -221,6 +217,7 @@ contract StandardBounties {
   {
       require (_value >= _fulfillmentAmount);
       if (_paysTokens){
+        require(msg.value == 0);
         tokenContracts[bounties.length] = HumanStandardToken(_tokenContract);
         require(tokenContracts[bounties.length].transferFrom(msg.sender, this, _value));
       } else {
@@ -256,9 +253,9 @@ contract StandardBounties {
   function contribute (uint _bountyId, uint _value)
       payable
       public
+      validateBountyArrayIndex(_bountyId)
       isBeforeDeadline(_bountyId)
       isNotDead(_bountyId)
-      validateBountyArrayIndex(_bountyId)
       amountIsNotZero(_value)
       transferredAmountEqualsValue(_bountyId, _value)
   {
@@ -275,9 +272,9 @@ contract StandardBounties {
   function activateBounty(uint _bountyId, uint _value)
       payable
       public
+      validateBountyArrayIndex(_bountyId)
       isBeforeDeadline(_bountyId)
       onlyIssuer(_bountyId)
-      validateBountyArrayIndex(_bountyId)
       transferredAmountEqualsValue(_bountyId, _value)
   {
       bounties[_bountyId].balance += _value;
@@ -337,8 +334,7 @@ contract StandardBounties {
   }
 
   modifier enoughFundsToPay(uint _bountyId) {
-      require((bounties[_bountyId].owedAmount +
-               bounties[_bountyId].fulfillmentAmount) <= bounties[_bountyId].balance);
+      require(bounties[_bountyId].balance >= (bounties[_bountyId].owedAmount + bounties[_bountyId].fulfillmentAmount));
       _;
   }
 
@@ -348,9 +344,9 @@ contract StandardBounties {
   function acceptFulfillment(uint _bountyId, uint _fulfillmentId)
       public
       validateBountyArrayIndex(_bountyId)
+      validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
       onlyIssuerOrArbiter(_bountyId)
       isAtStage(_bountyId, BountyStages.Active)
-      validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
       fulfillmentNotYetAccepted(_bountyId, _fulfillmentId)
       enoughFundsToPay(_bountyId)
   {
@@ -401,14 +397,14 @@ contract StandardBounties {
       transitionToState(_bountyId, BountyStages.Dead);
       uint difference = bounties[_bountyId].balance - bounties[_bountyId].owedAmount;
       bounties[_bountyId].balance = bounties[_bountyId].owedAmount;
-      if (difference != 0){
+      if (difference > 0){
         if (bounties[_bountyId].paysTokens){
           require(tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, difference));
         } else {
           bounties[_bountyId].issuer.transfer(difference);
         }
       }
-      BountyKilled(_bountyId);
+      BountyKilled(_bountyId, msg.sender);
   }
 
   modifier newDeadlineIsValid(uint _bountyId, uint _newDeadline) {
@@ -445,7 +441,7 @@ contract StandardBounties {
   }
 
 
-  /// @dev changeBountyDeadline(): allows the issuer to change a bounty's issuer
+  /// @dev changeBountyDeadline(): allows the issuer to change a bounty's deadline
   /// @param _bountyId the index of the bounty
   /// @param _newDeadline the new deadline for the bounty
   function changeBountyDeadline(uint _bountyId, uint _newDeadline)
@@ -459,7 +455,7 @@ contract StandardBounties {
       BountyChanged(_bountyId);
   }
 
-  /// @dev changeData(): allows the issuer to change a bounty's issuer
+  /// @dev changeData(): allows the issuer to change a bounty's data
   /// @param _bountyId the index of the bounty
   /// @param _newData the new requirements of the bounty
   function changeBountyData(uint _bountyId, string _newData)
@@ -472,7 +468,7 @@ contract StandardBounties {
       BountyChanged(_bountyId);
   }
 
-  /// @dev changeBountyfulfillmentAmount(): allows the issuer to change a bounty's issuer
+  /// @dev changeBountyfulfillmentAmount(): allows the issuer to change a bounty's fulfillment amount
   /// @param _bountyId the index of the bounty
   /// @param _newFulfillmentAmount the new fulfillment amount
   function changeBountyFulfillmentAmount(uint _bountyId, uint _newFulfillmentAmount)
@@ -485,7 +481,7 @@ contract StandardBounties {
       BountyChanged(_bountyId);
   }
 
-  /// @dev changeBountyArbiter(): allows the issuer to change a bounty's issuer
+  /// @dev changeBountyArbiter(): allows the issuer to change a bounty's arbiter
   /// @param _bountyId the index of the bounty
   /// @param _newArbiter the new address of the arbiter
   function changeBountyArbiter(uint _bountyId, address _newArbiter)
