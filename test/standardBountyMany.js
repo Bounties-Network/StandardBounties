@@ -92,6 +92,54 @@ contract('StandardBounties', function(accounts) {
 
   });
 
+  it("[BOTH] Verifies that I can issue new bounties and retreive them as needed", async () => {
+
+    let registry = await StandardBounties.new(accounts[0]);
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    for (var i = 0; i < 100; i++){
+      if (i % 2){
+        await registry.issueBounty(0xF633f5bAf5954eE8F357055FE5151DDc27EEfdBF,
+                                    2528821098,
+                                    "data"+i,
+                                    1000,
+                                    0x0,
+                                    true,
+                                    bountyToken.address, {from: accounts[0]});
+        let data = await registry.getBountyData(i);
+        let bounty = await registry.getBounty(i);
+        let tokenAddress = await registry.getBountyToken(i);
+        let total = await registry.getNumBounties();
+        assert(bounty[3] == true);
+        assert(tokenAddress == bountyToken.address)
+        assert(data == ("data"+i));
+        assert(total == (i+1));
+      } else {
+
+        await registry.issueBounty(0xF633f5bAf5954eE8F357055FE5151DDc27EEfdBF,
+                                    2528821098,
+                                    "data"+i,
+                                    1000,
+                                    0x0,
+                                    false,
+                                    0x0, {from: accounts[0]});
+        let data = await registry.getBountyData(i);
+        let bounty = await registry.getBounty(i);
+        let tokenAddress = await registry.getBountyToken(i);
+        let total = await registry.getNumBounties();
+        assert(bounty[3] == false);
+        assert(tokenAddress == "0x0000000000000000000000000000000000000000")
+        assert(data == ("data"+i));
+        assert(total == (i+1));
+
+      }
+    }
+
+
+
+  });
+
+
   it("[BOTH] Verifies that I can issue, activate, fulfill, accept, and pay out new bounties paying in both ETH and Tokens", async () => {
 
     let registry = await StandardBounties.new(accounts[0]);
@@ -111,6 +159,9 @@ contract('StandardBounties', function(accounts) {
 
         await registry.activateBounty(i,1000, {from: accounts[0]});
 
+        await registry.fulfillBounty(i, "data", {from: accounts[1]});
+        await registry.fulfillBounty(i, "data", {from: accounts[1]});
+        await registry.fulfillBounty(i, "data", {from: accounts[1]});
         await registry.fulfillBounty(i, "data", {from: accounts[1]});
 
         await registry.acceptFulfillment(i,0,{from: accounts[0]});
@@ -133,6 +184,9 @@ contract('StandardBounties', function(accounts) {
         await registry.activateBounty(i,1000, {from: accounts[0], value: 1000});
 
         await registry.fulfillBounty(i, "data", {from: accounts[1]});
+        await registry.fulfillBounty(i, "data", {from: accounts[1]});
+        await registry.fulfillBounty(i, "data", {from: accounts[1]});
+        await registry.fulfillBounty(i, "data", {from: accounts[1]});
 
         await registry.acceptFulfillment(i,0,{from: accounts[0]});
 
@@ -145,6 +199,71 @@ contract('StandardBounties', function(accounts) {
       }
     }
   });
+  it("[BOTH] Verifies that I can issue, activate, fulfill many times, accept, and pay out new bounties paying in both ETH and Tokens", async (done) => {
+
+    let registry = await StandardBounties.new(accounts[0]);
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT", {from: accounts[0]});
+
+    for (var i = 0; i < 100; i++){
+      if (i % 2){
+        await registry.issueBounty(accounts[0],
+                                    2528821098,
+                                    "data"+i,
+                                    1000,
+                                    0x0,
+                                    true,
+                                    bountyToken.address,{from: accounts[0]});
+
+        await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+        await registry.activateBounty(i,1000, {from: accounts[0]});
+
+        for (var j = 0; j < 10; j++){
+          await registry.fulfillBounty(i, "data", {from: accounts[1]});
+          var numFul = await registry.getNumFulfillments(i);
+          assert(numFul == (j+1));
+        }
+
+        var random = Math.floor(Math.random() * 9);
+
+        await registry.acceptFulfillment(i,random,{from: accounts[0]});
+
+        await registry.fulfillmentPayment(i,random,{from: accounts[1]});
+        var bounty = await registry.getBounty(i);
+        assert(bounty[6] == 0);
+
+
+      } else {
+
+        await registry.issueBounty(accounts[0],
+                                    2528821098,
+                                    "data"+i,
+                                    1000,
+                                    0x0,
+                                    false,
+                                    0x0,{from: accounts[0]});
+
+        await registry.activateBounty(i,1000, {from: accounts[0], value: 1000});
+
+        for (var j = 0; j < 10; j++){
+          await registry.fulfillBounty(i, "data", {from: accounts[1]});
+          var numFul = await registry.getNumFulfillments(i);
+          assert(numFul == (j+1));
+        }
+
+        var random = Math.floor(Math.random() * 9);
+
+        await registry.acceptFulfillment(i,random,{from: accounts[0]});
+
+        await registry.fulfillmentPayment(i,random,{from: accounts[1]});
+        var bounty = await registry.getBounty(i);
+        assert(bounty[6] == 0);
+
+
+
+      }
+    }
+  }).timeout(10000000000);
 
   it("[BOTH] Verifies that I can issue, activate, fulfill, accept, and pay out new bounties paying in both ETH and Tokens from various addresses, with various token contracts", async () => {
 

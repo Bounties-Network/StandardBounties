@@ -6,7 +6,6 @@ const utils = require('./helpers/Utils');
 
 contract('StandardBounties', function(accounts) {
 
-
   it("[TOKENS] Verifies that the StandardBounties registry works", async () => {
 
     let registry = await StandardBounties.new(accounts[0]);
