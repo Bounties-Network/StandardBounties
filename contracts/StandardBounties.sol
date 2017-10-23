@@ -15,7 +15,6 @@ contract StandardBounties {
   event BountyFulfilled(uint bountyId, address indexed fulfiller, uint256 indexed _fulfillmentId);
   event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId);
   event FulfillmentAccepted(uint bountyId, address indexed fulfiller, uint256 indexed _fulfillmentId);
-  event FulfillmentPaid(uint bountyId, address indexed fulfiller, uint256 indexed _fulfillmentId);
   event BountyKilled(uint bountyId, address indexed issuer);
   event ContributionAdded(uint bountyId, address indexed contributor, uint256 value);
   event DeadlineExtended(uint bountyId, uint newDeadline);
@@ -34,7 +33,6 @@ contract StandardBounties {
 
   mapping(uint=>Fulfillment[]) fulfillments;
   mapping(uint=>uint) numAccepted;
-  mapping(uint=>uint) numPaid;
   mapping(uint=>HumanStandardToken) tokenContracts;
 
   /*
@@ -59,12 +57,10 @@ contract StandardBounties {
       address arbiter;
       bool paysTokens;
       BountyStages bountyStage;
-      uint owedAmount;
       uint balance;
   }
 
   struct Fulfillment {
-      bool paid;
       bool accepted;
       address fulfiller;
       string data;
@@ -181,7 +177,7 @@ contract StandardBounties {
       validateNotTooManyBounties
       returns (uint)
   {
-      bounties.push(Bounty(_issuer, _deadline, _data, _fulfillmentAmount, _arbiter, _paysTokens, BountyStages.Draft, 0, 0));
+      bounties.push(Bounty(_issuer, _deadline, _data, _fulfillmentAmount, _arbiter, _paysTokens, BountyStages.Draft, 0));
       if (_paysTokens){
         tokenContracts[bounties.length - 1] = HumanStandardToken(_tokenContract);
       }
@@ -230,7 +226,6 @@ contract StandardBounties {
                             _arbiter,
                             _paysTokens,
                             BountyStages.Active,
-                            0,
                             _value));
       BountyIssued(bounties.length - 1);
       ContributionAdded(bounties.length - 1, msg.sender, _value);
@@ -278,8 +273,7 @@ contract StandardBounties {
       transferredAmountEqualsValue(_bountyId, _value)
   {
       bounties[_bountyId].balance += _value;
-      require (bounties[_bountyId].balance >=
-              (bounties[_bountyId].fulfillmentAmount + bounties[_bountyId].owedAmount));
+      require (bounties[_bountyId].balance >= bounties[_bountyId].fulfillmentAmount);
       transitionToState(_bountyId, BountyStages.Active);
 
       ContributionAdded(_bountyId, msg.sender, _value);
@@ -302,7 +296,7 @@ contract StandardBounties {
       isBeforeDeadline(_bountyId)
       notIssuerOrArbiter(_bountyId)
   {
-      fulfillments[_bountyId].push(Fulfillment(false, false, msg.sender, _data));
+      fulfillments[_bountyId].push(Fulfillment(false, msg.sender, _data));
 
       BountyFulfilled(_bountyId, msg.sender, (fulfillments[_bountyId].length - 1));
   }
@@ -334,7 +328,7 @@ contract StandardBounties {
   }
 
   modifier enoughFundsToPay(uint _bountyId) {
-      require(bounties[_bountyId].balance >= (bounties[_bountyId].owedAmount + bounties[_bountyId].fulfillmentAmount));
+      require(bounties[_bountyId].balance >= bounties[_bountyId].fulfillmentAmount);
       _;
   }
 
@@ -351,38 +345,14 @@ contract StandardBounties {
       enoughFundsToPay(_bountyId)
   {
       fulfillments[_bountyId][_fulfillmentId].accepted = true;
-      bounties[_bountyId].owedAmount += bounties[_bountyId].fulfillmentAmount;
       numAccepted[_bountyId]++;
-
-      FulfillmentAccepted(_bountyId, msg.sender, _fulfillmentId);
-  }
-
-  modifier checkFulfillmentIsApprovedAndUnpaid(uint _bountyId, uint _fulfillmentId) {
-      require(fulfillments[_bountyId][_fulfillmentId].accepted && !fulfillments[_bountyId][_fulfillmentId].paid);
-      _;
-  }
-
-  /// @dev fulfillmentPayment(): pay the fulfiller for their work
-  /// @param _bountyId the index of the bounty
-  /// @param _fulfillmentId the index of the fulfillment being accepted
-  function fulfillmentPayment(uint _bountyId, uint _fulfillmentId)
-      public
-      validateBountyArrayIndex(_bountyId)
-      validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
-      onlyFulfiller(_bountyId, _fulfillmentId)
-      checkFulfillmentIsApprovedAndUnpaid(_bountyId, _fulfillmentId)
-  {
-      fulfillments[_bountyId][_fulfillmentId].paid = true;
-      numPaid[_bountyId]++;
-      bounties[_bountyId].owedAmount -= bounties[_bountyId].fulfillmentAmount;
       bounties[_bountyId].balance -= bounties[_bountyId].fulfillmentAmount;
-
       if (bounties[_bountyId].paysTokens){
         require(tokenContracts[_bountyId].transfer(fulfillments[_bountyId][_fulfillmentId].fulfiller, bounties[_bountyId].fulfillmentAmount));
       } else {
         fulfillments[_bountyId][_fulfillmentId].fulfiller.transfer(bounties[_bountyId].fulfillmentAmount);
       }
-      FulfillmentPaid(_bountyId, msg.sender, _fulfillmentId);
+      FulfillmentAccepted(_bountyId, msg.sender, _fulfillmentId);
   }
 
   /// @dev killBounty(): drains the contract of it's remaining
@@ -395,13 +365,13 @@ contract StandardBounties {
       onlyIssuer(_bountyId)
   {
       transitionToState(_bountyId, BountyStages.Dead);
-      uint difference = bounties[_bountyId].balance - bounties[_bountyId].owedAmount;
-      bounties[_bountyId].balance = bounties[_bountyId].owedAmount;
-      if (difference > 0){
+      uint oldBalance = bounties[_bountyId].balance;
+      bounties[_bountyId].balance = 0;
+      if (bounties[_bountyId].balance > 0){
         if (bounties[_bountyId].paysTokens){
-          require(tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, difference));
+          require(tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, oldBalance));
         } else {
-          bounties[_bountyId].issuer.transfer(difference);
+          bounties[_bountyId].issuer.transfer(oldBalance);
         }
       }
       BountyKilled(_bountyId, msg.sender);
@@ -539,13 +509,8 @@ contract StandardBounties {
       transferredAmountEqualsValue(_bountyId, _value)
   {
       bounties[_bountyId].balance += _value;
-      uint newOwedAmount = (bounties[_bountyId].owedAmount +
-                            ((_newFulfillmentAmount - bounties[_bountyId].fulfillmentAmount)
-                               * (numAccepted[_bountyId] - numPaid[_bountyId])));
-      require(bounties[_bountyId].balance >= newOwedAmount);
-      bounties[_bountyId].owedAmount = newOwedAmount;
+      require(bounties[_bountyId].balance >= _newFulfillmentAmount);
       bounties[_bountyId].fulfillmentAmount = _newFulfillmentAmount;
-      ContributionAdded(_bountyId, msg.sender, _value);
       PayoutIncreased(_bountyId, _newFulfillmentAmount);
   }
 
@@ -558,10 +523,9 @@ contract StandardBounties {
       constant
       validateBountyArrayIndex(_bountyId)
       validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
-      returns (bool, bool, address, string)
+      returns (bool, address, string)
   {
-      return (fulfillments[_bountyId][_fulfillmentId].paid,
-              fulfillments[_bountyId][_fulfillmentId].accepted,
+      return (fulfillments[_bountyId][_fulfillmentId].accepted,
               fulfillments[_bountyId][_fulfillmentId].fulfiller,
               fulfillments[_bountyId][_fulfillmentId].data);
   }
@@ -573,14 +537,13 @@ contract StandardBounties {
       public
       constant
       validateBountyArrayIndex(_bountyId)
-      returns (address, uint, uint, bool, uint, uint, uint)
+      returns (address, uint, uint, bool, uint, uint)
   {
       return (bounties[_bountyId].issuer,
               bounties[_bountyId].deadline,
               bounties[_bountyId].fulfillmentAmount,
               bounties[_bountyId].paysTokens,
               uint(bounties[_bountyId].bountyStage),
-              bounties[_bountyId].owedAmount,
               bounties[_bountyId].balance);
   }
 
