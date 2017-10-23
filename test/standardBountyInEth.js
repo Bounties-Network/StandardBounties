@@ -375,7 +375,7 @@ contract('StandardBounties', function(accounts) {
 
     await registry.fulfillBounty(0, "data", {from: accounts[1]});
     let fulfillment = await registry.getFulfillment(0,0);
-    assert(fulfillment[2] === "data", ("err"+fulfillment[2]+"data"));
+    assert(fulfillment[2] === "data");
     await registry.updateFulfillment(0,0,"data2", {from: accounts[1]});
     fulfillment = await registry.getFulfillment(0,0);
     assert(fulfillment[2] === "data2");

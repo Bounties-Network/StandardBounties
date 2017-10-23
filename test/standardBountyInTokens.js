@@ -428,11 +428,9 @@ contract('StandardBounties', function(accounts) {
     await registry.fulfillBounty(0, "data", {from: accounts[1]});
     let fulfillment = await registry.getFulfillment(0,0);
     assert(fulfillment[0] === false);
-    assert(fulfillment[1] === false);
     await registry.acceptFulfillment(0,0,{from: accounts[0]});
     fulfillment = await registry.getFulfillment(0,0);
-    assert(fulfillment[0] === false);
-    assert(fulfillment[1] === true);
+    assert(fulfillment[0] === true);
   });
   it("[TOKENS] verifies that changing a fulfillment works", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -451,10 +449,10 @@ contract('StandardBounties', function(accounts) {
 
     await registry.fulfillBounty(0, "data", {from: accounts[1]});
     let fulfillment = await registry.getFulfillment(0,0);
-    assert(fulfillment[3] === "data");
+    assert(fulfillment[2] === "data");
     await registry.updateFulfillment(0,0,"data2", {from: accounts[1]});
     fulfillment = await registry.getFulfillment(0,0);
-    assert(fulfillment[3] === "data2");
+    assert(fulfillment[2] === "data2");
   });
 
   it("[TOKENS] verifies that changing an accepted fulfillment fails", async () => {
@@ -527,10 +525,8 @@ contract('StandardBounties', function(accounts) {
 
     await registry.acceptFulfillment(0,0,{from: accounts[0]});
     fulfillment = await registry.getFulfillment(0,0);
-
-    await registry.fulfillmentPayment(0,0,{from: accounts[1]});
     var bounty = await registry.getBounty(0);
-    assert(bounty[6] == 0);
+    assert(bounty[5] == 0);
   });
   it("[TOKENS] verifies that bounty fulfillment flow works to completion with several fulfillments", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -554,74 +550,8 @@ contract('StandardBounties', function(accounts) {
 
     await registry.acceptFulfillment(0,1,{from: accounts[0]});
     fulfillment = await registry.getFulfillment(0,0);
-
-    await registry.fulfillmentPayment(0,1,{from: accounts[2]});
     var bounty = await registry.getBounty(0);
-    assert(bounty[6] == 0);
-  });
-  it("[TOKENS] verifies that claiming payment twice fails when balance is 0", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                true,
-                                bountyToken.address,
-                                {from: accounts[0]});
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-    await registry.activateBounty(0,1000, {from: accounts[0]});
-
-    await registry.fulfillBounty(0, "data", {from: accounts[1]});
-    await registry.fulfillBounty(0, "data2", {from: accounts[2]});
-
-    let fulfillment = await registry.getFulfillment(0,0);
-
-    await registry.acceptFulfillment(0,1,{from: accounts[0]});
-    fulfillment = await registry.getFulfillment(0,0);
-
-    await registry.fulfillmentPayment(0,1,{from: accounts[2]});
-    var bounty = await registry.getBounty(0);
-    assert(bounty[6] == 0);
-    try {
-      await registry.fulfillmentPayment(0,1,{from: accounts[2]});
-    } catch (error){
-      return utils.ensureException(error);
-    }
-  });
-  it("[TOKENS] verifies that claiming payment twice fails when balance isn't 0", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                true,
-                                bountyToken.address,
-                                {from: accounts[0]});
-    await bountyToken.approve(registry.address, 2000, {from: accounts[0]});
-    await registry.activateBounty(0,2000, {from: accounts[0]});
-
-    await registry.fulfillBounty(0, "data", {from: accounts[1]});
-    await registry.fulfillBounty(0, "data2", {from: accounts[2]});
-
-    let fulfillment = await registry.getFulfillment(0,0);
-
-    await registry.acceptFulfillment(0,1,{from: accounts[0]});
-    fulfillment = await registry.getFulfillment(0,0);
-
-    await registry.fulfillmentPayment(0,1,{from: accounts[2]});
-    var bounty = await registry.getBounty(0);
-    assert(bounty[6] == 1000);
-    try {
-      await registry.fulfillmentPayment(0,1,{from: accounts[2]});
-    } catch (error){
-      return utils.ensureException(error);
-    }
+    assert(bounty[5] == 0);
   });
   it("[TOKENS] verifies that arbiter can't fulfill a bounty", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -663,100 +593,7 @@ contract('StandardBounties', function(accounts) {
       return utils.ensureException(error);
     }
   });
-  it("[TOKENS] verifies that killing bounty leaves the correct remaining amount for one payment", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                true,
-                                bountyToken.address,
-                                {from: accounts[0]});
-    await bountyToken.approve(registry.address, 2000, {from: accounts[0]});
-    await registry.activateBounty(0,2000, {from: accounts[0]});
-    await registry.fulfillBounty(0, "data", {from: accounts[1]});
-    await registry.fulfillBounty(0, "data2", {from: accounts[2]});
-    await registry.fulfillBounty(0, "data3", {from: accounts[3]});
-
-    await registry.acceptFulfillment(0,1,{from: accounts[0]});
-    let bounty = await registry.getBounty(0);
-    let balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 1000);
-    assert(bounty[6]== 2000);
-    assert(balance == 2000);
-
-    await registry.killBounty(0, {from: accounts[0]});
-    bounty = await registry.getBounty(0);
-    balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 1000);
-    assert(bounty[6]== 1000);
-    assert(balance == 1000);
-
-    await registry.fulfillmentPayment(0,1,{from: accounts[2]});
-    bounty = await registry.getBounty(0);
-    balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 0);
-    assert(bounty[6]== 0);
-    assert(balance == 0);
-  });
-  it("[TOKENS] verifies that killing bounty leaves the correct remaining amount for several payments", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                true,
-                                bountyToken.address,
-                                {from: accounts[0]});
-    await bountyToken.approve(registry.address, 3000, {from: accounts[0]});
-    await registry.activateBounty(0,3000, {from: accounts[0]});
-    await registry.fulfillBounty(0, "data", {from: accounts[1]});
-    await registry.fulfillBounty(0, "data2", {from: accounts[2]});
-    await registry.fulfillBounty(0, "data3", {from: accounts[3]});
-
-    await registry.acceptFulfillment(0,1,{from: accounts[0]});
-    let bounty = await registry.getBounty(0);
-    let balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 1000);
-    assert(bounty[6]== 3000);
-    assert(balance == 3000);
-
-    await registry.acceptFulfillment(0,2,{from: accounts[0]});
-    bounty = await registry.getBounty(0);
-    balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 2000);
-    assert(bounty[6]== 3000);
-    assert(balance == 3000);
-
-    await registry.killBounty(0, {from: accounts[0]});
-    bounty = await registry.getBounty(0);
-    balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 2000);
-    assert(bounty[6]== 2000);
-    assert(balance == 2000);
-
-    await registry.fulfillmentPayment(0,1,{from: accounts[2]});
-    bounty = await registry.getBounty(0);
-    balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 1000);
-    assert(bounty[6]== 1000);
-    assert(balance == 1000);
-
-    await registry.fulfillmentPayment(0,2,{from: accounts[3]});
-    bounty = await registry.getBounty(0);
-    balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 0);
-    assert(bounty[6]== 0);
-    assert(balance == 0);
-  });
-
-  it("[TOKENS] verifies that accepting too many bounties because of unpaid fulfillments isn't allowed", async () => {
+  it("[TOKENS] verifies that accepting too many fulfillments isn't allowed", async () => {
     let registry = await StandardBounties.new(accounts[0]);
     let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -776,54 +613,12 @@ contract('StandardBounties', function(accounts) {
     await registry.fulfillBounty(0, "data3", {from: accounts[3]});
     let bounty = await registry.getBounty(0);
     let balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 0);
-    assert(bounty[6]== 1000);
+    assert(bounty[5]== 1000);
     assert(balance == 1000);
     await registry.acceptFulfillment(0,2,{from: accounts[0]});
     bounty = await registry.getBounty(0);
     balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 1000);
-    assert(bounty[6]== 1000);
-    assert(balance == 1000);
-    try {
-      await registry.acceptFulfillment(0,2,{from: accounts[0]});
-    } catch (error){
-      return utils.ensureException(error);
-    }
-  });
-  it("[TOKENS] verifies that accepting too many bounties because of paid fulfillments isn't allowed", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                true,
-                                bountyToken.address,
-                                {from: accounts[0]});
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-    await registry.activateBounty(0,1000, {from: accounts[0]});
-    await registry.fulfillBounty(0, "data", {from: accounts[1]});
-    await registry.fulfillBounty(0, "data2", {from: accounts[2]});
-    await registry.fulfillBounty(0, "data3", {from: accounts[3]});
-    let bounty = await registry.getBounty(0);
-    let balance = await bountyToken.balanceOf(registry.address);
     assert(bounty[5]== 0);
-    assert(bounty[6]== 1000);
-    assert(balance == 1000);
-    await registry.acceptFulfillment(0,1,{from: accounts[0]});
-    bounty = await registry.getBounty(0);
-    balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 1000);
-    assert(bounty[6]== 1000);
-    assert(balance == 1000);
-    await registry.fulfillmentPayment(0,1,{from: accounts[2]});
-    bounty = await registry.getBounty(0);
-    balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 0);
-    assert(bounty[6]== 0);
     assert(balance == 0);
     try {
       await registry.acceptFulfillment(0,2,{from: accounts[0]});
@@ -831,41 +626,6 @@ contract('StandardBounties', function(accounts) {
       return utils.ensureException(error);
     }
   });
-  it("[TOKENS] verifies that claiming payment for someone else's bounty fulfillment isn't allowed", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                true,
-                                bountyToken.address,
-                                {from: accounts[0]});
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-    await registry.activateBounty(0,1000, {from: accounts[0]});
-    await registry.fulfillBounty(0, "data", {from: accounts[1]});
-    await registry.fulfillBounty(0, "data2", {from: accounts[2]});
-    await registry.fulfillBounty(0, "data3", {from: accounts[3]});
-    let bounty = await registry.getBounty(0);
-    let balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 0);
-    assert(bounty[6]== 1000);
-    assert(balance == 1000);
-    await registry.acceptFulfillment(0,1,{from: accounts[0]});
-    bounty = await registry.getBounty(0);
-    balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[5]== 1000);
-    assert(bounty[6]== 1000);
-    assert(balance == 1000);
-    try {
-      await registry.fulfillmentPayment(0,1,{from: accounts[1]});
-    } catch (error){
-      return utils.ensureException(error);
-    }
-  });
-
   it("[TOKENS] verifies that accepting an already accepted fulfillment fails", async () => {
     let registry = await StandardBounties.new(accounts[0]);
     let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
@@ -887,46 +647,7 @@ contract('StandardBounties', function(accounts) {
     await registry.acceptFulfillment(0,0,{from: accounts[0]});
 
     let fulfillment = await registry.getFulfillment(0,0);
-    assert(fulfillment[0] == false);
-    assert(fulfillment[1] == true);
-
-    try {
-      await registry.acceptFulfillment(0,0,{from: accounts[0]});
-
-    } catch (error){
-      return utils.ensureException(error);
-    }
-  });
-
-  it("[TOKENS] verifies that accepting a paid fulfillment fails", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                true,
-                                bountyToken.address,
-                                {from: accounts[0]});
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-    await registry.activateBounty(0,1000, {from: accounts[0]});
-
-    await registry.fulfillBounty(0, "data", {from: accounts[1]});
-    await registry.fulfillBounty(0, "data", {from: accounts[2]});
-
-    await registry.acceptFulfillment(0,0,{from: accounts[0]});
-
-    let fulfillment = await registry.getFulfillment(0,0);
-    assert(fulfillment[0] == false);
-    assert(fulfillment[1] == true);
-
-    await registry.fulfillmentPayment(0,0,{from: accounts[1]});
-
-    fulfillment = await registry.getFulfillment(0,0);
     assert(fulfillment[0] == true);
-    assert(fulfillment[1] == true);
 
     try {
       await registry.acceptFulfillment(0,0,{from: accounts[0]});
@@ -1250,13 +971,11 @@ contract('StandardBounties', function(accounts) {
 
     let bounty = await registry.getBounty(0);
     assert(bounty[5] == 1000);
-    assert(bounty[6] == 2000);
 
     await registry.killBounty(0,{from: accounts[0]});
 
     bounty = await registry.getBounty(0);
-    assert(bounty[5] == 1000);
-    assert(bounty[6] == 1000);
+    assert(bounty[5] == 0);
 
     try {
       await registry.activateBounty(0, 0, {from: accounts[0]});
@@ -1287,13 +1006,11 @@ contract('StandardBounties', function(accounts) {
 
     let bounty = await registry.getBounty(0);
     assert(bounty[5] == 1000);
-    assert(bounty[6] == 2000);
 
     await registry.killBounty(0,{from: accounts[0]});
 
     bounty = await registry.getBounty(0);
-    assert(bounty[5] == 1000);
-    assert(bounty[6] == 1000);
+    assert(bounty[5] == 0);
 
     await bountyToken.approve(registry.address, 500, {from: accounts[0]});
     try {
@@ -1324,7 +1041,6 @@ contract('StandardBounties', function(accounts) {
 
     let bounty = await registry.getBounty(0);
     assert(bounty[5] == 1000);
-    assert(bounty[6] == 2000);
 
     await registry.killBounty(0,{from: accounts[0]});
 
@@ -1356,32 +1072,23 @@ contract('StandardBounties', function(accounts) {
 
     let bounty = await registry.getBounty(0);
     assert(bounty[2] == 1000);
-    assert(bounty[5] == 0);
-    assert(bounty[6] == 2000);
+    assert(bounty[5] == 2000);
 
     await registry.fulfillBounty(0, "data", {from: accounts[1]});
 
     bounty = await registry.getBounty(0);
     assert(bounty[2] == 1000);
-    assert(bounty[5] == 0);
-    assert(bounty[6] == 2000);
+    assert(bounty[5] == 2000);
 
     await registry.increasePayout(0,2000, 0, {from: accounts[0]});
 
     bounty = await registry.getBounty(0);
     assert(bounty[2] == 2000);
-    assert(bounty[5] == 0);
-    assert(bounty[6] == 2000);
+    assert(bounty[5] == 2000);
 
     await registry.acceptFulfillment(0,0, {from: accounts[0]});
     bounty = await registry.getBounty(0);
-    assert(bounty[5] == 2000);
-    assert(bounty[6] == 2000);
-
-    await registry.fulfillmentPayment(0,0,{from: accounts[1]});
-    bounty = await registry.getBounty(0);
     assert(bounty[5] == 0);
-    assert(bounty[6] == 0);
 
 
   });
@@ -1402,35 +1109,24 @@ contract('StandardBounties', function(accounts) {
 
     let bounty = await registry.getBounty(0);
     assert(bounty[2] == 1000);
-    assert(bounty[5] == 0);
-    assert(bounty[6] == 1000);
+    assert(bounty[5] == 1000);
 
     await registry.fulfillBounty(0, "data", {from: accounts[1]});
 
     bounty = await registry.getBounty(0);
     assert(bounty[2] == 1000);
-    assert(bounty[5] == 0);
-    assert(bounty[6] == 1000);
+    assert(bounty[5] == 1000);
 
     await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
     await registry.increasePayout(0,2000, 1000, {from: accounts[0]});
 
     bounty = await registry.getBounty(0);
     assert(bounty[2] == 2000);
-    assert(bounty[5] == 0);
-    assert(bounty[6] == 2000);
+    assert(bounty[5] == 2000);
 
     await registry.acceptFulfillment(0,0, {from: accounts[0]});
     bounty = await registry.getBounty(0);
-    assert(bounty[5] == 2000);
-    assert(bounty[6] == 2000);
-
-    await registry.fulfillmentPayment(0,0,{from: accounts[1]});
-    bounty = await registry.getBounty(0);
     assert(bounty[5] == 0);
-    assert(bounty[6] == 0);
-
-
   });
   it("[TOKENS] verifies that increasing a payout amount for an accepted fulfillment works", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -1444,92 +1140,25 @@ contract('StandardBounties', function(accounts) {
                                 true,
                                 bountyToken.address,
                                 {from: accounts[0]});
-    await bountyToken.approve(registry.address, 2000, {from: accounts[0]});
-    await registry.activateBounty(0,2000, {from: accounts[0]});
+    await bountyToken.approve(registry.address, 3000, {from: accounts[0]});
+    await registry.activateBounty(0,3000, {from: accounts[0]});
 
     await registry.fulfillBounty(0, "data", {from: accounts[1]});
     let bounty = await registry.getBounty(0);
     assert(bounty[2] == 1000);
-    assert(bounty[5] == 0);
-    assert(bounty[6] == 2000);
+    assert(bounty[5] == 3000);
 
     await registry.acceptFulfillment(0,0, {from: accounts[0]});
 
     bounty = await registry.getBounty(0);
     assert(bounty[2] == 1000);
-    assert(bounty[5] == 1000);
-    assert(bounty[6] == 2000);
+    assert(bounty[5] == 2000);
 
-    await registry.increasePayout(0,2000, 0, {from: accounts[0]});
+    await registry.increasePayout(0, 2000, 0, {from: accounts[0]});
 
     bounty = await registry.getBounty(0);
     assert(bounty[2] == 2000);
     assert(bounty[5] == 2000);
-    assert(bounty[6] == 2000);
-
-    await registry.fulfillmentPayment(0,0,{from: accounts[1]});
-    bounty = await registry.getBounty(0);
-    assert(bounty[2] == 2000);
-    assert(bounty[5] == 0);
-    assert(bounty[6] == 0);
-
-
-  });
-
-  it("[TOKENS] verifies that increasing a payout amount for several accepted fulfillments works", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                true,
-                                bountyToken.address,
-                                {from: accounts[0]});
-    await bountyToken.approve(registry.address, 5000, {from: accounts[0]});
-    await registry.activateBounty(0,5000, {from: accounts[0]});
-
-    await registry.fulfillBounty(0, "data", {from: accounts[1]});
-    await registry.fulfillBounty(0, "data2", {from: accounts[2]});
-    let bounty = await registry.getBounty(0);
-    assert(bounty[2] == 1000);
-    assert(bounty[5] == 0);
-    assert(bounty[6] == 5000);
-
-    await registry.acceptFulfillment(0,0, {from: accounts[0]});
-    bounty = await registry.getBounty(0);
-    assert(bounty[2] == 1000);
-    assert(bounty[5] == 1000);
-    assert(bounty[6] == 5000);
-
-    await registry.acceptFulfillment(0,1, {from: accounts[0]});
-
-    bounty = await registry.getBounty(0);
-    assert(bounty[2] == 1000);
-    assert(bounty[5] == 2000);
-    assert(bounty[6] == 5000);
-
-    await registry.increasePayout(0,2000, 0, {from: accounts[0]});
-
-    bounty = await registry.getBounty(0);
-    assert(bounty[2] == 2000);
-    assert(bounty[5] == 4000);
-    assert(bounty[6] == 5000);
-
-    await registry.fulfillmentPayment(0,0,{from: accounts[1]});
-    bounty = await registry.getBounty(0);
-    assert(bounty[2] == 2000);
-    assert(bounty[5] == 2000);
-    assert(bounty[6] == 3000);
-
-    await registry.fulfillmentPayment(0,1,{from: accounts[2]});
-    bounty = await registry.getBounty(0);
-    assert(bounty[2] == 2000);
-    assert(bounty[5] == 0);
-    assert(bounty[6] == 1000);
-
 
   });
 
@@ -1581,9 +1210,6 @@ contract('StandardBounties', function(accounts) {
     await registry.fulfillBounty(0, "data", {from: accounts[1]});
     await registry.fulfillBounty(0, "data2", {from: accounts[2]});
 
-    await registry.acceptFulfillment(0,0, {from: accounts[0]});
-    await registry.acceptFulfillment(0,1, {from: accounts[0]});
-
     try {
       await registry.increasePayout(0,900, 0, {from: accounts[0]});
     } catch(error){
@@ -1611,7 +1237,7 @@ contract('StandardBounties', function(accounts) {
     bounty = await registry.getBounty(0);
     balance = await bountyToken.balanceOf(registry.address);
     assert(bounty[3] == false);
-    assert(bounty[6] == 0);
+    assert(bounty[5] == 0);
     assert(balance == 0);
 
   });
@@ -1632,14 +1258,14 @@ contract('StandardBounties', function(accounts) {
     await registry.contribute(0, 3000, {from: accounts[0]});
     var bounty = await registry.getBounty(0);
     var balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[6] == 3000);
+    assert(bounty[5] == 3000);
     assert(balance == 3000);
 
     await registry.changeBountyPaysTokens(0, false, 0x0, {from: accounts[0]});
     bounty = await registry.getBounty(0);
     balance = await bountyToken.balanceOf(registry.address);
     assert(bounty[3] == false);
-    assert(bounty[6] == 0);
+    assert(bounty[5] == 0);
     let error = "new balance: " + balance.toString();
     assert(balance == 0, error);
 
@@ -1662,21 +1288,21 @@ contract('StandardBounties', function(accounts) {
     await registry.contribute(0, 3000, {from: accounts[0]});
     var bounty = await registry.getBounty(0);
     var balance = await bountyToken.balanceOf(registry.address);
-    assert(bounty[6] == 3000);
+    assert(bounty[5] == 3000);
     assert(balance == 3000);
 
     await registry.changeBountyPaysTokens(0, true, bountyToken2.address, {from: accounts[0]});
     bounty = await registry.getBounty(0);
     balance = await bountyToken.balanceOf(registry.address);
     assert(bounty[3] == true);
-    assert(bounty[6] == 0);
+    assert(bounty[5] == 0);
     assert(balance == 0);
 
     await bountyToken2.approve(registry.address, 3000, {from: accounts[0]});
     await registry.contribute(0, 3000, {from: accounts[0]});
     var bounty = await registry.getBounty(0);
     var balance = await bountyToken2.balanceOf(registry.address);
-    assert(bounty[6] == 3000);
+    assert(bounty[5] == 3000);
     assert(balance == 3000);
 
   });
