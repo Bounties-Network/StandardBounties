@@ -367,7 +367,7 @@ contract StandardBounties {
       transitionToState(_bountyId, BountyStages.Dead);
       uint oldBalance = bounties[_bountyId].balance;
       bounties[_bountyId].balance = 0;
-      if (bounties[_bountyId].balance > 0){
+      if (oldBalance > 0){
         if (bounties[_bountyId].paysTokens){
           require(tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, oldBalance));
         } else {
