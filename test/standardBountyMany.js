@@ -166,9 +166,8 @@ contract('StandardBounties', function(accounts) {
 
         await registry.acceptFulfillment(i,0,{from: accounts[0]});
 
-        await registry.fulfillmentPayment(i,0,{from: accounts[1]});
         var bounty = await registry.getBounty(i);
-        assert(bounty[6] == 0);
+        assert(bounty[5] == 0);
 
 
       } else {
@@ -190,21 +189,20 @@ contract('StandardBounties', function(accounts) {
 
         await registry.acceptFulfillment(i,0,{from: accounts[0]});
 
-        await registry.fulfillmentPayment(i,0,{from: accounts[1]});
         var bounty = await registry.getBounty(i);
-        assert(bounty[6] == 0);
+        assert(bounty[5] == 0);
 
 
 
       }
     }
   });
-  it("[BOTH] Verifies that I can issue, activate, fulfill many times, accept, and pay out new bounties paying in both ETH and Tokens", async (done) => {
+  it("[BOTH] Verifies that I can issue, activate, fulfill many times, accept, and pay out new bounties paying in both ETH and Tokens", async () => {
 
     let registry = await StandardBounties.new(accounts[0]);
     let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT", {from: accounts[0]});
 
-    for (var i = 0; i < 100; i++){
+    for (var i = 0; i < 10; i++){
       if (i % 2){
         await registry.issueBounty(accounts[0],
                                     2528821098,
@@ -218,19 +216,17 @@ contract('StandardBounties', function(accounts) {
 
         await registry.activateBounty(i,1000, {from: accounts[0]});
 
-        for (var j = 0; j < 10; j++){
+        for (var j = 0; j < 50; j++){
           await registry.fulfillBounty(i, "data", {from: accounts[1]});
           var numFul = await registry.getNumFulfillments(i);
           assert(numFul == (j+1));
         }
 
-        var random = Math.floor(Math.random() * 9);
+        var random = Math.floor(Math.random() * 49);
 
         await registry.acceptFulfillment(i,random,{from: accounts[0]});
-
-        await registry.fulfillmentPayment(i,random,{from: accounts[1]});
         var bounty = await registry.getBounty(i);
-        assert(bounty[6] == 0);
+        assert(bounty[5] == 0);
 
 
       } else {
@@ -245,25 +241,21 @@ contract('StandardBounties', function(accounts) {
 
         await registry.activateBounty(i,1000, {from: accounts[0], value: 1000});
 
-        for (var j = 0; j < 10; j++){
+        for (var j = 0; j < 50; j++){
           await registry.fulfillBounty(i, "data", {from: accounts[1]});
           var numFul = await registry.getNumFulfillments(i);
           assert(numFul == (j+1));
         }
 
-        var random = Math.floor(Math.random() * 9);
+        var random = Math.floor(Math.random() * 49);
 
         await registry.acceptFulfillment(i,random,{from: accounts[0]});
 
-        await registry.fulfillmentPayment(i,random,{from: accounts[1]});
         var bounty = await registry.getBounty(i);
-        assert(bounty[6] == 0);
-
-
-
+        assert(bounty[5] == 0);
       }
     }
-  }).timeout(10000000000);
+  });
 
   it("[BOTH] Verifies that I can issue, activate, fulfill, accept, and pay out new bounties paying in both ETH and Tokens from various addresses, with various token contracts", async () => {
 
@@ -301,10 +293,8 @@ contract('StandardBounties', function(accounts) {
           await registry.fulfillBounty(i, "data", {from: accounts[(i%5)+1]});
 
           await registry.acceptFulfillment(i,0,{from: accounts[(i%5)]});
-
-          await registry.fulfillmentPayment(i,0,{from: accounts[(i%5)+1]});
           var bounty = await registry.getBounty(i);
-          assert(bounty[6] == 0);
+          assert(bounty[5] == 0);
         } else {
           await registry.issueBounty(accounts[(i%5)],
                                       2528821098,
@@ -321,9 +311,8 @@ contract('StandardBounties', function(accounts) {
 
           await registry.acceptFulfillment(i,0,{from: accounts[(i%5)]});
 
-          await registry.fulfillmentPayment(i,0,{from: accounts[(i%5)+1]});
           var bounty = await registry.getBounty(i);
-          assert(bounty[6] == 0);
+          assert(bounty[5] == 0);
         }
 
 
@@ -344,9 +333,8 @@ contract('StandardBounties', function(accounts) {
 
         await registry.acceptFulfillment(i,0,{from: accounts[(i%5)]});
 
-        await registry.fulfillmentPayment(i,0,{from: accounts[(i%5)+1]});
         var bounty = await registry.getBounty(i);
-        assert(bounty[6] == 0);
+        assert(bounty[5] == 0);
       }
     }
 
@@ -426,10 +414,10 @@ contract('StandardBounties', function(accounts) {
     await registry.fulfillBounty(0, "data3", {from: accounts[3]});
     await registry.fulfillBounty(0, "data4", {from: accounts[4]});
 
-    await registry.acceptFulfillment(0,3,{from: accounts[0]});
 
     try {
-      await registry.fulfillmentPayment(0,4, {from: accounts[1]});
+      await registry.acceptFulfillment(0,4,{from: accounts[0]});
+
     } catch (error){
       return utils.ensureException(error);
     }
@@ -458,10 +446,10 @@ contract('StandardBounties', function(accounts) {
     await registry.fulfillBounty(0, "data3", {from: accounts[3]});
     await registry.fulfillBounty(0, "data4", {from: accounts[4]});
 
-    await registry.acceptFulfillment(0,3,{from: accounts[0]});
+
 
     try {
-      await registry.fulfillmentPayment(0,4, {from: accounts[1]});
+      await registry.acceptFulfillment(0,4,{from: accounts[0]});
     } catch (error){
       return utils.ensureException(error);
     }
@@ -509,11 +497,8 @@ contract('StandardBounties', function(accounts) {
           await registry.acceptFulfillment(i,1,{from: accounts[(i%5)]});
           await registry.acceptFulfillment(i,2,{from: accounts[(i%5)]});
 
-          await registry.fulfillmentPayment(i,0,{from: accounts[(i%5)+1]});
-          await registry.fulfillmentPayment(i,1,{from: accounts[(i%5)+2]});
-          await registry.fulfillmentPayment(i,2,{from: accounts[(i%5)+3]});
           var bounty = await registry.getBounty(i);
-          assert(bounty[6] == 0);
+          assert(bounty[5] == 0);
         } else {
           await registry.issueBounty(accounts[(i%5)],
                                       2528821098,
@@ -534,12 +519,8 @@ contract('StandardBounties', function(accounts) {
           await registry.acceptFulfillment(i,1,{from: accounts[(i%5)]});
           await registry.acceptFulfillment(i,2,{from: accounts[(i%5)]});
 
-          await registry.fulfillmentPayment(i,0,{from: accounts[(i%5)+1]});
-          await registry.fulfillmentPayment(i,1,{from: accounts[(i%5)+2]});
-          await registry.fulfillmentPayment(i,2,{from: accounts[(i%5)+3]});
-
           var bounty = await registry.getBounty(i);
-          assert(bounty[6] == 0);
+          assert(bounty[5] == 0);
         }
 
 
@@ -564,11 +545,8 @@ contract('StandardBounties', function(accounts) {
         await registry.acceptFulfillment(i,1,{from: accounts[(i%5)]});
         await registry.acceptFulfillment(i,2,{from: accounts[(i%5)]});
 
-        await registry.fulfillmentPayment(i,0,{from: accounts[(i%5)+1]});
-        await registry.fulfillmentPayment(i,1,{from: accounts[(i%5)+2]});
-        await registry.fulfillmentPayment(i,2,{from: accounts[(i%5)+3]});
         var bounty = await registry.getBounty(i);
-        assert(bounty[6] == 0);
+        assert(bounty[5] == 0);
       }
     }
 
