@@ -32,6 +32,13 @@ The schema for the bounty data field is:
 }
 ```
 
+The current set of categories in use is:
+```
+['Code', 'Bugs', 'Questions', 'Graphic Design', 'Social Media', 'Content Creation', 'Translations', 'Surveys']
+```
+
+If you would like to add or amend fields in the data schema presented, please open a github issue and they will be added.
+
 `uint public fulfillmentAmount`
 The number of units which the bounty pays out for successful completion, either in wei or in token units for the relevant contract.
 
@@ -47,9 +54,6 @@ Bounties are formed in the `Draft` stage, a period during which the issuer can e
 Once the bounty state variables are finalized, and the bounty contract holds sufficient funds to pay out each milestone at least once, it can be transitioned to the `Active` stage by only the issuer. During the active stage, the requirements or payout amount cannot be altered, however the deadline may be extended. Fulfillments can only be submitted in the `Active` stage before the deadline, although they may be accepted by the issuer or arbiter even after the deadline has passed.
 At any point, the issuer can kill the bounty returning all funds to them (less the amount due for already accepted but unpaid submissions), transitioning the bounty into the `Dead` stage. However, this behaviour is highly discouraged and should be avoided at all costs.
 
-`uint owedAmount`
-The number of units of tokens or ETH which are owed to bounty fulfillers whose work has been accepted but is yet unpaid.
-
 `uint balance`
 The number of units of tokens or ETH which the bounty has under its control. The balance must always be greater than or equal to the owedAmount for a given bounty.
 
@@ -61,8 +65,6 @@ Work is submitted and a hash is stored on-chain, allowing any deliverable to be 
 `mapping(uint=>uint) public numAccepted`
 The number of submissions which have been accepted for each bounty
 
-`mapping(uint=>uint) public numPaid`
-The number of submissions which have paid out to task fulfillers for each bounty. `numPaid[_bountyId]` is always less than or equal to `numAccepted[_bountyId]`.
 
 ### External functions
 
@@ -94,7 +96,7 @@ function issueBounty(
     validateNotTooManyBounties
     returns (uint)
 {
-    bounties.push(Bounty(_issuer, _deadline, _data, _fulfillmentAmount, _arbiter, _paysTokens, BountyStages.Draft, 0, 0));
+    bounties.push(Bounty(_issuer, _deadline, _data, _fulfillmentAmount, _arbiter, _paysTokens, BountyStages.Draft, 0));
     if (_paysTokens){
       tokenContracts[bounties.length - 1] = HumanStandardToken(_tokenContract);
     }
@@ -125,6 +127,7 @@ function issueAndActivateBounty(
 {
     require (_value >= _fulfillmentAmount);
     if (_paysTokens){
+      require(msg.value == 0);
       tokenContracts[bounties.length] = HumanStandardToken(_tokenContract);
       require(tokenContracts[bounties.length].transferFrom(msg.sender, this, _value));
     } else {
@@ -137,7 +140,6 @@ function issueAndActivateBounty(
                           _arbiter,
                           _paysTokens,
                           BountyStages.Active,
-                          0,
                           _value));
     BountyIssued(bounties.length - 1);
     ContributionAdded(bounties.length - 1, msg.sender, _value);
@@ -152,9 +154,9 @@ This allows a bounty to receive 3rd party contributions from the crowd. This fun
 function contribute (uint _bountyId, uint _value)
     payable
     public
+    validateBountyArrayIndex(_bountyId)
     isBeforeDeadline(_bountyId)
     isNotDead(_bountyId)
-    validateBountyArrayIndex(_bountyId)
     amountIsNotZero(_value)
     transferredAmountEqualsValue(_bountyId, _value)
 {
@@ -170,14 +172,13 @@ If the bounty has sufficient funds to pay out at least once, it can be activated
 function activateBounty(uint _bountyId, uint _value)
     payable
     public
+    validateBountyArrayIndex(_bountyId)
     isBeforeDeadline(_bountyId)
     onlyIssuer(_bountyId)
-    validateBountyArrayIndex(_bountyId)
     transferredAmountEqualsValue(_bountyId, _value)
 {
     bounties[_bountyId].balance += _value;
-    require (bounties[_bountyId].balance >=
-            (bounties[_bountyId].fulfillmentAmount + bounties[_bountyId].owedAmount));
+    require (bounties[_bountyId].balance >= bounties[_bountyId].fulfillmentAmount);
     transitionToState(_bountyId, BountyStages.Active);
 
     ContributionAdded(_bountyId, msg.sender, _value);
@@ -197,7 +198,7 @@ function fulfillBounty(uint _bountyId, string _data)
     isBeforeDeadline(_bountyId)
     notIssuerOrArbiter(_bountyId)
 {
-    fulfillments[_bountyId].push(Fulfillment(false, false, msg.sender, _data));
+    fulfillments[_bountyId].push(Fulfillment(false, msg.sender, _data));
 
     BountyFulfilled(_bountyId, msg.sender, (fulfillments[_bountyId].length - 1));
 }
@@ -225,41 +226,21 @@ Submissions can be accepted by the issuer while the bounty is active, and the co
 function acceptFulfillment(uint _bountyId, uint _fulfillmentId)
     public
     validateBountyArrayIndex(_bountyId)
+    validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
     onlyIssuerOrArbiter(_bountyId)
     isAtStage(_bountyId, BountyStages.Active)
-    validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
     fulfillmentNotYetAccepted(_bountyId, _fulfillmentId)
     enoughFundsToPay(_bountyId)
 {
     fulfillments[_bountyId][_fulfillmentId].accepted = true;
-    bounties[_bountyId].owedAmount += bounties[_bountyId].fulfillmentAmount;
     numAccepted[_bountyId]++;
-
-    FulfillmentAccepted(_bountyId, msg.sender, _fulfillmentId);
-}
-```
-
-#### FulfillmentPayment()
-Once an individuals submission has been accepted, they can claim their reward, transferring the ETH or tokens to the successful fulfiller. A payment can only be claimed once for each fulfillment which has been accepted.
-```
-function fulfillmentPayment(uint _bountyId, uint _fulfillmentId)
-    public
-    validateBountyArrayIndex(_bountyId)
-    validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
-    onlyFulfiller(_bountyId, _fulfillmentId)
-    checkFulfillmentIsApprovedAndUnpaid(_bountyId, _fulfillmentId)
-{
-    fulfillments[_bountyId][_fulfillmentId].paid = true;
-    numPaid[_bountyId]++;
-    bounties[_bountyId].owedAmount -= bounties[_bountyId].fulfillmentAmount;
     bounties[_bountyId].balance -= bounties[_bountyId].fulfillmentAmount;
-
     if (bounties[_bountyId].paysTokens){
-      tokenContracts[_bountyId].transfer(fulfillments[_bountyId][_fulfillmentId].fulfiller, bounties[_bountyId].fulfillmentAmount);
+      require(tokenContracts[_bountyId].transfer(fulfillments[_bountyId][_fulfillmentId].fulfiller, bounties[_bountyId].fulfillmentAmount));
     } else {
       fulfillments[_bountyId][_fulfillmentId].fulfiller.transfer(bounties[_bountyId].fulfillmentAmount);
     }
-    FulfillmentPaid(_bountyId, msg.sender, _fulfillmentId);
+    FulfillmentAccepted(_bountyId, msg.sender, _fulfillmentId);
 }
 ```
 
@@ -272,15 +253,16 @@ function killBounty(uint _bountyId)
     onlyIssuer(_bountyId)
 {
     transitionToState(_bountyId, BountyStages.Dead);
-    uint difference = bounties[_bountyId].balance - bounties[_bountyId].owedAmount;
-    bounties[_bountyId].balance = bounties[_bountyId].owedAmount;
-    if (bounties[_bountyId].paysTokens){
-      tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, difference);
-    } else {
-      bounties[_bountyId].issuer.transfer(difference);
+    uint oldBalance = bounties[_bountyId].balance;
+    bounties[_bountyId].balance = 0;
+    if (oldBalance > 0){
+      if (bounties[_bountyId].paysTokens){
+        require(tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, oldBalance));
+      } else {
+        bounties[_bountyId].issuer.transfer(oldBalance);
+      }
     }
-
-    BountyKilled(_bountyId);
+    BountyKilled(_bountyId, msg.sender);
 }
 ```
 
@@ -378,17 +360,19 @@ function changeBountyPaysTokens(uint _bountyId, bool _newPaysTokens, address _ne
     onlyIssuer(_bountyId)
     isAtStage(_bountyId, BountyStages.Draft)
 {
+    HumanStandardToken oldToken = tokenContracts[_bountyId];
+    bool oldPaysTokens = bounties[_bountyId].paysTokens;
+    bounties[_bountyId].paysTokens = _newPaysTokens;
+    tokenContracts[_bountyId] = HumanStandardToken(_newTokenContract);
     if (bounties[_bountyId].balance > 0){
       uint oldBalance = bounties[_bountyId].balance;
       bounties[_bountyId].balance = 0;
-      if (bounties[_bountyId].paysTokens){
-          require(tokenContracts[_bountyId].transfer(bounties[_bountyId].issuer, oldBalance));
+      if (oldPaysTokens){
+          require(oldToken.transfer(bounties[_bountyId].issuer, oldBalance));
       } else {
           bounties[_bountyId].issuer.transfer(oldBalance);
       }
     }
-    bounties[_bountyId].paysTokens = _newPaysTokens;
-    tokenContracts[_bountyId] = HumanStandardToken(_newTokenContract);
     BountyChanged(_bountyId);
 }
 ```
@@ -405,13 +389,8 @@ function increasePayout(uint _bountyId, uint _newFulfillmentAmount, uint _value)
     transferredAmountEqualsValue(_bountyId, _value)
 {
     bounties[_bountyId].balance += _value;
-    uint newOwedAmount = (bounties[_bountyId].owedAmount +
-                          ((_newFulfillmentAmount - bounties[_bountyId].fulfillmentAmount)
-                             * (numAccepted[_bountyId] - numPaid[_bountyId])));
-    require(bounties[_bountyId].balance >= newOwedAmount);
-    bounties[_bountyId].owedAmount = newOwedAmount;
+    require(bounties[_bountyId].balance >= _newFulfillmentAmount);
     bounties[_bountyId].fulfillmentAmount = _newFulfillmentAmount;
-    ContributionAdded(_bountyId, msg.sender, _value);
     PayoutIncreased(_bountyId, _newFulfillmentAmount);
 }
 ```
@@ -424,10 +403,9 @@ function getFulfillment(uint _bountyId, uint _fulfillmentId)
     constant
     validateBountyArrayIndex(_bountyId)
     validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
-    returns (bool, bool, address, string)
+    returns (bool, address, string)
 {
-    return (fulfillments[_bountyId][_fulfillmentId].paid,
-            fulfillments[_bountyId][_fulfillmentId].accepted,
+    return (fulfillments[_bountyId][_fulfillmentId].accepted,
             fulfillments[_bountyId][_fulfillmentId].fulfiller,
             fulfillments[_bountyId][_fulfillmentId].data);
 }
@@ -440,14 +418,13 @@ function getBounty(uint _bountyId)
     public
     constant
     validateBountyArrayIndex(_bountyId)
-    returns (address, uint, uint, bool, uint, uint, uint)
+    returns (address, uint, uint, bool, uint, uint)
 {
     return (bounties[_bountyId].issuer,
             bounties[_bountyId].deadline,
             bounties[_bountyId].fulfillmentAmount,
             bounties[_bountyId].paysTokens,
             uint(bounties[_bountyId].bountyStage),
-            bounties[_bountyId].owedAmount,
             bounties[_bountyId].balance);
 }
 ```
@@ -531,10 +508,7 @@ This is emitted when a given bounty is fulfilled
 This is emitted when a given fulfillment is altered
 
 ```event FulfillmentAccepted(uint bountyId, address indexed fulfiller, uint256 indexed _fulfillmentId);```
-This is emitted when a given fulfillment for a given bounty is accepted
-
-```event FulfillmentPaid(uint bountyId, address indexed fulfiller, uint256 indexed _fulfillmentId);```
-This is emitted when a given fulfillment for a given bounty is paid
+This is emitted when a given fulfillment for a given bounty is accepted and paid
 
 ```event BountyKilled(uint bountyId);```
 This is emitted when a given bounty is killed
