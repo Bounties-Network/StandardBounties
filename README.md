@@ -18,9 +18,11 @@ The _StandardBounties.sol_ contract facilitates transactions on qualitative data
 
 ## 2. Implementation
 
-A single bounty contract can be used to pay amounts of ETH or a given token, based on the successful completion of the given task. The contract aims to reduce the necessary trust in the issuer by forcing them to deposit sufficient Ether (or tokens) to at minimum pay out each milestone once.
+A bounty can be used to pay amounts of ETH or a given token, based on the successful completion of the given task. The contract aims to reduce the necessary trust in the issuer by forcing them to deposit sufficient Ether (or tokens) to pay out the bounty at least once.
 
-- A bounty begins in the `Draft` state, where the requirements, deadline, arbiter, and reward amounts can still be altered.
+- A bounty begins by being issued, either through the `issueBounty()` function (which issues the bounty into draft stage), or `issueAndActivateBounty()`, which issues the bounty into the active stage
+
+- In the `Draft` state, all bounty details can still be mutated.
 
   In this state, the various functions which can be called are:
     - `contribute()` [**ANYONE**]: contributes ETH (or tokens) to the bounty
@@ -34,8 +36,10 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
     - `changeBountyArbiter()` [**ONLY ISSUER**]
     - `changeBountyPaysTokens()` [**ONLY ISSUER**]
     - `extendDeadline()` [**ONLY ISSUER**]
+    - `transferIssuer()` [**ONLY ISSUER**]
+    - `increasePayout()` [**ONLY ISSUER**]
 
-- A bounty transitions to the `Active` state when the issuer calls `activateBounty()`.
+- A bounty transitions to the `Active` state when the issuer calls `activateBounty()`, or if it was initially issued and activated.
 
   This is only possible if
   - the bounty hasn't expired (isn't past its deadline)
@@ -47,13 +51,12 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
     - `fulfillBounty()` [**ANYONE BUT ISSUER OR ARBITER**]:
     - `updateFulfillment()` [**ONLY FULFILLER**]
     - `acceptFulfillment()` [**ONLY ISSUER OR ARBITER**]:
-    - `fulfillmentPayment()` [**ONLY FULFILLER**]:
     - `increasePayout()` [**ONLY ISSUER**]:
     - `transferIssuer()` [**ONLY ISSUER**]
     - `extendDeadline()` [**ONLY ISSUER**]
     - `killBounty()` [**ONLY ISSUER**]:
 
-- A bounty transitions to the `Dead` state when the issuer calls `killBounty()`, which drains the contract of its balance, less the necessary funds to pay out fulfillments which have already been accepted but aren't yet paid out.
+- A bounty transitions to the `Dead` state when the issuer calls `killBounty()`, which drains the bounty of its remaining balance.
 
   In this state, the only functions which can be called are:
   - `extendDeadline()` [**ONLY ISSUER**]
@@ -63,7 +66,7 @@ A single bounty contract can be used to pay amounts of ETH or a given token, bas
 
 ## 3. Development
 
-Any application can take advantage of the bounties network registry, which is currently deployed on the Main Ethereum Network at `0x8c9fe49Cd196BDafCD0B7C3078fa9823d247564a`. The `BountiesNetwork.eth` name will also always resolve to the most up-to-date registry version for the Bounties Network.
+Any application can take advantage of the bounties network registry, which is currently deployed on the Main Ethereum Network at `0x066128b9f7557b5398db3d4ed141f2e64245ffa1`, and on the Rinkeby network at `0xd5ea74ad5bcec859ea7a7104401ea1c746c84074`. The `BountiesNetwork.eth` name will also always resolve to the most up-to-date registry version for the StandardBounties contract.
 
 #### Data Schema
 
