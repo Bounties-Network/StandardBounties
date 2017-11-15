@@ -1,4 +1,5 @@
 # StandardBounties
+[ ![Codeship Status for ConsenSys/StandardBounties](https://app.codeship.com/projects/1e2726c0-ac83-0135-5579-52b4614bface/status?branch=master)](https://app.codeship.com/projects/257018)
 
 `Version 1.0.0`
 
