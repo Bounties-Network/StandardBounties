@@ -93,6 +93,7 @@ The data schema for the fulfillment data field is:
   description: // A string representing the description of the fulfillment, and any necessary links to works
   sourceFileName: // A string representing the name of the file being submitted
   sourceFileHash: // A string representing the IPFS hash of the file being submitted
+  contact: // A string representing the preferred contact method of the fulfiller of the bounty
 }
 ```
 
