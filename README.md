@@ -80,7 +80,12 @@ The schema for the bounty data field is:
   sourceFileHash: // The IPFS hash of the file associated with the bounty
   contact: // A string representing the preferred contact method of the issuer of the bounty
   categories: // an array of strings, representing the categories of tasks which are being requested
+  githubLink: // The link to the relevant repository
 }
+```
+The current set of categories is:
+```
+['Code', 'Bugs', 'Questions', 'Graphic Design', 'Social Media', 'Content Creation', 'Translations', 'Surveys']
 ```
 The data schema for the fulfillment data field is:
 ```
