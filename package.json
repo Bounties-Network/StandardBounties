@@ -1,0 +1,51 @@
+{
+  "name": "StandardBounties",
+  "version": "0.1.0",
+  "description": "Bounties on any task, in any token",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "compile": "truffle compile",
+    "test": "standard && truffle test",
+    "lint": "standard --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ConsenSys/StandardBounties.git"
+  },
+  "keywords": [
+    "ethereum"
+  ],
+  "authors": [
+    "Mark Beylin <mark.beylin@consensys.net>"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ConsenSys/StandardBounties/issues"
+  },
+  "homepage": "https://github.com/ConsenSys/StandardBounties#readme",
+  "dependencies": {
+    "truffle": "4.0.1",
+    "truffle-hdwallet-provider": "0.0.3"
+  },
+  "devDependencies": {
+    "eslint-plugin-import": "2.7.0",
+    "eslint-plugin-node": "5.1.0",
+    "eslint-plugin-react": "7.1.0",
+    "eslint-plugin-standard": "3.0.1",
+    "standard": "10.0.2"
+  },
+  "standard": {
+    "globals": [
+      "assert",
+      "it",
+      "before",
+      "beforeEach",
+      "artifacts",
+      "contract",
+      "web3"
+    ]
+  }
+}
