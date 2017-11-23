@@ -464,7 +464,7 @@ contract StandardBounties {
       BountyChanged(_bountyId);
   }
 
-  /// @dev changeBountyPaysTokens(): allows the issuer to change a bounty's issuer
+  /// @dev changeBountyPaysTokens(): allows the issuer to change a bounty's paysTokens and token contract
   /// @param _bountyId the index of the bounty
   /// @param _newPaysTokens the new bool for whether the contract pays tokens
   /// @param _newTokenContract the new address of the token
