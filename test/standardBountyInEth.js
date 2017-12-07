@@ -1089,55 +1089,6 @@ contract('StandardBounties', function(accounts) {
 
   });
 
-  it("[ETH] verifies that I can change a bounty with no balance from paying in ETH to paying in Tokens", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                false,
-                                0x0,
-                                {from: accounts[0]});
-    let bounty = await registry.getBounty(0);
-    assert(bounty[3] == false);
-
-    await registry.changeBountyPaysTokens(0, true, 0x0, {from: accounts[0]});
-    bounty = await registry.getBounty(0);
-    balance = await web3.eth.getBalance(registry.address);
-    assert(bounty[3] == true);
-    assert(bounty[5] == 0);
-    assert(balance == 0);
-
-  });
-
-  it("[ETH] verifies that I can change a bounty with a balance from paying in ETH to paying in Tokens", async () => {
-    let registry = await StandardBounties.new(accounts[0]);
-
-    await registry.issueBounty(accounts[0],
-                                2528821098,
-                                "data",
-                                1000,
-                                0x0,
-                                false,
-                                0x0,
-                                {from: accounts[0]});
-    await registry.contribute(0, 3000, {from: accounts[0], value: 3000});
-    var bounty = await registry.getBounty(0);
-    var balance = await web3.eth.getBalance(registry.address);
-    assert(bounty[5] == 3000);
-    assert(balance == 3000);
-
-    await registry.changeBountyPaysTokens(0, true, 0x0, {from: accounts[0]});
-    bounty = await registry.getBounty(0);
-    balance = await web3.eth.getBalance(registry.address);
-    assert(bounty[3] == true);
-    assert(bounty[5] == 0);
-    assert(balance == 0);
-
-  });
-
 
 
 });
