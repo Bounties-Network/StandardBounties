@@ -2,7 +2,7 @@
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bounties-network/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [ ![Codeship Status for ConsenSys/StandardBounties](https://app.codeship.com/projects/1e2726c0-ac83-0135-5579-52b4614bface/status?branch=master)](https://app.codeship.com/projects/257018)
 
-`Version 1.0.0`
+`Version 1.1.0`
 
 1. [Rationale](#1-rationale)
 2. [Implementation](#2-implementation)
@@ -36,7 +36,6 @@ A bounty can be used to pay amounts of ETH or a given token, based on the succes
     - `changeBountyData()` [**ONLY ISSUER**]
     - `changeBountyFulfillmentAmount()` [**ONLY ISSUER**]
     - `changeBountyArbiter()` [**ONLY ISSUER**]
-    - `changeBountyPaysTokens()` [**ONLY ISSUER**]
     - `extendDeadline()` [**ONLY ISSUER**]
     - `transferIssuer()` [**ONLY ISSUER**]
     - `increasePayout()` [**ONLY ISSUER**]

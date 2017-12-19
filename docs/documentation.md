@@ -352,32 +352,6 @@ function changeBountyArbiter(uint _bountyId, address _newArbiter)
 }
 ```
 
-#### changeBountyPaysTokens()
-The issuer of the bounty can change whether the bounty pays in tokens or ETH, or change the token contract, while the bounty is in the `Draft` stage. This is not allowed when the bounty is in the `Active` or `Dead` stage. If the balance of the contract is non-zero, it will return all contributed funds to the issuer.
-```
-function changeBountyPaysTokens(uint _bountyId, bool _newPaysTokens, address _newTokenContract)
-    public
-    validateBountyArrayIndex(_bountyId)
-    onlyIssuer(_bountyId)
-    isAtStage(_bountyId, BountyStages.Draft)
-{
-    HumanStandardToken oldToken = tokenContracts[_bountyId];
-    bool oldPaysTokens = bounties[_bountyId].paysTokens;
-    bounties[_bountyId].paysTokens = _newPaysTokens;
-    tokenContracts[_bountyId] = HumanStandardToken(_newTokenContract);
-    if (bounties[_bountyId].balance > 0){
-      uint oldBalance = bounties[_bountyId].balance;
-      bounties[_bountyId].balance = 0;
-      if (oldPaysTokens){
-          require(oldToken.transfer(bounties[_bountyId].issuer, oldBalance));
-      } else {
-          bounties[_bountyId].issuer.transfer(oldBalance);
-      }
-    }
-    BountyChanged(_bountyId);
-}
-```
-
 #### increasePayout()
 The issuer of the bounty can increase the payout of the bounty even in the `Active` stage, as long as the balance of their bounty is sufficient to pay out any accepted fulfillments.
 ```
