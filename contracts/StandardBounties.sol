@@ -464,32 +464,6 @@ contract StandardBounties {
       BountyChanged(_bountyId);
   }
 
-  /// @dev changeBountyPaysTokens(): allows the issuer to change a bounty's issuer
-  /// @param _bountyId the index of the bounty
-  /// @param _newPaysTokens the new bool for whether the contract pays tokens
-  /// @param _newTokenContract the new address of the token
-  function changeBountyPaysTokens(uint _bountyId, bool _newPaysTokens, address _newTokenContract)
-      public
-      validateBountyArrayIndex(_bountyId)
-      onlyIssuer(_bountyId)
-      isAtStage(_bountyId, BountyStages.Draft)
-  {
-      HumanStandardToken oldToken = tokenContracts[_bountyId];
-      bool oldPaysTokens = bounties[_bountyId].paysTokens;
-      bounties[_bountyId].paysTokens = _newPaysTokens;
-      tokenContracts[_bountyId] = HumanStandardToken(_newTokenContract);
-      if (bounties[_bountyId].balance > 0){
-        uint oldBalance = bounties[_bountyId].balance;
-        bounties[_bountyId].balance = 0;
-        if (oldPaysTokens){
-            require(oldToken.transfer(bounties[_bountyId].issuer, oldBalance));
-        } else {
-            bounties[_bountyId].issuer.transfer(oldBalance);
-        }
-      }
-      BountyChanged(_bountyId);
-  }
-
   modifier newFulfillmentAmountIsIncrease(uint _bountyId, uint _newFulfillmentAmount) {
       require(bounties[_bountyId].fulfillmentAmount < _newFulfillmentAmount);
       _;

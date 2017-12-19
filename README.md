@@ -2,7 +2,7 @@
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bounties-network/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [ ![Codeship Status for ConsenSys/StandardBounties](https://app.codeship.com/projects/1e2726c0-ac83-0135-5579-52b4614bface/status?branch=master)](https://app.codeship.com/projects/257018)
 
-`Version 1.0.0`
+`Version 1.1.0`
 
 1. [Rationale](#1-rationale)
 2. [Implementation](#2-implementation)
@@ -36,7 +36,6 @@ A bounty can be used to pay amounts of ETH or a given token, based on the succes
     - `changeBountyData()` [**ONLY ISSUER**]
     - `changeBountyFulfillmentAmount()` [**ONLY ISSUER**]
     - `changeBountyArbiter()` [**ONLY ISSUER**]
-    - `changeBountyPaysTokens()` [**ONLY ISSUER**]
     - `extendDeadline()` [**ONLY ISSUER**]
     - `transferIssuer()` [**ONLY ISSUER**]
     - `increasePayout()` [**ONLY ISSUER**]
@@ -68,7 +67,7 @@ A bounty can be used to pay amounts of ETH or a given token, based on the succes
 
 ## 3. Development
 
-Any application can take advantage of the bounties network registry, which is currently deployed on the Main Ethereum Network at `0x066128b9f7557b5398db3d4ed141f2e64245ffa1`, and on the Rinkeby network at `0xd5ea74ad5bcec859ea7a7104401ea1c746c84074`. The `BountiesNetwork.eth` name will also always resolve to the most up-to-date registry version for the StandardBounties contract.
+Any application can take advantage of the bounties network registry, which is currently deployed on the Main Ethereum Network at `0x2af47a65da8cd66729b4209c22017d6a5c2d2400`, and on the Rinkeby network at `0xf209d2b723b6417cbf04c07e733bee776105a073`. The `BountiesNetwork.eth` name will also always resolve to the most up-to-date registry version for the StandardBounties contract.
 
 #### Data Schema
 
