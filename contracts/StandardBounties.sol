@@ -86,8 +86,8 @@ contract StandardBounty {
 
   function fulfillBounty(address _fulfiller, string _data)
       public
-      validateNotTooManyFulfillments()
-      notIssuerOrArbiter()
+      validateNotTooManyFulfillments
+      notIssuerOrArbiter
   {
       fulfillments.push(Fulfillment(_fulfiller, _data));
 
@@ -122,7 +122,7 @@ contract StandardBounty {
   function acceptFulfillment(uint _fulfillmentId, uint _numerator, uint _denomenator, StandardToken[] _payoutTokens)
       public
       validateFulfillmentArrayIndex(_fulfillmentId)
-      onlyIssuerOrArbiter()
+      onlyIssuerOrArbiter
   {
       for (uint256 i = 0; i < _payoutTokens.length; i++){
         uint toPay;
@@ -142,7 +142,7 @@ contract StandardBounty {
 
   function drainBounty(StandardToken[] _payoutTokens)
       public
-      onlyIssuer()
+      onlyIssuer
   {
     for (uint256 i = 0; i < _payoutTokens.length; i++){
       uint toPay;
@@ -160,13 +160,20 @@ contract StandardBounty {
 
   function changeBounty(address _issuer, address _arbiter, string _data)
       public
-      onlyIssuer()
+      onlyIssuer
   {
       issuer = _issuer;
       arbiter = _arbiter;
       data = _data;
       BountyChanged();
   }
+  function changeMasterCopy(StandardBounty _masterCopy)
+        public
+        onlyIssuer
+    {
+        require(address(_masterCopy) != 0);
+        masterCopy = _masterCopy;
+    }
 
   function getBounty()
         public
