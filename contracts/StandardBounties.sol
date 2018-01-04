@@ -10,6 +10,8 @@ contract StandardBounty {
    * Storage
    */
 
+  address masterCopy;
+
   address issuer;
   string data;
   address arbiter;
@@ -71,14 +73,23 @@ contract StandardBounty {
    * Public functions
    */
 
-
   function StandardBounty(
+    address _issuer,
+    string _data,
+    address _arbiter)
+    public
+  {
+    initializeBounty(_issuer, _data, _arbiter);
+  }
+
+  function initializeBounty(
       address _issuer,
       string _data,
-      address _arbiter
-      )
+      address _arbiter)
       public
   {
+    require(issuer == address(0));
+    require(_issuer != address(0));
     issuer = _issuer;
     data = _data;
     arbiter = _arbiter;
