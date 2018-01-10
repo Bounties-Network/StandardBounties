@@ -2,7 +2,7 @@
 
 function isException(error) {
     let strError = error.toString();
-    return strError.includes('invalid opcode') || strError.includes('invalid JUMP') || strError.includes('out of gas');
+    return strError.includes('invalid opcode') || strError.includes('invalid JUMP') || strError.includes('out of gas') || strError.includes('revert');
 }
 
 function ensureException(error) {

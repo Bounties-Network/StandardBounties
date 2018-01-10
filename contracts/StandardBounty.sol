@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.18;
 import "./inherited/StandardToken.sol";
 
 /// @title StandardBounties
@@ -39,6 +39,7 @@ contract StandardBounty {
   struct Fulfillment {
       address fulfiller;
       string data;
+      bool accepted;
   }
 
   struct Contribution {
@@ -78,8 +79,8 @@ contract StandardBounty {
     _;
   }
 
-  modifier notIssuerOrArbiter() {
-      require(msg.sender != issuer);
+  modifier notIssuerOrArbiter(address _fulfiller) {
+      require(_fulfiller != issuer);
       _;
   }
 
@@ -98,23 +99,26 @@ contract StandardBounty {
       _;
   }
 
+  modifier fulfillmentNotYetAccepted(uint _fulfillmentId){
+      require(!fulfillments[_fulfillmentId].accepted);
+      _;
+  }
+
   /*
    * Public functions
    */
 
-  function StandardBounty(
-    address _issuer,
-    string _data,
-    address _arbiter)
-    public
+  function ()
+  public
+  payable
   {
-    initializeBounty(_issuer, _data, _arbiter);
+
   }
 
   function initializeBounty(
       address _issuer,
-      string _data,
-      address _arbiter)
+      address _arbiter,
+      string _data)
       public
   {
     require(issuer == address(0));
@@ -123,8 +127,9 @@ contract StandardBounty {
     // so this check prevents initialization from being called multiple times
 
     issuer = _issuer;
-    data = _data;
     arbiter = _arbiter;
+    data = _data;
+
   }
 
   function refundableContribute(uint[] _amounts, StandardToken[] _tokens)
@@ -148,7 +153,6 @@ contract StandardBounty {
 
   function refundContribution(uint _contributionId)
   public
-  payable
   hasNotPaid
   onlyContributor(_contributionId)
   notYetRefunded(_contributionId)
@@ -166,9 +170,9 @@ contract StandardBounty {
   function fulfillBounty(address _fulfiller, string _data)
       public
       validateNotTooManyFulfillments
-      notIssuerOrArbiter
+      notIssuerOrArbiter(_fulfiller)
   {
-      fulfillments.push(Fulfillment(_fulfiller, _data));
+      fulfillments.push(Fulfillment(_fulfiller, _data, false));
 
       BountyFulfilled(_fulfiller, (fulfillments.length - 1));
   }
@@ -177,6 +181,7 @@ contract StandardBounty {
       public
       validateFulfillmentArrayIndex(_fulfillmentId)
       onlyFulfiller(_fulfillmentId)
+      fulfillmentNotYetAccepted(_fulfillmentId)
   {
       fulfillments[_fulfillmentId].data = _data;
       FulfillmentUpdated(_fulfillmentId);
@@ -283,12 +288,22 @@ contract StandardBounty {
   function getBounty()
         public
         constant
-        returns (address, address, string, Fulfillment[], bool)
+        returns (address, address, string, bool, uint)
     {
         return (issuer,
                 arbiter,
                 data,
-                fulfillments,
-                hasPaidOut);
+                hasPaidOut,
+                fulfillments.length);
     }
+
+    function getFulfillment(uint _fulfillmentId)
+          public
+          constant
+          returns (address, string, bool)
+      {
+          return (fulfillments[_fulfillmentId].fulfiller,
+                  fulfillments[_fulfillmentId].data,
+                  fulfillments[_fulfillmentId].accepted);
+      }
 }
