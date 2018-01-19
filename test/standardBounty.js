@@ -910,7 +910,7 @@ contract('StandardBounty', function(accounts) {
 
     tokenBalance = await stdt.balanceOf(stdb.address);
 
-    (parseInt(tokenBalance, 10) === 00);
+    (parseInt(tokenBalance, 10) === 0);
 
   });
 
