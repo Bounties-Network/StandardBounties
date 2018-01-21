@@ -12,9 +12,8 @@ contract StandardBounty {
 
   address public masterCopy;
 
-  address public issuer;
+  address public controller;
   string public data;
-  address public arbiter;
 
   bool public hasPaidOut;
 
@@ -30,7 +29,7 @@ contract StandardBounty {
   event BountyFulfilled(address fulfiller, uint256 _fulfillmentId);
   event FulfillmentUpdated(uint _fulfillmentId);
   event FulfillmentAccepted(address fulfiller, uint256 _fulfillmentId);
-  event BountyDrained(address issuer);
+  event BountyDrained(address controller);
   event BountyChanged();
 
   /*
@@ -54,13 +53,8 @@ contract StandardBounty {
    * Modifiers
    */
 
-  modifier onlyIssuer() {
-      require(msg.sender == issuer);
-      _;
-  }
-
-  modifier onlyIssuerOrArbiter() {
-      require(msg.sender == issuer || msg.sender == arbiter);
+  modifier onlyController() {
+      require(msg.sender == controller);
       _;
   }
 
@@ -79,8 +73,8 @@ contract StandardBounty {
     _;
   }
 
-  modifier notIssuerOrArbiter(address _fulfiller) {
-      require(_fulfiller != issuer);
+  modifier notController(address _fulfiller) {
+      require(_fulfiller != controller);
       _;
   }
 
@@ -116,18 +110,16 @@ contract StandardBounty {
   }
 
   function initializeBounty(
-      address _issuer,
-      address _arbiter,
+      address _controller,
       string _data)
       public
   {
-    require(issuer == address(0));
-    require(_issuer != address(0));
-    // an issuer of a bounty is only 0x0 when it is uninitialized,
+    require(controller == address(0));
+    require(_controller != address(0));
+    // an controller of a bounty is only 0x0 when it is uninitialized,
     // so this check prevents initialization from being called multiple times
 
-    issuer = _issuer;
-    arbiter = _arbiter;
+    controller = _controller;
     data = _data;
 
   }
@@ -170,7 +162,7 @@ contract StandardBounty {
   function fulfillBounty(address _fulfiller, string _data)
       public
       validateNotTooManyFulfillments
-      notIssuerOrArbiter(_fulfiller)
+      notController(_fulfiller)
   {
       fulfillments.push(Fulfillment(_fulfiller, _data, false));
 
@@ -206,7 +198,7 @@ contract StandardBounty {
   function acceptFulfillment(uint _fulfillmentId, uint _numerator, uint _denomenator, StandardToken[] _payoutTokens)
       public
       validateFulfillmentArrayIndex(_fulfillmentId)
-      onlyIssuerOrArbiter
+      onlyController
   {
       hasPaidOut = true;
       for (uint256 i = 0; i < _payoutTokens.length; i++){
@@ -227,51 +219,42 @@ contract StandardBounty {
 
   function drainBounty(StandardToken[] _payoutTokens)
       public
-      onlyIssuer
+      onlyController
   {
     for (uint256 i = 0; i < _payoutTokens.length; i++){
       uint toPay;
       if (_payoutTokens[i] == address(0x0)){
         toPay = this.balance;
-        issuer.transfer(toPay);
+        controller.transfer(toPay);
 
       } else {
         toPay = _payoutTokens[i].balanceOf(this);
-        require(_payoutTokens[i].transfer(issuer, toPay));
+        require(_payoutTokens[i].transfer(controller, toPay));
       }
     }
       BountyDrained(msg.sender);
   }
 
-  function changeBounty(address _issuer, address _arbiter, string _data)
+  function changeBounty(address _controller, string _data)
       public
-      onlyIssuer
+      onlyController
   {
-      issuer = _issuer;
-      arbiter = _arbiter;
+      controller = _controller;
       data = _data;
       BountyChanged();
   }
 
-  function changeIssuer(address _issuer)
+  function changeController(address _controller)
       public
-      onlyIssuer
+      onlyController
   {
-      issuer = _issuer;
-      BountyChanged();
-  }
-
-  function changeArbiter(address _arbiter)
-      public
-      onlyIssuer
-  {
-      arbiter = _arbiter;
+      controller = _controller;
       BountyChanged();
   }
 
   function changeData(string _data)
       public
-      onlyIssuer
+      onlyController
   {
       data = _data;
       BountyChanged();
@@ -279,7 +262,7 @@ contract StandardBounty {
 
   function changeMasterCopy(StandardBounty _masterCopy)
         public
-        onlyIssuer
+        onlyController
     {
         require(address(_masterCopy) != 0);
         masterCopy = _masterCopy;
@@ -288,10 +271,9 @@ contract StandardBounty {
   function getBounty()
         public
         constant
-        returns (address, address, string, bool, uint)
+        returns (address, string, bool, uint)
     {
-        return (issuer,
-                arbiter,
+        return (controller,
                 data,
                 hasPaidOut,
                 fulfillments.length);
