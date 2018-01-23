@@ -80,7 +80,7 @@ function StandardBounties(address _owner)
 ```
 
 #### issueBounty()
-Issues the bounty and instantiates state variables, initializing it in the draft stage. The bounty deadline must be after the time of issuance (contract deployment), and none of the milestones can pay out 0 tokens.
+Issues the bounty and instantiates state variables, initializing it in the draft stage. The bounty deadline must be after the time of issuance (contract deployment), and none of the milestones can pay out 0 tokens. The `data` field represents the IPFS hash for a JSON object, whose schema can be found at [the schema](./standardSchema.md).
 ```
 function issueBounty(
     address _issuer,
@@ -188,7 +188,7 @@ function activateBounty(uint _bountyId, uint _value)
 ```
 
 #### FulfillBounty()
-Once the bounty is active, anyone can fulfill it and submit the necessary deliverables (as long as the deadline has not passed). Anyone can fulfill the bounty, except for the issuer and arbiter, who are disallowed from doing so.
+Once the bounty is active, anyone can fulfill it and submit the necessary deliverables (as long as the deadline has not passed). Anyone can fulfill the bounty, except for the issuer and arbiter, who are disallowed from doing so. The `data` field represents the IPFS hash for a JSON object, whose schema can be found at [the schema](./standardSchema.md).
 
 ```
 function fulfillBounty(uint _bountyId, string _data)
