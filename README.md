@@ -71,7 +71,7 @@ Any application can take advantage of the bounties network registry, which is cu
 
 #### Data Schema
 
-For details on the data schema used for all JSON objects which are uploaded to IPFS, see [the schema](./docs/standardSchema.md)
+For details on the data schema used for all JSON objects which are uploaded to IPFS, see [the schema](./docs/standardSchemas.md)
 
 **If you're building on the StandardBounties and would like to add additional data fields, please submit a pull request on this repo.**
 
