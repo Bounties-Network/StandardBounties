@@ -23,9 +23,6 @@ Bounty issuance `data` Schema:
   payload: {
     title: // A string representing the title of the bounty
     description: // A string representing the description of the bounty, including all requirements
-    sourceFileName: // A string representing the name of the file
-    sourceFileHash: // The IPFS hash of the file associated with the bounty
-    sourceDirectoryHash: // The IPFS hash of the directory which can be used to access the file
     issuer: {
        // persona for the issuer of the bounty
     },
@@ -34,9 +31,13 @@ Bounty issuance `data` Schema:
     ],
     categories: // an array of strings, representing the categories of tasks which are being requested
     created: // the timestamp in seconds when the bounty was created
+    tokenSymbol: // the symbol for the token which the bounty pays out
+    tokenAddress: // the address for the token which the bounty pays out (0x0 if ETH)
 
     // ------- add optional fields here -------
-
+    sourceFileName: // A string representing the name of the file
+    sourceFileHash: // The IPFS hash of the file associated with the bounty
+    sourceDirectoryHash: // The IPFS hash of the directory which can be used to access the file
     webReferenceURL: // The link to a relevant web reference (ie github issue)
   },
   meta: {
