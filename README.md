@@ -71,32 +71,7 @@ Any application can take advantage of the bounties network registry, which is cu
 
 #### Data Schema
 
-StandardBounties employs an off-chain storage data model, where the `data` field of each bounty and fulfillment, is a hash of a JSON object, which is stored in a distributed manner on IPFS.
-The schema for the bounty data field is:
-```
-{
-  title: // A string representing the title of the bounty
-  description: // A string representing the description of the bounty, including all requirements
-  sourceFileName: // A string representing the name of the file
-  sourceFileHash: // The IPFS hash of the file associated with the bounty
-  contact: // A string representing the preferred contact method of the issuer of the bounty
-  categories: // an array of strings, representing the categories of tasks which are being requested
-  githubLink: // The link to the relevant repository
-}
-```
-The current set of categories is:
-```
-['Code', 'Bugs', 'Questions', 'Graphic Design', 'Social Media', 'Content Creation', 'Translations', 'Surveys']
-```
-The data schema for the fulfillment data field is:
-```
-{
-  description: // A string representing the description of the fulfillment, and any necessary links to works
-  sourceFileName: // A string representing the name of the file being submitted
-  sourceFileHash: // A string representing the IPFS hash of the file being submitted
-  contact: // A string representing the preferred contact method of the fulfiller of the bounty
-}
-```
+For details on the data schema used for all JSON objects which are uploaded to IPFS, see [the schema](./docs/standardSchemas.md)
 
 **If you're building on the StandardBounties and would like to add additional data fields, please submit a pull request on this repo.**
 
