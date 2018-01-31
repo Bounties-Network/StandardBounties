@@ -20,25 +20,7 @@ A bounty can only be contributed to, activated, or fulfilled before the given de
 `string public data`
 All data representing the requirements are stored off-chain on IPFS, and their hash is updated here. Requirements and auxiliary data are mutable while the bounty is in the `Draft` stage, but becomes immutable when the bounty is activated, thereby "locking in" the terms of the contract, the requirements for acceptance for each milestone. These should be as rich as possible from the outset, to avoid conflicts stemming from task fulfillers believing they merited the bounty reward.
 
-The schema for the bounty data field is:
-```
-{
-  title: // A string representing the title of the bounty
-  description: // A string representing the description of the bounty, including all requirements
-  sourceFileName: // A string representing the name of the file
-  sourceFileHash: // The IPFS hash of the file associated with the bounty
-  contact: // A string representing the preferred contact method of the issuer of the bounty
-  categories: // an array of strings, representing the categories of tasks which are being requested
-  githubLink: // The link to the relevant repository
-}
-```
-
-The current set of categories in use is:
-```
-['Code', 'Bugs', 'Questions', 'Graphic Design', 'Social Media', 'Content Creation', 'Translations', 'Surveys']
-```
-
-If you would like to add or amend fields in the data schema presented, please open a github issue and they will be added.
+The schema for the bounty data field can be found at [the schema](./standardSchemas.md)
 
 `uint public fulfillmentAmount`
 The number of units which the bounty pays out for successful completion, either in wei or in token units for the relevant contract.
@@ -80,7 +62,7 @@ function StandardBounties(address _owner)
 ```
 
 #### issueBounty()
-Issues the bounty and instantiates state variables, initializing it in the draft stage. The bounty deadline must be after the time of issuance (contract deployment), and none of the milestones can pay out 0 tokens.
+Issues the bounty and instantiates state variables, initializing it in the draft stage. The bounty deadline must be after the time of issuance (contract deployment), and none of the milestones can pay out 0 tokens. The `data` field represents the IPFS hash for a JSON object, whose schema can be found at [the schema](./standardSchemas.md).
 ```
 function issueBounty(
     address _issuer,
@@ -188,7 +170,7 @@ function activateBounty(uint _bountyId, uint _value)
 ```
 
 #### FulfillBounty()
-Once the bounty is active, anyone can fulfill it and submit the necessary deliverables (as long as the deadline has not passed). Anyone can fulfill the bounty, except for the issuer and arbiter, who are disallowed from doing so.
+Once the bounty is active, anyone can fulfill it and submit the necessary deliverables (as long as the deadline has not passed). Anyone can fulfill the bounty, except for the issuer and arbiter, who are disallowed from doing so. The `data` field represents the IPFS hash for a JSON object, whose schema can be found at [the schema](./standardSchemas.md).
 
 ```
 function fulfillBounty(uint _bountyId, string _data)
