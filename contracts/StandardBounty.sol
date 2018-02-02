@@ -43,10 +43,9 @@ contract StandardBounty {
 
   struct Contribution {
       address contributor;
-      uint[] amounts;
-      StandardToken[] tokens;
+      uint amount;
+      address token;
       bool refunded;
-      mapping (address => bool) hasContributed;
   }
 
   /*
@@ -106,7 +105,7 @@ contract StandardBounty {
   public
   payable
   {
-
+    refundableContribute(msg.sender, msg.value, address(0));
   }
 
   function initializeBounty(
@@ -124,39 +123,37 @@ contract StandardBounty {
 
   }
 
-  function refundableContribute(uint[] _amounts, StandardToken[] _tokens)
-  public
-  payable
-  {
-      require(_amounts.length == _tokens.length);
+  function receiveApproval(address _from, uint256 _amount, address _token, bytes _data) public {
+    require(_data.length == 0);
+    refundableContribute(_from, _amount, _token);
+  }
 
-      contributions.push(Contribution(msg.sender, _amounts, _tokens, false));
-      uint contributionId = contributions.length - 1;
-      for (uint i = 0; i < _amounts.length; i++){
-          require(!contributions[contributionId].hasContributed[_tokens[i]]);
-          contributions[contributionId].hasContributed[_tokens[i]] = true;
-          if (_tokens[i] == address(0)){
-              require(msg.value == _amounts[i]);
-          } else {
-              require(_tokens[i].transferFrom(msg.sender, this, _amounts[i]));
-          }
+  function refundableContribute(address _contributor, uint _amount, address _token)
+    public
+    payable
+  {
+      require(_amount > 0);
+      if (_token == address(0)) {
+          require(msg.value == _amount);
+      } else {
+          require(StandardToken(_token).transferFrom(msg.sender, this, _amount));
       }
+      contributions.push(Contribution(_contributor, _amount, _token, false));
   }
 
   function refundContribution(uint _contributionId)
-  public
-  hasNotPaid
-  onlyContributor(_contributionId)
-  notYetRefunded(_contributionId)
+    public
+    hasNotPaid
+    onlyContributor(_contributionId)
+    notYetRefunded(_contributionId)
   {
       contributions[_contributionId].refunded = true;
-      for (uint i = 0; i < contributions[_contributionId].amounts.length; i++){
-          if (contributions[_contributionId].tokens[i] == address(0)){
-              contributions[_contributionId].contributor.transfer(contributions[_contributionId].amounts[i]);
-          } else {
-              require(contributions[_contributionId].tokens[i].transfer(contributions[_contributionId].contributor, contributions[_contributionId].amounts[i]));
-          }
+      if (contributions[_contributionId].token == address(0)) {
+          contributions[_contributionId].contributor.transfer(contributions[_contributionId].amount);
+      } else {
+          require(StandardToken(contributions[_contributionId].token).transfer(contributions[_contributionId].contributor, contributions[_contributionId].amount));
       }
+
   }
 
   function fulfillBounty(address _fulfiller, string _data)
@@ -221,9 +218,9 @@ contract StandardBounty {
       public
       onlyController
   {
-    for (uint256 i = 0; i < _payoutTokens.length; i++){
+    for (uint256 i = 0; i < _payoutTokens.length; i++) {
       uint toPay;
-      if (_payoutTokens[i] == address(0x0)){
+      if (_payoutTokens[i] == address(0x0)) {
         toPay = this.balance;
         controller.transfer(toPay);
 
