@@ -1311,5 +1311,4 @@ contract('StandardBountyProxy', function(accounts) {
     }
 
   });
-
 });
