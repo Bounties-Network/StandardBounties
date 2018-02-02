@@ -24,7 +24,11 @@ contract('StandardBountyProxy', function(accounts) {
 
     let newBounty = StandardBounty.at(stdbProxy.address);
 
+    console.log("beforeInit");
+
     await newBounty.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+
+    console.log("afterInit");
 
     let bounty = await newBounty.getBounty();
 
