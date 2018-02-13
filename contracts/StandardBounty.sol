@@ -1,7 +1,8 @@
-pragma solidity ^0.4.17;
+pragma solidity 0.4.17;
 import "./token/Token.sol";
 import "./token/ApproveAndCallFallBack.sol";
 import "./common/Controlled.sol";
+
 
 /** 
  * @title StandardBounties
@@ -11,7 +12,6 @@ contract StandardBounty is Controlled {
     
     /////
     // Storage
-    
     enum State { OPEN, REFUND, REWARD, FINALIZED }
 
     State public state; //current contract state
@@ -21,12 +21,11 @@ contract StandardBounty is Controlled {
 
     mapping(address => uint256) public balances; // token deposits (address 0x0 is ether)
     mapping(address => uint256) public influence; // infleunce each address obtained
-    mapping(bytes32 => uint256) public contribution;  //contribution amount of keccak256(address contributor, address token)
+    mapping(bytes32 => uint256) public contribution;  //key is keccak256(address contributor, address token)
     mapping(bytes32 => bool) public rewarded; //reward flag for keccak256(address beneficiary, address token)
 
     /////
     // Modifiers
-
     modifier requiredState(State _state) {
         require(state == _state);
         _;
@@ -40,13 +39,9 @@ contract StandardBounty is Controlled {
     
     /////
     // Events
-
     event StateChanged(State state);
-    event ApprovedReward(address indexed destination, uint influence);
+    event ApprovedReward(address indexed _destination, uint influence);
     event BalanceChanged(address indexed token, uint256 total);
-    
-    /////
-    // Public and external functions
     
     /**
      * @notice Constructor
@@ -60,8 +55,24 @@ contract StandardBounty is Controlled {
         StateChanged(State.OPEN);
     }
 
-    // ApproveAndCallFallBack.sol implementation
-    
+    /////
+    // External functions   
+    // Functions that can be called at `state = State.OPEN`
+    /**
+     * @notice Contributes ether to this bounty
+     */
+    function ()
+        external
+        payable
+        requiredState(State.OPEN)
+    {
+        require(msg.value > 0);
+        contribution[keccak256(msg.sender, address(0))] += msg.value;
+        balances[address(0)] += msg.value;
+        BalanceChanged(address(0), this.balance);
+    }
+
+    // ApproveAndCallFallBack.sol implementation   
     /**
      * @notice Recieve approval from some token. 
      * @dev We can trust any token here, because token operations are isolated for each token.
@@ -76,39 +87,6 @@ contract StandardBounty is Controlled {
     {
         require(_data.length == 0);
         contributeToken(_from, _amount, _token);
-    }
-
-    // Functions that can be called at `state = State.OPEN`
-
-    /** 
-     * @notice Request the transfer of `_token` to the bounty and register or register the ether sent
-     * @param _contributor Address that approved spend from this contract
-     * @param _amount Amount approved
-     * @param _token Address of token approved
-     */
-    function contributeToken(address _contributor, uint _amount, address _token)
-        public
-        requiredState(State.OPEN)
-    {
-        require(_amount > 0);
-        require (_token != address(0));
-        require(Token(_token).transferFrom(msg.sender, address(this), _amount));
-        contribution[keccak256(_contributor, _token)] += _amount;
-        balances[_token] += _amount;
-        BalanceChanged(_token, balances[_token]);
-    }
-
-    /**
-     * @notice Contributes ether to this bounty
-     */
-    function ()
-        external
-        payable
-        requiredState(State.OPEN)
-    {
-        contribution[keccak256(msg.sender, address(0))] += msg.value;
-        balances[address(0)] += msg.value;
-        BalanceChanged(address(0), this.balance);
     }
 
     /**
@@ -174,7 +152,6 @@ contract StandardBounty is Controlled {
     }
 
     // Functions that can be called at `state = State.REFUND`
-
     /**
      * @notice Withdraw reward of multiple _tokens and ether if one of them is `address(0)`
      * @param _from Address that contributed and destination of refunds
@@ -184,7 +161,7 @@ contract StandardBounty is Controlled {
         external
         requiredState(State.REFUND)
     {
-        require (_from != address(0));
+        require(_from != address(0));
         uint len = _refundTokens.length;
         for (uint256 i = 0; i < len; i++) {
             refund(_from, _refundTokens[i]);
@@ -205,7 +182,6 @@ contract StandardBounty is Controlled {
     }
 
     // Functions that can be called at `state = State.REWARD`
-
     /**
      * @notice Withdraw reward of multiple _tokens and ether if one of them is `address(0)`
      * @param _destination Address of beneficiary
@@ -215,7 +191,7 @@ contract StandardBounty is Controlled {
         external
         requiredState(State.REWARD)
     {
-        require (_destination != address(0));
+        require(_destination != address(0));
         uint len = _rewardTokens.length;
         for (uint256 i = 0; i < len; i++) {
             reward(_destination, _rewardTokens[i]);
@@ -231,27 +207,11 @@ contract StandardBounty is Controlled {
         external
         requiredState(State.REWARD)
     {
-        require (_destination != address(0));
+        require(_destination != address(0));
         reward(_destination, _rewardToken);
     }
 
-    // Web3 helpers
-
-    /**
-     * @notice calcule `_rewardToken` reward of `_destination`
-     * @param _destination Address of beneficiary
-     * @param _rewardToken what token being calculated
-     */
-    function calculeReward(address _destination, address _rewardToken)
-        public
-        constant
-        returns (uint256 total)
-    {
-        total = (balances[_rewardToken] * influence[_destination]) / influenceTotal;
-    }
-
     // Functions for reclaiming locked funds
-
     /**
      * @notice Finalizes the bounty enabling it's draining
      */
@@ -287,8 +247,43 @@ contract StandardBounty is Controlled {
     }    
 
     /////
-    // Internal functions
+    // Public functions
+    // Functions that can be called at `state = State.OPEN`
+    /** 
+     * @notice Request the transfer of `_token` to the bounty and register or register the ether sent
+     * @param _contributor Address that approved spend from this contract
+     * @param _amount Amount approved
+     * @param _token Address of token approved
+     */
+    function contributeToken(address _contributor, uint _amount, address _token)
+        public
+        requiredState(State.OPEN)
+    {
+        require(_amount > 0);
+        require(_token != address(0));
+        require(Token(_token).transferFrom(msg.sender, address(this), _amount));
+        contribution[keccak256(_contributor, _token)] += _amount;
+        balances[_token] += _amount;
+        BalanceChanged(_token, balances[_token]);
+    }
 
+    /////
+    // Web3 helpers
+    /**
+     * @notice calcule `_rewardToken` reward of `_destination`
+     * @param _destination Address of beneficiary
+     * @param _rewardToken what token being calculated
+     */
+    function calculeReward(address _destination, address _rewardToken)
+        public
+        constant
+        returns (uint256 total)
+    {
+        total = (balances[_rewardToken] * influence[_destination]) / influenceTotal;
+    }
+
+    /////
+    // Internal functions
     /**
      * @notice Withdraw reward of some token or ether if `_payoutToken` is `address(0)`
      */
