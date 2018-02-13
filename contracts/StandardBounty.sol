@@ -187,7 +187,7 @@ contract StandardBounty is Controlled {
         require (_from != address(0));
         uint len = _refundTokens.length;
         for (uint256 i = 0; i < len; i++) {
-            reward(_from, _refundTokens[i]);
+            refund(_from, _refundTokens[i]);
         }
     }
 
@@ -234,6 +234,8 @@ contract StandardBounty is Controlled {
         require (_destination != address(0));
         reward(_destination, _rewardToken);
     }
+
+    // Web3 helpers
 
     /**
      * @notice calcule `_rewardToken` reward of `_destination`
@@ -295,7 +297,7 @@ contract StandardBounty is Controlled {
     {
         bytes32 rewardHash = keccak256(_destination, _payoutToken);
         require(!rewarded[rewardHash]);
-        rewarded[rewardHash] = true;
+        rewarded[rewardHash] = true; //flag as rewarded
         uint256 toPay = calculeReward(_destination, _payoutToken);
         if (_payoutToken == address(0x0)) {
             _destination.transfer(toPay);
@@ -312,7 +314,7 @@ contract StandardBounty is Controlled {
     {
         bytes32 contributionHash = keccak256(_from, _refundToken);
         uint amount = contribution[contributionHash];
-        delete contribution[contributionHash];
+        delete contribution[contributionHash]; //removes from storage
         if (_refundToken == address(0)) { 
             _from.transfer(amount);
         } else {
