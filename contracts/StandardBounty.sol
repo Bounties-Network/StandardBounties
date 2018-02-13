@@ -1,4 +1,4 @@
-pragma solidity 0.4.17;
+pragma solidity ^0.4.17;
 import "./token/Token.sol";
 import "./token/ApproveAndCallFallBack.sol";
 import "./common/Controlled.sol";
