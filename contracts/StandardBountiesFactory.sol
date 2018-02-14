@@ -8,7 +8,7 @@ contract StandardBountiesFactory {
 
   StandardBounty[] public bounties;
 
-  address masterCopy;
+  address public masterCopy;
 
 
   function StandardBountiesFactory(address _masterCopy){
