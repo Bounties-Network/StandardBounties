@@ -1,291 +1,320 @@
-pragma solidity ^0.4.18;
-import "./inherited/StandardToken.sol";
-
-/// @title StandardBounties
-/// @dev Used to pay out individuals or groups for task fulfillment
-
-contract StandardBounty {
-
-  /*
-   * Storage
-   */
-
-  address public masterCopy;
-
-  address public controller;
-  string public data;
-
-  bool public hasPaidOut;
-
-  Fulfillment[] public fulfillments;
-
-  Contribution[] public contributions;
+pragma solidity ^0.4.17;
+import "./token/Token.sol";
+import "./token/ApproveAndCallFallBack.sol";
+import "./common/Controlled.sol";
 
 
+/** 
+ * @title StandardBounties
+ * @dev Used to pay out individuals or groups for task fulfillment
+ */
+contract StandardBounty is Controlled {
+    
+    /////
+    // Storage
+    enum State { OPEN, REFUND, REWARD, FINALIZED }
 
-  /*
-   * Events
-   */
-  event BountyFulfilled(address fulfiller, uint256 _fulfillmentId);
-  event FulfillmentUpdated(uint _fulfillmentId);
-  event FulfillmentAccepted(address fulfiller, uint256 _fulfillmentId);
-  event BountyDrained(address controller);
-  event BountyChanged();
+    State public state; //current contract state
+    uint256 public influenceTotal; //total influences given
+    uint256 public closedAt; // timestamp of issue closing
+    uint256 public timeLimit; // time limit of issue refund/withdraw
 
-  /*
-   * Structs
-   */
-  struct Fulfillment {
-      address fulfiller;
-      string data;
-      bool accepted;
-  }
+    mapping(address => uint256) public balances; // token deposits (address 0x0 is ether)
+    mapping(address => uint256) public influence; // infleunce each address obtained
+    mapping(bytes32 => uint256) public contribution;  //key is keccak256(address contributor, address token)
+    mapping(bytes32 => bool) public rewarded; //reward flag for keccak256(address beneficiary, address token)
 
-  struct Contribution {
-      address contributor;
-      uint[] amounts;
-      StandardToken[] tokens;
-      bool refunded;
-      mapping (address => bool) hasContributed;
-  }
-
-  /*
-   * Modifiers
-   */
-
-  modifier onlyController() {
-      require(msg.sender == controller);
-      _;
-  }
-
-  modifier onlyFulfiller(uint _fulfillmentId) {
-      require(msg.sender == fulfillments[_fulfillmentId].fulfiller);
-      _;
-  }
-
-  modifier validateFulfillmentArrayIndex(uint _index) {
-      require(_index < fulfillments.length);
-      _;
-  }
-
-  modifier validateNotTooManyFulfillments(){
-    require((fulfillments.length + 1) > fulfillments.length);
-    _;
-  }
-
-  modifier notController(address _fulfiller) {
-      require(_fulfiller != controller);
-      _;
-  }
-
-  modifier hasNotPaid(){
-      require(!hasPaidOut);
-      _;
-  }
-
-  modifier onlyContributor(uint _contributionId){
-      require(contributions[_contributionId].contributor == msg.sender);
-      _;
-  }
-
-  modifier notYetRefunded(uint _contributionId){
-      require(!contributions[_contributionId].refunded);
-      _;
-  }
-
-  modifier fulfillmentNotYetAccepted(uint _fulfillmentId){
-      require(!fulfillments[_fulfillmentId].accepted);
-      _;
-  }
-
-  /*
-   * Public functions
-   */
-
-  function ()
-  public
-  payable
-  {
-
-  }
-
-  function initializeBounty(
-      address _controller,
-      string _data)
-      public
-  {
-    require(controller == address(0));
-    require(_controller != address(0));
-    // an controller of a bounty is only 0x0 when it is uninitialized,
-    // so this check prevents initialization from being called multiple times
-
-    controller = _controller;
-    data = _data;
-
-  }
-
-  function refundableContribute(uint[] _amounts, StandardToken[] _tokens)
-  public
-  payable
-  {
-      require(_amounts.length == _tokens.length);
-
-      contributions.push(Contribution(msg.sender, _amounts, _tokens, false));
-      uint contributionId = contributions.length - 1;
-      for (uint i = 0; i < _amounts.length; i++){
-          require(!contributions[contributionId].hasContributed[_tokens[i]]);
-          contributions[contributionId].hasContributed[_tokens[i]] = true;
-          if (_tokens[i] == address(0)){
-              require(msg.value == _amounts[i]);
-          } else {
-              require(_tokens[i].transferFrom(msg.sender, this, _amounts[i]));
-          }
-      }
-  }
-
-  function refundContribution(uint _contributionId)
-  public
-  hasNotPaid
-  onlyContributor(_contributionId)
-  notYetRefunded(_contributionId)
-  {
-      contributions[_contributionId].refunded = true;
-      for (uint i = 0; i < contributions[_contributionId].amounts.length; i++){
-          if (contributions[_contributionId].tokens[i] == address(0)){
-              contributions[_contributionId].contributor.transfer(contributions[_contributionId].amounts[i]);
-          } else {
-              require(contributions[_contributionId].tokens[i].transfer(contributions[_contributionId].contributor, contributions[_contributionId].amounts[i]));
-          }
-      }
-  }
-
-  function fulfillBounty(address _fulfiller, string _data)
-      public
-      validateNotTooManyFulfillments
-      notController(_fulfiller)
-  {
-      fulfillments.push(Fulfillment(_fulfiller, _data, false));
-
-      BountyFulfilled(_fulfiller, (fulfillments.length - 1));
-  }
-
-  function updateFulfillment(uint _fulfillmentId, string _data)
-      public
-      validateFulfillmentArrayIndex(_fulfillmentId)
-      onlyFulfiller(_fulfillmentId)
-      fulfillmentNotYetAccepted(_fulfillmentId)
-  {
-      fulfillments[_fulfillmentId].data = _data;
-      FulfillmentUpdated(_fulfillmentId);
-  }
-
-  function calculateFraction(uint _balance, uint _numerator, uint _denomenator)
-      public
-      pure
-      returns (uint newBalanceDiv)
-  {
-    require(_denomenator != 0);
-
-    //first multiplies by the numerator
-    uint newBalanceMult = _balance * _numerator;
-    require(newBalanceMult / _numerator == _balance);
-
-    //secondly divides by the denomenator
-    newBalanceDiv = newBalanceMult / _denomenator;
-    require(newBalanceMult == newBalanceDiv * _denomenator + newBalanceMult % _denomenator);
-  }
-
-  function acceptFulfillment(uint _fulfillmentId, uint _numerator, uint _denomenator, StandardToken[] _payoutTokens)
-      public
-      validateFulfillmentArrayIndex(_fulfillmentId)
-      onlyController
-  {
-      hasPaidOut = true;
-      for (uint256 i = 0; i < _payoutTokens.length; i++){
-        uint toPay;
-        if (_payoutTokens[i] == address(0x0)){
-          toPay = this.balance;
-          toPay = calculateFraction(toPay, _numerator, _denomenator);
-          fulfillments[_fulfillmentId].fulfiller.transfer(toPay);
-
-        } else {
-          toPay = _payoutTokens[i].balanceOf(this);
-          toPay = calculateFraction(toPay, _numerator, _denomenator);
-          require(_payoutTokens[i].transfer(fulfillments[_fulfillmentId].fulfiller, toPay));
-        }
-      }
-      FulfillmentAccepted(msg.sender, _fulfillmentId);
-  }
-
-  function drainBounty(StandardToken[] _payoutTokens)
-      public
-      onlyController
-  {
-    for (uint256 i = 0; i < _payoutTokens.length; i++){
-      uint toPay;
-      if (_payoutTokens[i] == address(0x0)){
-        toPay = this.balance;
-        controller.transfer(toPay);
-
-      } else {
-        toPay = _payoutTokens[i].balanceOf(this);
-        require(_payoutTokens[i].transfer(controller, toPay));
-      }
+    /////
+    // Modifiers
+    modifier requiredState(State _state) {
+        require(state == _state);
+        _;
     }
-      BountyDrained(msg.sender);
-  }
 
-  function changeBounty(address _controller, string _data)
-      public
-      onlyController
-  {
-      controller = _controller;
-      data = _data;
-      BountyChanged();
-  }
-
-  function changeController(address _controller)
-      public
-      onlyController
-  {
-      controller = _controller;
-      BountyChanged();
-  }
-
-  function changeData(string _data)
-      public
-      onlyController
-  {
-      data = _data;
-      BountyChanged();
-  }
-
-  function changeMasterCopy(StandardBounty _masterCopy)
+    modifier timedOut {
+        require(closedAt > 0);
+        require(closedAt + timeLimit > block.timestamp);
+        _;
+    }
+    
+    /////
+    // Events
+    event StateChanged(State state);
+    event ApprovedReward(address indexed _destination, uint influence);
+    event BalanceChanged(address indexed token, uint256 total);
+    
+    /**
+     * @notice Constructor
+     * @param _timeLimit Limit for withdrawing funds from the issue after its closed
+     */
+    function StandardBounty(uint256 _timeLimit) 
         public
-        onlyController
     {
-        require(address(_masterCopy) != 0);
-        masterCopy = _masterCopy;
+        timeLimit = _timeLimit;
+        state = State.OPEN;
+        StateChanged(State.OPEN);
     }
 
-  function getBounty()
+    /////
+    // External functions   
+    // Functions that can be called at `state = State.OPEN`
+    /**
+     * @notice Contributes ether to this bounty
+     */
+    function ()
+        external
+        payable
+        requiredState(State.OPEN)
+    {
+        require(msg.value > 0);
+        contribution[keccak256(msg.sender, address(0))] += msg.value;
+        balances[address(0)] += msg.value;
+        BalanceChanged(address(0), this.balance);
+    }
+
+    // ApproveAndCallFallBack.sol implementation   
+    /**
+     * @notice Recieve approval from some token. 
+     * @dev We can trust any token here, because token operations are isolated for each token.
+     *      Any msg.sender is accepted, because we are using only approved value and `_data` is not used.
+     * @param _from Address that approved spent form this contract
+     * @param _amount Amount approved
+     * @param _token Address of token approved
+     * @param _data Must be empty
+     */
+    function receiveApproval(address _from, uint256 _amount, address _token, bytes _data)
+        external 
+    {
+        require(_data.length == 0);
+        contributeToken(_from, _amount, _token);
+    }
+
+    /**
+     * @notice Update the balance of `_token` to be recognized by reward function
+     *         this will not enable refund of this token, which in case of REFUND 
+     *         state will be available for controller in FINALIZED state.
+     * @param _token the token being queried balance
+     */
+    function updateBalance(address _token)
+        external
+        requiredState(State.OPEN)
+    {
+        require(_token != address(0));
+        uint tokenBalance = Token(_token).balanceOf(address(this));
+        if (tokenBalance != balances[_token]) { //could be require
+            balances[_token] = tokenBalance;
+            BalanceChanged(_token, tokenBalance);
+        }
+    }
+
+    /**
+     * @notice Increases the reward for some address
+     * @param _destination Reward beneficiary
+     * @param _influence Amount to be increased
+     */
+    function increaseReward(address _destination, uint256 _influence) 
+        external
+        onlyController
+        requiredState(State.OPEN)
+    {
+        influence[_destination] += _influence;
+        influenceTotal += _influence;
+        ApprovedReward(_destination, influence[_destination]);
+    }
+
+    /**
+     * @notice Decreases the reward for some address
+     * @param _destination Reward beneficiary
+     * @param _influence Amount to be decreased
+     */
+    function decreaseReward(address _destination, uint256 _influence) 
+        external
+        onlyController
+        requiredState(State.OPEN)
+    {
+        require(influence[_destination] >= _influence);
+        influence[_destination] -= _influence;
+        influenceTotal -= _influence;
+        ApprovedReward(_destination, influence[_destination]);
+    }
+
+    /**
+     * @notice Close the issue, state becomes reward if some influence is set, or refund if none.
+     */
+    function close() 
+        external
+        onlyController
+        requiredState(State.OPEN)
+    {
+        state = influenceTotal == 0 ? State.REFUND : State.REWARD;
+        closedAt = block.timestamp;
+        StateChanged(state);
+    }
+
+    // Functions that can be called at `state = State.REFUND`
+    /**
+     * @notice Withdraw reward of multiple _tokens and ether if one of them is `address(0)`
+     * @param _from Address that contributed and destination of refunds
+     * @param _refundTokens Address of tokens being refunded, `address(0)` to ether.
+     */
+    function withdrawRefundMultiple(address _from, address[] _refundTokens)
+        external
+        requiredState(State.REFUND)
+    {
+        require(_from != address(0));
+        uint len = _refundTokens.length;
+        for (uint256 i = 0; i < len; i++) {
+            refund(_from, _refundTokens[i]);
+        }
+    }
+
+    /**
+     * @notice Withdraw refund of some _token or ether if `_token` is `address(0)`
+     * @param _from Address that contributed and destination of refunds
+     * @param _refundToken Address of token being refunded, `address(0)` to ether.
+     */
+    function withdrawRefund(address _from, address _refundToken)
+        external
+        requiredState(State.REFUND)
+    {
+        require(_from != address(0));
+        refund(_from, _refundToken);
+    }
+
+    // Functions that can be called at `state = State.REWARD`
+    /**
+     * @notice Withdraw reward of multiple _tokens and ether if one of them is `address(0)`
+     * @param _destination Address of beneficiary
+     * @param _rewardTokens Address of tokens being rewarded, `address(0)` to ether.
+     */
+    function withdrawRewardMultiple(address _destination, address[] _rewardTokens)
+        external
+        requiredState(State.REWARD)
+    {
+        require(_destination != address(0));
+        uint len = _rewardTokens.length;
+        for (uint256 i = 0; i < len; i++) {
+            reward(_destination, _rewardTokens[i]);
+        }
+    }
+
+    /**
+     * @notice Withdraw reward of one _token or ether if `_rewardToken` is `address(0)`
+     * @param _destination Address of beneficiary
+     * @param _rewardToken Address of token being rewarded, `address(0)` to ether.
+     */
+    function withdrawReward(address _destination, address _rewardToken)
+        external
+        requiredState(State.REWARD)
+    {
+        require(_destination != address(0));
+        reward(_destination, _rewardToken);
+    }
+
+    // Functions for reclaiming locked funds
+    /**
+     * @notice Finalizes the bounty enabling it's draining
+     */
+    function finalize()
+        external
+        onlyController
+        timedOut
+    {
+        state = State.FINALIZED;
+        StateChanged(State.FINALIZED);
+    }
+
+    /**
+     * @notice Drain some tokens or ether if one of them is `address(0)`
+     */
+    function drainBounty(address _destination, address[] _drainTokens)
+        external
+        onlyController
+        requiredState(State.FINALIZED)
+    {
+        uint len = _drainTokens.length;
+        for (uint256 i = 0; i < len; i++) {
+            address _drainToken = _drainTokens[i];
+            uint toPay;
+            if (_drainToken == address(0x0)) {
+                toPay = this.balance;
+                _destination.transfer(toPay);
+            } else {
+                toPay = Token(_drainToken).balanceOf(address(this));
+                require(Token(_drainToken).transfer(_destination, toPay));
+            }
+        }
+    }    
+
+    /////
+    // Public functions
+    // Functions that can be called at `state = State.OPEN`
+    /** 
+     * @notice Request the transfer of `_token` to the bounty and register or register the ether sent
+     * @param _contributor Address that approved spend from this contract
+     * @param _amount Amount approved
+     * @param _token Address of token approved
+     */
+    function contributeToken(address _contributor, uint _amount, address _token)
+        public
+        requiredState(State.OPEN)
+    {
+        require(_amount > 0);
+        require(_token != address(0));
+        require(Token(_token).transferFrom(msg.sender, address(this), _amount));
+        contribution[keccak256(_contributor, _token)] += _amount;
+        balances[_token] += _amount;
+        BalanceChanged(_token, balances[_token]);
+    }
+
+    /////
+    // Web3 helpers
+    /**
+     * @notice calcule `_rewardToken` reward of `_destination`
+     * @param _destination Address of beneficiary
+     * @param _rewardToken what token being calculated
+     */
+    function calculeReward(address _destination, address _rewardToken)
         public
         constant
-        returns (address, string, bool, uint)
+        returns (uint256 total)
     {
-        return (controller,
-                data,
-                hasPaidOut,
-                fulfillments.length);
+        total = (balances[_rewardToken] * influence[_destination]) / influenceTotal;
     }
 
-    function getFulfillment(uint _fulfillmentId)
-          public
-          constant
-          returns (address, string, bool)
-      {
-          return (fulfillments[_fulfillmentId].fulfiller,
-                  fulfillments[_fulfillmentId].data,
-                  fulfillments[_fulfillmentId].accepted);
-      }
+    /////
+    // Internal functions
+    /**
+     * @notice Withdraw reward of some token or ether if `_payoutToken` is `address(0)`
+     */
+    function reward(address _destination, address _payoutToken)
+        internal
+    {
+        bytes32 rewardHash = keccak256(_destination, _payoutToken);
+        require(!rewarded[rewardHash]);
+        rewarded[rewardHash] = true; //flag as rewarded
+        uint256 toPay = calculeReward(_destination, _payoutToken);
+        if (_payoutToken == address(0x0)) {
+            _destination.transfer(toPay);
+        } else {
+            require(Token(_payoutToken).transfer(_destination, toPay));
+        }
+    }
+
+    /**
+     * @notice Withdraw refund of some token or ether if `_refundToken` is `address(0)`
+     */
+    function refund(address _from, address _refundToken)
+        internal
+    {
+        bytes32 contributionHash = keccak256(_from, _refundToken);
+        uint amount = contribution[contributionHash];
+        delete contribution[contributionHash]; //removes from storage
+        if (_refundToken == address(0)) { 
+            _from.transfer(amount);
+        } else {
+            require(Token(_refundToken).transfer(_from, amount));
+        }
+    }
+
 }
