@@ -46,7 +46,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert(false, "did not error as was expected");
   });
 
   it("[ETH] verifies that a payout of 0 will fail", async () => {
@@ -64,7 +64,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert(false, "did not error as was expected");
   });
 
   it("[ETH] verifies that simple bounty contribution and activation functions", async () => {
@@ -135,6 +135,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that simple bounty activation with wrong value fails", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -153,6 +154,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that bounty issuance and activation all in one functions", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -199,6 +201,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that bounty issuance and activation with too small a value fails", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -215,6 +218,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that bounty issuance and activation with date before today fails", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -231,6 +235,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that bounty issuance and activation with payout of 0 fails", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -247,6 +252,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that simple bounty contribution with incorrect value fails", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -264,6 +270,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
 
   it("[ETH] verifies that simple bounty contribution with a value of 0 fails", async () => {
@@ -282,6 +289,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
 
   });
   it("[ETH] verifies that activation before the bounty has sufficient funds fails", async () => {
@@ -302,6 +310,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that activation from non-issuer fails", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -321,6 +330,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that contribution fails for dead bounties", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -339,6 +349,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that basic fulfillment acceptance flow works", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -403,6 +414,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
 
   it("[ETH] verifies that changing someone else's fulfillment fails", async () => {
@@ -426,6 +438,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that bounty fulfillment flow works to completion", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -490,6 +503,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that issuer can't fulfill a bounty", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -508,6 +522,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that accepting too many fulfillments isn't allowed", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -539,6 +554,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that accepting an already accepted fulfillment fails", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -567,6 +583,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that issuer can transfer ownership of a draft bounty to a new account", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -634,6 +651,7 @@ contract('StandardBounties', function(accounts) {
     } catch(error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
 
   it("[ETH] verifies that issuer can extend the deadline of an active bounty into a much earlier date", async () => {
@@ -653,6 +671,7 @@ contract('StandardBounties', function(accounts) {
     } catch(error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that I can change the deadline of a draft bounty", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -759,7 +778,7 @@ contract('StandardBounties', function(accounts) {
     } catch(error){
       return utils.ensureException(error);
     }
-
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that I can't change the data of an active bounty", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -778,7 +797,7 @@ contract('StandardBounties', function(accounts) {
     } catch(error){
       return utils.ensureException(error);
     }
-
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that I can't decrease the fulfillment amount of an active bounty", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -797,6 +816,7 @@ contract('StandardBounties', function(accounts) {
     } catch(error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that I can't increase the fulfillment amount of an active bounty", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -816,6 +836,7 @@ contract('StandardBounties', function(accounts) {
     } catch(error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
 
   it("[ETH] verifies that I can't change the arbiter of an active bounty", async () => {
@@ -836,7 +857,7 @@ contract('StandardBounties', function(accounts) {
     } catch(error){
       return utils.ensureException(error);
     }
-
+    assert(false, "did not error as was expected");
   });
 
   it("[ETH] verifies that issuer must redeposit funds after killing a bounty", async () => {
@@ -870,6 +891,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
 
   it("[ETH] verifies that issuer must redeposit sufficient funds to pay a fulfillment after killing a bounty", async () => {
@@ -903,6 +925,7 @@ contract('StandardBounties', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that reactivating a bounty works when the sufficient amount is deposited", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -1064,6 +1087,7 @@ contract('StandardBounties', function(accounts) {
     } catch(error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
   });
   it("[ETH] verifies that increasing the payout with a lower amount fails", async () => {
     let registry = await StandardBounties.new(accounts[0]);
@@ -1086,6 +1110,7 @@ contract('StandardBounties', function(accounts) {
     } catch(error){
       return utils.ensureException(error);
     }
+    assert(false, "did not error as was expected");
 
   });
 
