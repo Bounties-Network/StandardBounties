@@ -49,6 +49,7 @@ A bounty can be used to pay amounts of ETH or a given token, based on the succes
   Once a bounty is `Active`, bounty hunters can submit fulfillments for the various milestones, and the bounty issuer can approve fulfillments to pay out the rewards.
 
   In this state, the various functions which can be called are:
+    - `contribute()` [**ANYONE**]: contributes ETH (or tokens) to the bounty
     - `fulfillBounty()` [**ANYONE BUT ISSUER OR ARBITER**]:
     - `updateFulfillment()` [**ONLY FULFILLER**]
     - `acceptFulfillment()` [**ONLY ISSUER OR ARBITER**]:
