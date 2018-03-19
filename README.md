@@ -44,9 +44,9 @@ A bounty can be used to pay amounts of ETH or a given token, based on the succes
 
   This is only possible if
   - the bounty hasn't expired (isn't past its deadline)
-  - the bounty has sufficient funds to pay out each milestone at least once
+  - the bounty has sufficient funds to pay out at least once
 
-  Once a bounty is `Active`, bounty hunters can submit fulfillments for the various milestones, and the bounty issuer can approve fulfillments to pay out the rewards.
+  Once a bounty is `Active`, bounty hunters can submit fulfillments for it, and the bounty issuer can approve fulfillments to pay out the rewards.
 
   In this state, the various functions which can be called are:
     - `contribute()` [**ANYONE**]: contributes ETH (or tokens) to the bounty
