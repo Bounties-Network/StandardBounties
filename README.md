@@ -62,7 +62,6 @@ A bounty can be used to pay amounts of ETH or a given token, based on the succes
 
   In this state, the only functions which can be called are:
   - `extendDeadline()` [**ONLY ISSUER**]
-  - `contribute()` [**ANYONE**]
   - `activateBounty()` [**ONLY ISSUER**]
 
 
