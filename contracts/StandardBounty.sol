@@ -179,39 +179,17 @@ contract StandardBounty {
       FulfillmentUpdated(_fulfillmentId);
   }
 
-  function calculateFraction(uint _balance, uint _numerator, uint _denomenator)
-      public
-      pure
-      returns (uint newBalanceDiv)
-  {
-    require(_denomenator != 0);
-
-    //first multiplies by the numerator
-    uint newBalanceMult = _balance * _numerator;
-    require(newBalanceMult / _numerator == _balance);
-
-    //secondly divides by the denomenator
-    newBalanceDiv = newBalanceMult / _denomenator;
-    require(newBalanceMult == newBalanceDiv * _denomenator + newBalanceMult % _denomenator);
-  }
-
-  function acceptFulfillment(uint _fulfillmentId, uint _numerator, uint _denomenator, StandardToken[] _payoutTokens)
+  function acceptFulfillment(uint _fulfillmentId, StandardToken[] _payoutTokens, uint[] _tokenAmounts)
       public
       validateFulfillmentArrayIndex(_fulfillmentId)
       onlyController
   {
       hasPaidOut = true;
       for (uint256 i = 0; i < _payoutTokens.length; i++){
-        uint toPay;
         if (_payoutTokens[i] == address(0x0)){
-          toPay = this.balance;
-          toPay = calculateFraction(toPay, _numerator, _denomenator);
-          fulfillments[_fulfillmentId].fulfiller.transfer(toPay);
-
+          fulfillments[_fulfillmentId].fulfiller.transfer(_tokenAmounts[i]);
         } else {
-          toPay = _payoutTokens[i].balanceOf(this);
-          toPay = calculateFraction(toPay, _numerator, _denomenator);
-          require(_payoutTokens[i].transfer(fulfillments[_fulfillmentId].fulfiller, toPay));
+          require(_payoutTokens[i].transfer(fulfillments[_fulfillmentId].fulfiller, _tokenAmounts[i]));
         }
       }
       FulfillmentAccepted(msg.sender, _fulfillmentId);
