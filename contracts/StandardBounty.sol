@@ -26,9 +26,9 @@ contract StandardBounty {
   /*
    * Events
    */
-  event BountyFulfilled(address fulfiller, uint256 _fulfillmentId);
+  event BountyFulfilled(uint256 _fulfillmentId);
   event FulfillmentUpdated(uint _fulfillmentId);
-  event FulfillmentAccepted(address fulfiller, uint256 _fulfillmentId);
+  event FulfillmentAccepted(uint256 _fulfillmentId);
   event BountyDrained(address controller);
   event BountyChanged();
 
@@ -36,7 +36,9 @@ contract StandardBounty {
    * Structs
    */
   struct Fulfillment {
-      address fulfiller;
+      address[] fulfillers;
+      uint[] numerators;
+      uint denomenator;
       string data;
       bool accepted;
   }
@@ -55,11 +57,6 @@ contract StandardBounty {
 
   modifier onlyController() {
       require(msg.sender == controller);
-      _;
-  }
-
-  modifier onlyFulfiller(uint _fulfillmentId) {
-      require(msg.sender == fulfillments[_fulfillmentId].fulfiller);
       _;
   }
 
@@ -97,6 +94,21 @@ contract StandardBounty {
       require(!fulfillments[_fulfillmentId].accepted);
       _;
   }
+
+  modifier sameLength(uint l1, uint l2){
+      require(l1 == l2);
+      _;
+  }
+
+  modifier sumToOne(uint[] _numerators, uint _denomenator){
+      uint sum = 0;
+      for (uint i = 0; i < _numerators.length; i++){
+        sum += _numerators[i];
+      }
+      require(sum == _denomenator);
+      _;
+  }
+
 
   /*
    * Public functions
@@ -159,40 +171,53 @@ contract StandardBounty {
       }
   }
 
-  function fulfillBounty(address _fulfiller, string _data)
+  function fulfillBounty(address[] _fulfillers, uint[] _numerators, uint _denomenator, string _data)
       public
       validateNotTooManyFulfillments
-      notController(_fulfiller)
+      sameLength(_fulfillers.length, _numerators.length)
+      sumToOne(_numerators, _denomenator)
   {
-      fulfillments.push(Fulfillment(_fulfiller, _data, false));
+      fulfillments.push(Fulfillment(_fulfillers, _numerators, _denomenator, _data, false));
 
-      BountyFulfilled(_fulfiller, (fulfillments.length - 1));
+      BountyFulfilled((fulfillments.length - 1));
   }
 
-  function updateFulfillment(uint _fulfillmentId, string _data)
+  function calculateFraction(uint _balance, uint _numerator, uint _denomenator)
       public
-      validateFulfillmentArrayIndex(_fulfillmentId)
-      onlyFulfiller(_fulfillmentId)
-      fulfillmentNotYetAccepted(_fulfillmentId)
+      pure
+      returns (uint newBalanceDiv)
   {
-      fulfillments[_fulfillmentId].data = _data;
-      FulfillmentUpdated(_fulfillmentId);
+    require(_denomenator != 0);
+
+    //first multiplies by the numerator
+    uint newBalanceMult = _balance * _numerator;
+    require(newBalanceMult / _numerator == _balance);
+
+    //secondly divides by the denomenator
+    newBalanceDiv = newBalanceMult / _denomenator;
   }
 
   function acceptFulfillment(uint _fulfillmentId, StandardToken[] _payoutTokens, uint[] _tokenAmounts)
       public
       validateFulfillmentArrayIndex(_fulfillmentId)
+      sameLength(_payoutTokens.length, _tokenAmounts.length)
       onlyController
   {
       hasPaidOut = true;
+      Fulfillment storage fulfillment = fulfillments[_fulfillmentId];
       for (uint256 i = 0; i < _payoutTokens.length; i++){
-        if (_payoutTokens[i] == address(0x0)){
-          fulfillments[_fulfillmentId].fulfiller.transfer(_tokenAmounts[i]);
-        } else {
-          require(_payoutTokens[i].transfer(fulfillments[_fulfillmentId].fulfiller, _tokenAmounts[i]));
+        for (uint256 j = 0; j < fulfillment.fulfillers.length; j++){
+          if (_payoutTokens[i] == address(0)){
+            require(this.balance >= _tokenAmounts[i]);
+            fulfillment.fulfillers[j].transfer(calculateFraction(_tokenAmounts[i], fulfillment.numerators[j], fulfillment.denomenator));
+          } else {
+            require(_payoutTokens[i].balanceOf(this) >= _tokenAmounts[i]);
+            require(_payoutTokens[i].transfer(fulfillment.fulfillers[j], calculateFraction(_tokenAmounts[i], fulfillment.numerators[j], fulfillment.denomenator)));
+          }
         }
       }
-      FulfillmentAccepted(msg.sender, _fulfillmentId);
+
+      FulfillmentAccepted(_fulfillmentId);
   }
 
   function drainBounty(StandardToken[] _payoutTokens)
@@ -260,9 +285,11 @@ contract StandardBounty {
     function getFulfillment(uint _fulfillmentId)
           public
           constant
-          returns (address, string, bool)
+          returns (address[], uint[], uint, string, bool)
       {
-          return (fulfillments[_fulfillmentId].fulfiller,
+          return (fulfillments[_fulfillmentId].fulfillers,
+                  fulfillments[_fulfillmentId].numerators,
+                  fulfillments[_fulfillmentId].denomenator,
                   fulfillments[_fulfillmentId].data,
                   fulfillments[_fulfillmentId].accepted);
       }
