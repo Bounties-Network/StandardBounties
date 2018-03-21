@@ -220,6 +220,29 @@ contract StandardBounty {
       FulfillmentAccepted(_fulfillmentId);
   }
 
+  function acceptAndFulfill(address[] _fulfillers, uint[] _numerators, uint _denomenator, string _data, StandardToken[] _payoutTokens, uint[] _tokenAmounts)
+      public
+      sameLength(_payoutTokens.length, _tokenAmounts.length)
+      onlyController
+  {
+      fulfillBounty(_fulfillers, _numerators, _denomenator, _data);
+      hasPaidOut = true;
+      Fulfillment storage fulfillment = fulfillments[fulfillments.length - 1];
+      for (uint256 i = 0; i < _payoutTokens.length; i++){
+        for (uint256 j = 0; j < fulfillment.fulfillers.length; j++){
+          if (_payoutTokens[i] == address(0)){
+            require(this.balance >= _tokenAmounts[i]);
+            fulfillment.fulfillers[j].transfer(calculateFraction(_tokenAmounts[i], fulfillment.numerators[j], fulfillment.denomenator));
+          } else {
+            require(_payoutTokens[i].balanceOf(this) >= _tokenAmounts[i]);
+            require(_payoutTokens[i].transfer(fulfillment.fulfillers[j], calculateFraction(_tokenAmounts[i], fulfillment.numerators[j], fulfillment.denomenator)));
+          }
+        }
+      }
+
+      FulfillmentAccepted(fulfillments.length - 1);
+  }
+
   function drainBounty(StandardToken[] _payoutTokens)
       public
       onlyController
