@@ -210,7 +210,7 @@ contract StandardBounty {
       FulfillmentAccepted(_fulfillmentId);
   }
 
-  function acceptAndFulfill(address[] _fulfillers, uint[] _numerators, uint _denomenator, string _data, StandardToken[] _payoutTokens, uint[] _tokenAmounts)
+  function fulfillAndAccept(address[] _fulfillers, uint[] _numerators, uint _denomenator, string _data, StandardToken[] _payoutTokens, uint[] _tokenAmounts)
       public
       sameLength(_payoutTokens.length, _tokenAmounts.length)
       onlyController

@@ -867,6 +867,342 @@ contract('StandardBounty', function(accounts) {
 
   });
 
+  it("Verifies that I can fulfill and accept paying out all tokens I have a balance of", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+
+    let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await stdt.approve(stdb.address, 1000);
+
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0], value: 100});
+
+    let balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 100);
+
+    let tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 1000);
+
+    await stdb.fulfillAndAccept([accounts[2]], [1], 1, "data", ["0x0000000000000000000000000000000000000000", stdt.address], [100, 1000]);
+
+    let fulfillment = await stdb.getFulfillment(0);
+
+    assert(fulfillment[3] === "data");
+
+    balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 0);
+
+    tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 0);
+
+  });
+  it("Verifies that I can accept a fulfillment paying out some tokens I have a balance of", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+
+    let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await stdt.approve(stdb.address, 1000);
+
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0], value: 100});
+
+    let balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 100);
+
+    let tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 1000);
+
+    await stdb.fulfillAndAccept([accounts[2]], [1], 1, "data",["0x0000000000000000000000000000000000000000"], [100]);
+
+    let fulfillment = await stdb.getFulfillment(0);
+
+    assert(fulfillment[3] === "data");
+
+    balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 0);
+
+    tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 1000);
+
+
+  });
+
+  it("Verifies that I can fulfill and accept a fulfillment paying out all tokens I have a balance of", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+
+    let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await stdt.approve(stdb.address, 1000);
+
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0], value: 100});
+
+    let balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 100);
+
+    let tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 1000);
+
+    await stdb.fulfillAndAccept([accounts[2]], [1], 1, "data", ["0x0000000000000000000000000000000000000000", stdt.address], [100, 1000]);
+
+    let fulfillment = await stdb.getFulfillment(0);
+
+    assert(fulfillment[3] === "data");
+
+    balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 0);
+
+    tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 0);
+
+
+  });
+
+  it("Verifies that I can fulfill and accept a fulfillment paying out a fraction of the tokens I have a balance of (only denomenator)", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+
+    let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await stdt.approve(stdb.address, 1000);
+
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0], value: 100});
+
+    let balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 100);
+
+    let tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 1000);
+
+    await stdb.fulfillAndAccept([accounts[2]], [1], 1, "data", ["0x0000000000000000000000000000000000000000", stdt.address], [50, 500]);
+
+    let fulfillment = await stdb.getFulfillment(0);
+
+    assert(fulfillment[3] === "data");
+
+    balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 50);
+
+    tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 500);
+
+  });
+
+  it("Verifies that I can't fulfill and accept a fulfillment paying out more tokens than I have a balance of", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+
+    let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await stdt.approve(stdb.address, 1000);
+
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0], value: 100});
+
+    let balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 100);
+
+    let tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 1000);
+
+    try {
+      await stdb.fulfillAndAccept([accounts[2]], [1], 1, "data",["0x0000000000000000000000000000000000000000", stdt.address], [110, 1000]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+
+
+  });
+
+  it("Verifies that I can fulfill and accept a fulfillment paying out a fraction of the tokens I have a balance of", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+
+    let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await stdt.approve(stdb.address, 1000);
+
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0], value: 100});
+
+    let balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 100);
+
+    let tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 1000);
+
+    await stdb.fulfillAndAccept([accounts[2]], [1], 1, "data",["0x0000000000000000000000000000000000000000", stdt.address], [66, 666]);
+
+    let fulfillment = await stdb.getFulfillment(0);
+
+    assert(fulfillment[3] === "data");
+
+    balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 34);
+
+    tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 334);
+
+  });
+
+  it("Verifies that I can't fulfill and accept a fulfillment paying out in tokens I don't have a balance of", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+
+    let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+    let stdt2 = await HumanStandardToken.new(1000000000, "Bounty Token2", 18, "BOUNT2");
+
+    await stdt.approve(stdb.address, 1000);
+
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0], value: 100});
+
+    let balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 100);
+
+    let tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 1000);
+
+    let tokenBalance2 = await stdt2.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance2, 10) === 0);
+
+    try {
+      await stdb.fulfillAndAccept([accounts[2]], [1], 1, "data", ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address], [100, 1000, 1000]);
+    } catch (error){
+      return utils.ensureException(error);
+
+    }
+
+  });
+
+  it("Verifies that I can fulfill and accept several fulfillments paying equal fractions", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+
+    let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await stdt.approve(stdb.address, 1000);
+
+    await stdb.refundableContribute([1000, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0], value: 1000});
+
+    let balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 1000);
+
+    let tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 1000);
+
+    await stdb.fulfillAndAccept([accounts[2]], [1], 1, "data1", ["0x0000000000000000000000000000000000000000", stdt.address], [250, 250]);
+
+    balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 750);
+
+    tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 750);
+
+    await stdb.fulfillAndAccept([accounts[3]], [1], 1, "data2", ["0x0000000000000000000000000000000000000000", stdt.address], [250, 250]);
+
+
+    balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 500);
+
+    tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 500);
+
+    await stdb.fulfillAndAccept([accounts[4]], [1], 1, "data3", ["0x0000000000000000000000000000000000000000", stdt.address], [250, 250]);
+
+    balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 250);
+
+    tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 250);
+
+    await stdb.fulfillAndAccept([accounts[5]], [1], 1, "data4", ["0x0000000000000000000000000000000000000000", stdt.address], [250, 250]);
+
+    balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 0);
+
+    tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 0);
+
+  });
+
+
+  it("Verifies that I can't fulfill and accept if I'm not an issuer", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+
+    let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await stdt.approve(stdb.address, 1000);
+
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0], value: 100});
+
+    let balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 100);
+
+    let tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 1000);
+
+    try {
+      await stdb.fulfillAndAccept([accounts[2]], [1], 1, "data", ["0x0000000000000000000000000000000000000000", stdt.address], [100,1000], {from: accounts[3]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+
+  });
+
   it("Verifies that I can't drain someone else's bounty", async () => {
 
     let stdb = await StandardBounty.new();
