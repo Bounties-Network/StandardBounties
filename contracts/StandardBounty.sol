@@ -26,11 +26,17 @@ contract StandardBounty {
   /*
    * Events
    */
-  event BountyFulfilled(uint256 _fulfillmentId);
-  event FulfillmentUpdated(uint _fulfillmentId);
-  event FulfillmentAccepted(uint256 _fulfillmentId);
-  event BountyDrained(address controller);
-  event BountyChanged();
+
+  event BountyInitialized(address _creator, address _controller, string _data);
+  event ContributionAdded(address _contributor, uint _contributionId);
+  event ContributionRefunded(uint _contributionId);
+  event BountyFulfilled(uint256 _fulfillmentId, address _submitter);
+  event FulfillmentAccepted(uint256 _fulfillmentId, address _controller, StandardToken[] _payoutTokens, uint[] _tokenAmounts);
+  event BountyDrained(address _controller, StandardToken[] _payoutTokens);
+  event BountyChanged(address _oldController, address _newController, string _newData);
+  event BountyControllerChanged(address _oldController, address _newController);
+  event BountyDataChanged(address _controller, string _newData);
+  event MasterCopyChanged(address _controller, address _newMasterCopy);
 
   /*
    * Structs
@@ -139,6 +145,7 @@ contract StandardBounty {
     controller = _controller;
     data = _data;
 
+    BountyInitialized(msg.sender, _controller, _data);
   }
 
   /*
@@ -172,6 +179,7 @@ contract StandardBounty {
       // has been performed
       contributions[contributionId].hasContributed[_tokens[i]] = true;
     }
+    ContributionAdded(msg.sender, contributions.length - 1);
   }
 
   /*
@@ -201,6 +209,7 @@ contract StandardBounty {
                                                   contribution.amounts[i]));
       }
     }
+    ContributionRefunded(_contributionId);
   }
 
   /*
@@ -224,7 +233,7 @@ contract StandardBounty {
       fulfillments.push(
         Fulfillment(_fulfillers, _numerators, _denomenator, _data, false));
 
-      BountyFulfilled((fulfillments.length - 1));
+      BountyFulfilled((fulfillments.length - 1), msg.sender);
   }
 
   /*
@@ -298,7 +307,7 @@ contract StandardBounty {
         }
       }
 
-      FulfillmentAccepted(_fulfillmentId);
+      FulfillmentAccepted(_fulfillmentId, msg.sender, _payoutTokens, _tokenAmounts);
   }
 
   /*
@@ -351,7 +360,7 @@ contract StandardBounty {
         require(_payoutTokens[i].transfer(controller, toPay));
       }
     }
-      BountyDrained(msg.sender);
+      BountyDrained(msg.sender, _payoutTokens);
   }
 
   /*
@@ -366,7 +375,7 @@ contract StandardBounty {
   {
       controller = _controller;
       data = _data;
-      BountyChanged();
+      BountyChanged(msg.sender, _controller, _data);
   }
 
   /*
@@ -379,7 +388,7 @@ contract StandardBounty {
       onlyController
   {
       controller = _controller;
-      BountyChanged();
+      BountyControllerChanged(msg.sender, _controller);
   }
 
   /*
@@ -392,7 +401,7 @@ contract StandardBounty {
       onlyController
   {
       data = _data;
-      BountyChanged();
+      BountyDataChanged(msg.sender, _data);
   }
 
   /*
@@ -409,6 +418,7 @@ contract StandardBounty {
       //this would freeze the bounty and make it unusable
 
       masterCopy = _masterCopy;
+      MasterCopyChanged(msg.sender, _masterCopy);
   }
 
   /*
