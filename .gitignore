@@ -2,5 +2,4 @@
 secrets.json
 /node_modules/
 coverage.json
-/coverage/
 build/

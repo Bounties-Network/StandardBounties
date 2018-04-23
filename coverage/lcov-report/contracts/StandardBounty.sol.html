@@ -1,0 +1,992 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/StandardBounty.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> StandardBounty.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>68/68</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">81.67% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>49/60</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>23/23</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>83/83</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">69×</span>
+<span class="cline-any cline-yes">57×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">26×</span>
+<span class="cline-any cline-yes">26×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">54×</span>
+<span class="cline-any cline-yes">54×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">104×</span>
+<span class="cline-any cline-yes">104×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">54×</span>
+<span class="cline-any cline-yes">54×</span>
+<span class="cline-any cline-yes">54×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">54×</span>
+<span class="cline-any cline-yes">54×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">199×</span>
+<span class="cline-any cline-yes">197×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">195×</span>
+<span class="cline-any cline-yes">195×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">72×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">70×</span>
+<span class="cline-any cline-yes">70×</span>
+<span class="cline-any cline-yes">70×</span>
+<span class="cline-any cline-yes">118×</span>
+<span class="cline-any cline-yes">114×</span>
+<span class="cline-any cline-yes">114×</span>
+<span class="cline-any cline-yes">62×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">52×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">54×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">54×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">78×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">78×</span>
+<span class="cline-any cline-yes">78×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">78×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-yes">44×</span>
+<span class="cline-any cline-yes">44×</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-yes">42×</span>
+<span class="cline-any cline-yes">42×</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">28×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity ^0.4.18;
+import "./inherited/StandardToken.sol";
+&nbsp;
+/// @title StandardBounties
+/// @dev Used to pay out individuals or groups for task fulfillment
+&nbsp;
+contract StandardBounty {
+&nbsp;
+  /*
+   * Storage
+   */
+&nbsp;
+  address public masterCopy;
+&nbsp;
+  address public controller;
+  string public data;
+&nbsp;
+  bool public hasPaidOut;
+&nbsp;
+  Fulfillment[] public fulfillments;
+&nbsp;
+  Contribution[] public contributions;
+&nbsp;
+&nbsp;
+&nbsp;
+  /*
+   * Events
+   */
+  event BountyFulfilled(uint256 _fulfillmentId);
+  event FulfillmentUpdated(uint _fulfillmentId);
+  event FulfillmentAccepted(uint256 _fulfillmentId);
+  event BountyDrained(address controller);
+  event BountyChanged();
+&nbsp;
+  /*
+   * Structs
+   */
+  struct Fulfillment {
+      address[] fulfillers;
+      uint[] numerators;
+      uint denomenator;
+      string data;
+      bool accepted;
+  }
+&nbsp;
+  struct Contribution {
+      address contributor;
+      uint[] amounts;
+      StandardToken[] tokens;
+      bool refunded;
+      mapping (address =&gt; bool) hasContributed;
+  }
+&nbsp;
+  /*
+   * Modifiers
+   */
+&nbsp;
+  modifier onlyController() {
+      require(msg.sender == controller);
+      _;
+  }
+&nbsp;
+  modifier validateFulfillmentArrayIndex(uint _index) {
+      <span class="missing-if-branch" title="else path not taken" >E</span>require(_index &lt; fulfillments.length);
+      _;
+  }
+&nbsp;
+  modifier validateNotTooManyFulfillments(){
+    <span class="missing-if-branch" title="else path not taken" >E</span>require((fulfillments.length + 1) &gt; fulfillments.length);
+    _;
+  }
+&nbsp;
+  modifier hasNotPaid(){
+      require(!hasPaidOut);
+      _;
+  }
+&nbsp;
+  modifier onlyContributor(uint _contributionId){
+      require(contributions[_contributionId].contributor == msg.sender);
+      _;
+  }
+&nbsp;
+  modifier notYetRefunded(uint _contributionId){
+      require(!contributions[_contributionId].refunded);
+      _;
+  }
+&nbsp;
+  modifier sameLength(uint l1, uint l2){
+      <span class="missing-if-branch" title="else path not taken" >E</span>require(l1 == l2);
+      _;
+  }
+&nbsp;
+  modifier sumToOne(uint[] _numerators, uint _denomenator){
+      uint sum = 0;
+      for (uint i = 0; i &lt; _numerators.length; i++){
+        sum += _numerators[i];
+      }
+      <span class="missing-if-branch" title="else path not taken" >E</span>require(sum == _denomenator);
+      _;
+  }
+&nbsp;
+&nbsp;
+  /*
+   * Public functions
+   */
+&nbsp;
+  function ()
+  public
+  payable
+  {
+&nbsp;
+  }
+&nbsp;
+  function initializeBounty(
+      address _controller,
+      string _data)
+      public
+  {
+    require(controller == address(0));
+    require(_controller != address(0));
+    // an controller of a bounty is only 0x0 when it is uninitialized,
+    // so this check prevents initialization from being called multiple times
+&nbsp;
+    controller = _controller;
+    data = _data;
+&nbsp;
+  }
+&nbsp;
+  function refundableContribute(uint[] _amounts, StandardToken[] _tokens)
+  public
+  payable
+  {
+      require(_amounts.length == _tokens.length);
+&nbsp;
+      contributions.push(Contribution(msg.sender, _amounts, _tokens, false));
+      uint contributionId = contributions.length - 1;
+      for (uint i = 0; i &lt; _amounts.length; i++){
+          require(!contributions[contributionId].hasContributed[_tokens[i]]);
+          contributions[contributionId].hasContributed[_tokens[i]] = true;
+          if (_tokens[i] == address(0)){
+              require(msg.value == _amounts[i]);
+          } else {
+              require(_tokens[i].transferFrom(msg.sender, this, _amounts[i]));
+          }
+      }
+  }
+&nbsp;
+  function refundContribution(uint _contributionId)
+  public
+  hasNotPaid
+  onlyContributor(_contributionId)
+  notYetRefunded(_contributionId)
+  {
+      contributions[_contributionId].refunded = true;
+      for (uint i = 0; i &lt; contributions[_contributionId].amounts.length; i++){
+          if (contributions[_contributionId].tokens[i] == address(0)){
+              contributions[_contributionId].contributor.transfer(contributions[_contributionId].amounts[i]);
+          } else {
+              <span class="missing-if-branch" title="else path not taken" >E</span>require(contributions[_contributionId].tokens[i].transfer(contributions[_contributionId].contributor, contributions[_contributionId].amounts[i]));
+          }
+      }
+  }
+&nbsp;
+  function fulfillBounty(address[] _fulfillers, uint[] _numerators, uint _denomenator, string _data)
+      public
+      validateNotTooManyFulfillments
+      sameLength(_fulfillers.length, _numerators.length)
+      sumToOne(_numerators, _denomenator)
+  {
+      fulfillments.push(Fulfillment(_fulfillers, _numerators, _denomenator, _data, false));
+&nbsp;
+      BountyFulfilled((fulfillments.length - 1));
+  }
+&nbsp;
+  function calculateFraction(uint _balance, uint _numerator, uint _denomenator)
+      public
+      pure
+      returns (uint newBalanceDiv)
+  {
+    <span class="missing-if-branch" title="else path not taken" >E</span>require(_denomenator != 0);
+&nbsp;
+    //first multiplies by the numerator
+    uint newBalanceMult = _balance * _numerator;
+    <span class="missing-if-branch" title="else path not taken" >E</span>require(newBalanceMult / _numerator == _balance);
+&nbsp;
+    //secondly divides by the denomenator
+    newBalanceDiv = newBalanceMult / _denomenator;
+  }
+&nbsp;
+  function acceptFulfillment(uint _fulfillmentId, StandardToken[] _payoutTokens, uint[] _tokenAmounts)
+      public
+      validateFulfillmentArrayIndex(_fulfillmentId)
+      sameLength(_payoutTokens.length, _tokenAmounts.length)
+      onlyController
+  {
+      hasPaidOut = true;
+      Fulfillment storage fulfillment = fulfillments[_fulfillmentId];
+      for (uint256 i = 0; i &lt; _payoutTokens.length; i++){
+        for (uint256 j = 0; j &lt; fulfillment.fulfillers.length; j++){
+          if (_payoutTokens[i] == address(0)){
+            require(this.balance &gt;= _tokenAmounts[i]);
+            fulfillment.fulfillers[j].transfer(calculateFraction(_tokenAmounts[i], fulfillment.numerators[j], fulfillment.denomenator));
+          } else {
+            require(_payoutTokens[i].balanceOf(this) &gt;= _tokenAmounts[i]);
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(_payoutTokens[i].transfer(fulfillment.fulfillers[j], calculateFraction(_tokenAmounts[i], fulfillment.numerators[j], fulfillment.denomenator)));
+          }
+        }
+      }
+&nbsp;
+      FulfillmentAccepted(_fulfillmentId);
+  }
+&nbsp;
+  function fulfillAndAccept(address[] _fulfillers, uint[] _numerators, uint _denomenator, string _data, StandardToken[] _payoutTokens, uint[] _tokenAmounts)
+      public
+      sameLength(_payoutTokens.length, _tokenAmounts.length)
+      onlyController
+  {
+      fulfillBounty(_fulfillers, _numerators, _denomenator, _data);
+      hasPaidOut = true;
+      Fulfillment storage fulfillment = fulfillments[fulfillments.length - 1];
+      for (uint256 i = 0; i &lt; _payoutTokens.length; i++){
+        for (uint256 j = 0; j &lt; fulfillment.fulfillers.length; j++){
+          if (_payoutTokens[i] == address(0)){
+            require(this.balance &gt;= _tokenAmounts[i]);
+            fulfillment.fulfillers[j].transfer(calculateFraction(_tokenAmounts[i], fulfillment.numerators[j], fulfillment.denomenator));
+          } else {
+            require(_payoutTokens[i].balanceOf(this) &gt;= _tokenAmounts[i]);
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(_payoutTokens[i].transfer(fulfillment.fulfillers[j], calculateFraction(_tokenAmounts[i], fulfillment.numerators[j], fulfillment.denomenator)));
+          }
+        }
+      }
+&nbsp;
+      FulfillmentAccepted(fulfillments.length - 1);
+  }
+&nbsp;
+  function drainBounty(StandardToken[] _payoutTokens)
+      public
+      onlyController
+  {
+    for (uint256 i = 0; i &lt; _payoutTokens.length; i++){
+      uint toPay;
+      if (_payoutTokens[i] == address(0x0)){
+        toPay = this.balance;
+        controller.transfer(toPay);
+&nbsp;
+      } else {
+        toPay = _payoutTokens[i].balanceOf(this);
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(_payoutTokens[i].transfer(controller, toPay));
+      }
+    }
+      BountyDrained(msg.sender);
+  }
+&nbsp;
+  function changeBounty(address _controller, string _data)
+      public
+      onlyController
+  {
+      controller = _controller;
+      data = _data;
+      BountyChanged();
+  }
+&nbsp;
+  function changeController(address _controller)
+      public
+      onlyController
+  {
+      controller = _controller;
+      BountyChanged();
+  }
+&nbsp;
+  function changeData(string _data)
+      public
+      onlyController
+  {
+      data = _data;
+      BountyChanged();
+  }
+&nbsp;
+  function changeMasterCopy(StandardBounty _masterCopy)
+        public
+        onlyController
+    {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(address(_masterCopy) != 0);
+        masterCopy = _masterCopy;
+    }
+&nbsp;
+  function getBounty()
+        public
+        constant
+        returns (address, string, bool, uint)
+    {
+        return (controller,
+                data,
+                hasPaidOut,
+                fulfillments.length);
+    }
+&nbsp;
+    function getFulfillment(uint _fulfillmentId)
+          public
+          constant
+          returns (address[], uint[], uint, string, bool)
+      {
+          return (fulfillments[_fulfillmentId].fulfillers,
+                  fulfillments[_fulfillmentId].numerators,
+                  fulfillments[_fulfillmentId].denomenator,
+                  fulfillments[_fulfillmentId].data,
+                  fulfillments[_fulfillmentId].accepted);
+      }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Apr 23 2018 15:58:51 GMT-0400 (EDT)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>
