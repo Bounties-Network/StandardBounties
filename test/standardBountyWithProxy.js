@@ -481,9 +481,9 @@ contract('StandardBountyProxy', function(accounts) {
 
     assert(parseInt(balance, 10) === 100);
 
-    await newBounty.fulfillBounty(accounts[2], "data");
+    await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
-    await newBounty.acceptFulfillment(0, 1, 1, ["0x0000000000000000000000000000000000000000"]);
+    await newBounty.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000"], [100]);
 
     balance = await web3.eth.getBalance(newBounty.address);
 
@@ -513,7 +513,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     assert(parseInt(balance, 10) === 100);
 
-    await newBounty.fulfillBounty(accounts[2], "data");
+    await stdb.fulfillBounty([accounts[2]], [1], 1, "data");
 
   });
 
@@ -534,137 +534,11 @@ contract('StandardBountyProxy', function(accounts) {
     assert(parseInt(balance, 10) === 100);
 
     try {
-      await newBounty.fulfillBounty(accounts[0], "data");
+      await newBounty.fulfillBounty([accounts[0]], [1], 1, "data");
 
     } catch (error){
       return utils.ensureException(error);
     }
-
-  });
-
-  it("Verifies that I can update my fulfillment", async () => {
-
-    let stdb = await StandardBounty.new();
-
-    let stdbProxy = await Proxy.new(stdb.address);
-
-    let newBounty = StandardBounty.at(stdbProxy.address);
-
-    await newBounty.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
-
-    await newBounty.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
-
-    let balance = await web3.eth.getBalance(newBounty.address);
-
-    assert(parseInt(balance, 10) === 100);
-
-    await newBounty.fulfillBounty(accounts[2], "data");
-
-    let fulfillment = await newBounty.getFulfillment(0);
-
-    assert(fulfillment[1] === "data");
-
-    await newBounty.updateFulfillment(0, "data2", {from: accounts[2]});
-
-    fulfillment = await newBounty.getFulfillment(0);
-
-    assert(fulfillment[1] === "data2");
-
-  });
-
-  it("Verifies that I can't update someone else's fulfillment", async () => {
-
-    let stdb = await StandardBounty.new();
-
-    let stdbProxy = await Proxy.new(stdb.address);
-
-    let newBounty = StandardBounty.at(stdbProxy.address);
-
-    await newBounty.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
-
-    await newBounty.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
-
-    let balance = await web3.eth.getBalance(newBounty.address);
-
-    assert(parseInt(balance, 10) === 100);
-
-    await newBounty.fulfillBounty(accounts[2], "data");
-
-    let fulfillment = await newBounty.getFulfillment(0);
-
-    assert(fulfillment[1] === "data");
-
-    try {
-      await newBounty.updateFulfillment(0, "data2", {from: accounts[3]});
-
-    } catch (error){
-      return utils.ensureException(error);
-    }
-  });
-
-  it("Verifies that I can't update an out-of-bounds fulfillment", async () => {
-
-    let stdb = await StandardBounty.new();
-
-    let stdbProxy = await Proxy.new(stdb.address);
-
-    let newBounty = StandardBounty.at(stdbProxy.address);
-
-    await newBounty.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
-
-    await newBounty.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
-
-    let balance = await web3.eth.getBalance(newBounty.address);
-
-    assert(parseInt(balance, 10) === 100);
-
-    await newBounty.fulfillBounty(accounts[2], "data");
-
-    let fulfillment = await newBounty.getFulfillment(0);
-
-    assert(fulfillment[1] === "data");
-
-    try {
-      await newBounty.updateFulfillment(1, "data2", {from: accounts[2]});
-
-    } catch (error){
-      return utils.ensureException(error);
-    }
-
-  });
-
-  it("Verifies that I can't update a fulfillment that has paid out", async () => {
-
-    let stdb = await StandardBounty.new();
-
-    let stdbProxy = await Proxy.new(stdb.address);
-
-    let newBounty = StandardBounty.at(stdbProxy.address);
-
-    await newBounty.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
-
-    await newBounty.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
-
-    let balance = await web3.eth.getBalance(newBounty.address);
-
-    assert(parseInt(balance, 10) === 100);
-
-    await newBounty.fulfillBounty(accounts[2], "data");
-
-    let fulfillment = await newBounty.getFulfillment(0);
-
-    assert(fulfillment[1] === "data");
-
-    await newBounty.acceptFulfillment(0, 1, 1, ["0x0000000000000000000000000000000000000000"]);
-
-
-    try {
-      await newBounty.updateFulfillment(0, "data2", {from: accounts[2]});
-
-    } catch (error){
-      return utils.ensureException(error);
-    }
-
 
   });
 
@@ -692,13 +566,13 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 1000);
 
-    await newBounty.fulfillBounty(accounts[2], "data");
+    await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await newBounty.getFulfillment(0);
 
-    assert(fulfillment[1] === "data");
+    assert(fulfillment[3] === "data");
 
-    await newBounty.acceptFulfillment(0, 1, 1, ["0x0000000000000000000000000000000000000000"]);
+    await newBounty.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000"], [100]);
 
     balance = await web3.eth.getBalance(newBounty.address);
 
@@ -707,8 +581,6 @@ contract('StandardBountyProxy', function(accounts) {
     tokenBalance = await stdt.balanceOf(newBounty.address);
 
     (parseInt(tokenBalance, 10) === 1000);
-
-
   });
 
   it("Verifies that I can accept a fulfillment paying out all tokens I have a balance of", async () => {
@@ -735,13 +607,13 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 1000);
 
-    await newBounty.fulfillBounty(accounts[2], "data");
+    await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await newBounty.getFulfillment(0);
 
-    assert(fulfillment[1] === "data");
+    assert(fulfillment[3] === "data");
 
-    await newBounty.acceptFulfillment(0, 1, 1, ["0x0000000000000000000000000000000000000000", stdt.address]);
+    await newBounty.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [100, 1000]);
 
     balance = await web3.eth.getBalance(newBounty.address);
 
@@ -778,13 +650,13 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 1000);
 
-    await newBounty.fulfillBounty(accounts[2], "data");
+    await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await newBounty.getFulfillment(0);
 
-    assert(fulfillment[1] === "data");
+    assert(fulfillment[3] === "data");
 
-    await newBounty.acceptFulfillment(0, 1, 2, ["0x0000000000000000000000000000000000000000", stdt.address]);
+    await newBounty.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [50, 500]);
 
     balance = await web3.eth.getBalance(newBounty.address);
 
@@ -820,14 +692,14 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 1000);
 
-    await newBounty.fulfillBounty(accounts[2], "data");
+    await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await newBounty.getFulfillment(0);
 
-    assert(fulfillment[1] === "data");
+    assert(fulfillment[3] === "data");
 
     try {
-      await newBounty.acceptFulfillment(0, 2, 1, ["0x0000000000000000000000000000000000000000", stdt.address]);
+      await newBounty.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [200, 2000]);
     } catch (error){
       return utils.ensureException(error);
     }
@@ -859,13 +731,13 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 1000);
 
-    await newBounty.fulfillBounty(accounts[2], "data");
+    await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await newBounty.getFulfillment(0);
 
-    assert(fulfillment[1] === "data");
+    assert(fulfillment[3] === "data");
 
-    await newBounty.acceptFulfillment(0, 2, 3, ["0x0000000000000000000000000000000000000000", stdt.address]);
+    await newBounty.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [66, 666]);
 
     balance = await web3.eth.getBalance(newBounty.address);
 
@@ -902,14 +774,18 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 1000);
 
-    await newBounty.fulfillBounty(accounts[2], "data");
+    let tokenBalance2 = await stdt2.balanceOf(newBounty.address);
+
+    (parseInt(tokenBalance2, 10) === 0);
+
+    await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await newBounty.getFulfillment(0);
 
-    assert(fulfillment[1] === "data");
+    assert(fulfillment[3] === "data");
 
     try {
-      await newBounty.acceptFulfillment(0, 1, 1, ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address]);
+      await newBounty.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address], [100, 1000, 1000]);
     } catch (error){
       return utils.ensureException(error);
 
@@ -941,12 +817,12 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 1000);
 
-    await newBounty.fulfillBounty(accounts[2], "data1");
-    await newBounty.fulfillBounty(accounts[3], "data2");
-    await newBounty.fulfillBounty(accounts[4], "data3");
-    await newBounty.fulfillBounty(accounts[5], "data4");
+    await newBounty.fulfillBounty([accounts[2]], [1], 1, "data1");
+    await newBounty.fulfillBounty([accounts[3]], [1], 1, "data2");
+    await newBounty.fulfillBounty([accounts[4]], [1], 1, "data3");
+    await newBounty.fulfillBounty([accounts[5]], [1], 1, "data4");
 
-    await newBounty.acceptFulfillment(0, 1, 4, ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0]});
+    await newBounty.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [250, 250], {from: accounts[0]});
 
     balance = await web3.eth.getBalance(newBounty.address);
 
@@ -956,7 +832,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 750);
 
-    await newBounty.acceptFulfillment(1, 1, 3, ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0]});
+    await newBounty.acceptFulfillment(1, ["0x0000000000000000000000000000000000000000", stdt.address], [250, 250], {from: accounts[0]});
 
     balance = await web3.eth.getBalance(newBounty.address);
 
@@ -966,7 +842,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 500);
 
-    await newBounty.acceptFulfillment(2, 1, 2, ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0]});
+    await newBounty.acceptFulfillment(2, ["0x0000000000000000000000000000000000000000", stdt.address], [250, 250], {from: accounts[0]});
 
     balance = await web3.eth.getBalance(newBounty.address);
 
@@ -976,7 +852,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 250);
 
-    await newBounty.acceptFulfillment(3, 1, 1, ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0]});
+    await newBounty.acceptFulfillment(3,["0x0000000000000000000000000000000000000000", stdt.address], [250, 250], {from: accounts[0]});
 
     balance = await web3.eth.getBalance(newBounty.address);
 
@@ -1013,14 +889,14 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 1000);
 
-    await newBounty.fulfillBounty(accounts[2], "data");
+    await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await newBounty.getFulfillment(0);
 
-    assert(fulfillment[1] === "data");
+    assert(fulfillment[3] === "data");
 
     try {
-      await newBounty.acceptFulfillment(0, 1, 1, ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[3]});
+      await newBounty.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [100, 1000], {from: accounts[3]});
     } catch (error){
       return utils.ensureException(error);
     }
@@ -1051,11 +927,11 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 1000);
 
-    await newBounty.fulfillBounty(accounts[2], "data");
+    await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await newBounty.getFulfillment(0);
 
-    assert(fulfillment[1] === "data");
+    assert(fulfillment[3] === "data");
 
     await newBounty.drainBounty(["0x0000000000000000000000000000000000000000", stdt.address]);
 
@@ -1093,13 +969,13 @@ contract('StandardBountyProxy', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 1000);
 
-    await newBounty.fulfillBounty(accounts[2], "data");
+    await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await newBounty.getFulfillment(0);
 
-    assert(fulfillment[1] === "data");
+    assert(fulfillment[3] === "data");
 
-    await newBounty.acceptFulfillment(0, 1, 2, ["0x0000000000000000000000000000000000000000", stdt.address]);
+    await newBounty.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [50, 500],);
 
     balance = await web3.eth.getBalance(newBounty.address);
 

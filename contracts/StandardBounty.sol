@@ -70,11 +70,6 @@ contract StandardBounty {
     _;
   }
 
-  modifier notController(address _fulfiller) {
-      require(_fulfiller != controller);
-      _;
-  }
-
   modifier hasNotPaid(){
       require(!hasPaidOut);
       _;
@@ -87,11 +82,6 @@ contract StandardBounty {
 
   modifier notYetRefunded(uint _contributionId){
       require(!contributions[_contributionId].refunded);
-      _;
-  }
-
-  modifier fulfillmentNotYetAccepted(uint _fulfillmentId){
-      require(!fulfillments[_fulfillmentId].accepted);
       _;
   }
 
