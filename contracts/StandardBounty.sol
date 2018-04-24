@@ -454,4 +454,19 @@ contract StandardBounty {
               fulfillments[_fulfillmentId].data,
               fulfillments[_fulfillmentId].accepted);
   }
+
+  /*
+    @dev a function to return all data associated with a particular contribution
+    @param _contributionId the ID of the fulfillment in question
+    */
+  function getContribution(uint _contributionId)
+      public
+      constant
+      returns (address, uint[], StandardToken[], bool)
+  {
+      return (contributions[_contributionId].contributor,
+              contributions[_contributionId].amounts,
+              contributions[_contributionId].tokens,
+              contributions[_contributionId].refunded);
+  }
 }
