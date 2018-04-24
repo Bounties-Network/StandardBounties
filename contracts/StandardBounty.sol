@@ -101,11 +101,12 @@ contract StandardBounty {
       _;
   }
 
-  modifier sumToOne(uint[] _numerators, uint _denomenator){
+  modifier sumToOneAndNoneZero(uint[] _numerators, uint _denomenator){
     // to determine whether the fractions sum to 1, we will sum the numerators
     // and require that this sum equals the denomenator
       uint sum = 0;
       for (uint i = 0; i < _numerators.length; i++){
+        require(_numerators[i] > 0);
         sum += _numerators[i];
       }
       require(sum == _denomenator);
@@ -228,7 +229,7 @@ contract StandardBounty {
       public
       validateNotTooManyFulfillments
       sameLength(_fulfillers.length, _numerators.length)
-      sumToOne(_numerators, _denomenator)
+      sumToOneAndNoneZero(_numerators, _denomenator)
   {
       fulfillments.push(
         Fulfillment(_fulfillers, _numerators, _denomenator, _data, false));
@@ -248,6 +249,7 @@ contract StandardBounty {
       pure
       returns (uint newBalanceDiv)
   {
+    require(_numerator != 0);
     require(_denomenator != 0);
 
     //first multiplies by the numerator (to minimize possible rounding error)
