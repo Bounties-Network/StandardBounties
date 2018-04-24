@@ -170,6 +170,7 @@ contract StandardBounty {
     for (uint i = 0; i < _amounts.length; i++){
       // contributions cannot contain multiple transactions in the same token
       require(!contributions[contributionId].hasContributed[_tokens[i]]);
+      require(_amounts[i] > 0);
       if (_tokens[i] == address(0)){
           require(msg.value == _amounts[i]);
       } else {
