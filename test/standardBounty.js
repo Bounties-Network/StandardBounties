@@ -17,14 +17,13 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let bounty = await stdb.getBounty();
 
     assert(bounty[0] === accounts[0]);
-    assert(bounty[1] === "0xdeadbeef");
-    assert(bounty[2] === false);
-    assert(parseInt(bounty[3], 10) === 0);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
 
 
   });
@@ -34,7 +33,7 @@ contract('StandardBounty', function(accounts) {
     let stdb = await StandardBounty.new();
 
     try {
-      await stdb.initializeBounty("0x0000000000000000000000000000000000000000", "0xdeadbeef", {from: accounts[0]});
+      await stdb.initializeBounty("0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     } catch (error){
       return utils.ensureException(error);
@@ -46,17 +45,16 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let bounty = await stdb.getBounty();
 
     assert(bounty[0] === accounts[0]);
-    assert(bounty[1] === "0xdeadbeef");
-    assert(bounty[2] === false);
-    assert(parseInt(bounty[3], 10) === 0);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
 
     try {
-      await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+      await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     } catch (error){
       return utils.ensureException(error);
@@ -68,7 +66,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     await web3.eth.sendTransaction({from: accounts[0], to: stdb.address, value: 100});
 
@@ -82,7 +80,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT", {from: accounts[0]});
 
@@ -99,7 +97,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     await web3.eth.sendTransaction({from: accounts[0], to: stdb.address, value: 100});
 
@@ -122,7 +120,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[1], value: 100});
 
@@ -136,7 +134,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT", {from: accounts[0]});
 
@@ -154,7 +152,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -177,7 +175,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -196,7 +194,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     try {
       await stdb.refundableContribute([10000], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
@@ -211,7 +209,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -230,7 +228,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -249,7 +247,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     try {
       await stdb.refundableContribute([1000, 1000], ["0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 1000});
@@ -264,7 +262,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
 
@@ -285,7 +283,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -309,7 +307,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -342,7 +340,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
 
@@ -368,7 +366,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
 
@@ -389,7 +387,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
 
@@ -417,7 +415,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
 
@@ -433,7 +431,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
 
@@ -454,7 +452,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -473,8 +471,6 @@ contract('StandardBounty', function(accounts) {
     await stdb.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await stdb.getFulfillment(0);
-
-    assert(fulfillment[3] === "data");
 
     await stdb.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000"], [100]);
 
@@ -493,7 +489,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -512,8 +508,6 @@ contract('StandardBounty', function(accounts) {
     await stdb.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await stdb.getFulfillment(0);
-
-    assert(fulfillment[3] === "data");
 
     await stdb.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [100, 1000]);
 
@@ -532,7 +526,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -551,8 +545,6 @@ contract('StandardBounty', function(accounts) {
     await stdb.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await stdb.getFulfillment(0);
-
-    assert(fulfillment[3] === "data");
 
     await stdb.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [50, 500]);
 
@@ -570,7 +562,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -589,8 +581,6 @@ contract('StandardBounty', function(accounts) {
     await stdb.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await stdb.getFulfillment(0);
-
-    assert(fulfillment[3] === "data");
 
     try {
       await stdb.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [110, 1000]);
@@ -605,7 +595,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -624,8 +614,6 @@ contract('StandardBounty', function(accounts) {
     await stdb.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await stdb.getFulfillment(0);
-
-    assert(fulfillment[3] === "data");
 
     await stdb.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [66, 666]);
 
@@ -643,7 +631,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
     let stdt2 = await HumanStandardToken.new(1000000000, "Bounty Token2", 18, "BOUNT2");
@@ -668,8 +656,6 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdb.getFulfillment(0);
 
-    assert(fulfillment[3] === "data");
-
     try {
       await stdb.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address], [100, 1000, 1000]);
     } catch (error){
@@ -683,7 +669,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -751,7 +737,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -770,8 +756,6 @@ contract('StandardBounty', function(accounts) {
     await stdb.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await stdb.getFulfillment(0);
-
-    assert(fulfillment[3] === "data");
 
     try {
       await stdb.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [100,1000], {from: accounts[3]});
@@ -785,7 +769,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -804,8 +788,6 @@ contract('StandardBounty', function(accounts) {
     await stdb.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await stdb.getFulfillment(0);
-
-    assert(fulfillment[3] === "data");
 
     await stdb.drainBounty(["0x0000000000000000000000000000000000000000", stdt.address]);
 
@@ -823,7 +805,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -842,8 +824,6 @@ contract('StandardBounty', function(accounts) {
     await stdb.fulfillBounty([accounts[2]], [1], 1, "data");
 
     let fulfillment = await stdb.getFulfillment(0);
-
-    assert(fulfillment[3] === "data");
 
     await stdb.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [50, 500]);
 
@@ -871,7 +851,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -891,8 +871,6 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdb.getFulfillment(0);
 
-    assert(fulfillment[3] === "data");
-
     balance = await web3.eth.getBalance(stdb.address);
 
     assert(parseInt(balance, 10) === 0);
@@ -906,7 +884,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -926,8 +904,6 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdb.getFulfillment(0);
 
-    assert(fulfillment[3] === "data");
-
     balance = await web3.eth.getBalance(stdb.address);
 
     assert(parseInt(balance, 10) === 0);
@@ -943,7 +919,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -963,8 +939,6 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdb.getFulfillment(0);
 
-    assert(fulfillment[3] === "data");
-
     balance = await web3.eth.getBalance(stdb.address);
 
     assert(parseInt(balance, 10) === 0);
@@ -980,7 +954,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1000,8 +974,6 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdb.getFulfillment(0);
 
-    assert(fulfillment[3] === "data");
-
     balance = await web3.eth.getBalance(stdb.address);
 
     assert(parseInt(balance, 10) === 50);
@@ -1016,7 +988,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1045,7 +1017,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1065,8 +1037,6 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdb.getFulfillment(0);
 
-    assert(fulfillment[3] === "data");
-
     balance = await web3.eth.getBalance(stdb.address);
 
     assert(parseInt(balance, 10) === 34);
@@ -1081,7 +1051,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
     let stdt2 = await HumanStandardToken.new(1000000000, "Bounty Token2", 18, "BOUNT2");
@@ -1115,7 +1085,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1179,7 +1149,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1207,7 +1177,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1235,23 +1205,21 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let bounty = await stdb.getBounty();
 
     assert(bounty[0] === accounts[0]);
-    assert(bounty[1] === "0xdeadbeef");
-    assert(bounty[2] === false);
-    assert(parseInt(bounty[3], 10) === 0);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
 
-    await stdb.changeBounty(accounts[4], "deebdaedx0", {from: accounts[0]});
+    await stdb.changeBounty(accounts[4], accounts[5], "deebdaedx0", "19191919191919", {from: accounts[0]});
 
     bounty = await stdb.getBounty();
 
     assert(bounty[0] === accounts[4]);
-    assert(bounty[1] === "deebdaedx0");
-    assert(bounty[2] === false);
-    assert(parseInt(bounty[3], 10) === 0);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
 
   });
 
@@ -1259,17 +1227,16 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let bounty = await stdb.getBounty();
 
     assert(bounty[0] === accounts[0]);
-    assert(bounty[1] === "0xdeadbeef");
-    assert(bounty[2] === false);
-    assert(parseInt(bounty[3], 10) === 0);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
 
     try {
-      await stdb.changeBounty(accounts[4], "deebdaedx0", {from: accounts[1]});
+      await stdb.changeBounty(accounts[4], accounts[5], "deebdaedx0", "19191919191919", {from: accounts[1]});
     } catch (error){
       return utils.ensureException(error);
     }
@@ -1279,23 +1246,21 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let bounty = await stdb.getBounty();
 
     assert(bounty[0] === accounts[0]);
-    assert(bounty[1] === "0xdeadbeef");
-    assert(bounty[2] === false);
-    assert(parseInt(bounty[3], 10) === 0);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
 
     await stdb.changeController(accounts[4], {from: accounts[0]});
 
     bounty = await stdb.getBounty();
 
     assert(bounty[0] === accounts[4]);
-    assert(bounty[1] === "0xdeadbeef");
-    assert(bounty[2] === false);
-    assert(parseInt(bounty[3], 10) === 0);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
 
   });
 
@@ -1303,14 +1268,13 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let bounty = await stdb.getBounty();
 
     assert(bounty[0] === accounts[0]);
-    assert(bounty[1] === "0xdeadbeef");
-    assert(bounty[2] === false);
-    assert(parseInt(bounty[3], 10) === 0);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
 
     try {
       await stdb.changeController(accounts[4], {from: accounts[2]});
@@ -1324,23 +1288,21 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let bounty = await stdb.getBounty();
 
     assert(bounty[0] === accounts[0]);
-    assert(bounty[1] === "0xdeadbeef");
-    assert(bounty[2] === false);
-    assert(parseInt(bounty[3], 10) === 0);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
 
     await stdb.changeData("newData", {from: accounts[0]});
 
     bounty = await stdb.getBounty();
 
     assert(bounty[0] === accounts[0]);
-    assert(bounty[1] === "newData");
-    assert(bounty[2] === false);
-    assert(parseInt(bounty[3], 10) === 0);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
 
 
   });
@@ -1349,14 +1311,13 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdb.initializeBounty(accounts[0], "0xdeadbeef", {from: accounts[0]});
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
 
     let bounty = await stdb.getBounty();
 
     assert(bounty[0] === accounts[0]);
-    assert(bounty[1] === "0xdeadbeef");
-    assert(bounty[2] === false);
-    assert(parseInt(bounty[3], 10) === 0);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
 
     try {
       await stdb.changeData("newData", {from: accounts[2]});

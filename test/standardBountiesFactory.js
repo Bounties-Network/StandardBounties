@@ -16,17 +16,15 @@ contract('StandardBountiesFactory', function(accounts) {
     let factory = await StandardBountiesFactory.new(stdb.address);
 
     for (var i = 0; i < 100; i++){
-      await factory.createBounty(accounts[0], "data"+i);
+      await factory.createBounty(accounts[0], accounts[1], "data"+i, "888888888888");
 
       let bountyAddress = await factory.bounties(i);
 
       let bounty = await StandardBounty.at(bountyAddress);
 
       let controller = await bounty.controller();
-      let data = await bounty.data();
 
       assert(controller == accounts[0]);
-      assert(data == "data"+i);
 
       let total = await factory.getNumBounties();
       assert(parseInt(total, 10) == 1+i);
