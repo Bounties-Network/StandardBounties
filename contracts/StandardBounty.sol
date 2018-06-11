@@ -210,6 +210,8 @@ contract StandardBounty {
   onlyContributor(_contributionId)
   notYetRefunded(_contributionId)
   {
+    require(deadline < now);
+
     Contribution contribution = contributions[_contributionId];
     contribution.refunded = true;
 
