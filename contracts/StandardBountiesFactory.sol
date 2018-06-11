@@ -11,7 +11,9 @@ contract StandardBountiesFactory {
   address public masterCopy;
 
 
-  function StandardBountiesFactory(address _masterCopy){
+  function StandardBountiesFactory(address _masterCopy)
+  public
+  {
     masterCopy = _masterCopy;
   }
 
