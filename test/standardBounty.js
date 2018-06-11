@@ -522,6 +522,43 @@ contract('StandardBounty', function(accounts) {
 
   });
 
+  it("Verifies that the arbiter can accept a fulfillment", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
+
+    let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await stdt.approve(stdb.address, 1000);
+
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[0], value: 100});
+
+    let balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 100);
+
+    let tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 1000);
+
+    await stdb.fulfillBounty([accounts[2]], [1], 1, "data");
+
+    let fulfillment = await stdb.getFulfillment(0);
+
+    await stdb.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [100, 1000], {from: accounts[1]});
+
+    balance = await web3.eth.getBalance(stdb.address);
+
+    assert(parseInt(balance, 10) === 0);
+
+    tokenBalance = await stdt.balanceOf(stdb.address);
+
+    (parseInt(tokenBalance, 10) === 0);
+
+
+  });
+
   it("Verifies that I can accept a fulfillment paying out a fraction of the tokens I have a balance of (only denomenator)", async () => {
 
     let stdb = await StandardBounty.new();
@@ -1278,6 +1315,48 @@ contract('StandardBounty', function(accounts) {
 
     try {
       await stdb.changeController(accounts[4], {from: accounts[2]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+
+  });
+
+  it("Verifies that I can change my own bounty's arbiter", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
+
+    let bounty = await stdb.getBounty();
+
+    assert(bounty[4] === accounts[1]);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
+
+    await stdb.changeArbiter(accounts[4], {from: accounts[0]});
+
+    bounty = await stdb.getBounty();
+
+    assert(bounty[4] === accounts[4]);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
+
+  });
+
+  it("Verifies that I can't change someone else's bounty's arbiter", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
+
+    let bounty = await stdb.getBounty();
+
+    assert(bounty[4] === accounts[1]);
+    assert(bounty[1] === false);
+    assert(parseInt(bounty[2], 10) === 0);
+
+    try {
+      await stdb.changeArbiter(accounts[4], {from: accounts[2]});
     } catch (error){
       return utils.ensureException(error);
     }
