@@ -475,12 +475,14 @@ contract StandardBounty {
   function getBounty()
       public
       constant
-      returns (address, bool, uint, address)
+      returns (address, bool, uint, address, address, uint)
   {
       return (controller,
               hasPaidOut,
               fulfillments.length,
-              masterCopy);
+              masterCopy,
+              arbiter,
+              deadline);
   }
 
   /*
