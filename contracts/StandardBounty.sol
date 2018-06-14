@@ -33,6 +33,7 @@ contract StandardBounty {
   event BountyInitialized(address _creator, address _controller, address _arbiter, string _data, uint _deadline);
   event ContributionAdded(address _contributor, uint _contributionId);
   event ContributionRefunded(uint _contributionId);
+  event IntentionSubmitted(address _fulfiller);
   event BountyFulfilled(uint256 _fulfillmentId, address _submitter, string _data);
   event FulfillmentAccepted(uint256 _fulfillmentId, address _controller, StandardToken[] _payoutTokens, uint[] _tokenAmounts);
   event BountyDrained(address _controller, StandardToken[] _payoutTokens);
@@ -228,6 +229,12 @@ contract StandardBounty {
       }
     }
     ContributionRefunded(_contributionId);
+  }
+
+  function submitIntention()
+      public
+  {
+      IntentionSubmitted(msg.sender);
   }
 
   /*
