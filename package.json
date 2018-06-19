@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/ConsenSys/StandardBounties#readme",
   "dependencies": {
+    "bignumber.js": "^7.2.1",
     "ethjs-provider-http": "^0.1.6",
     "ethjs-rpc": "^0.2.0",
     "solc": "^0.4.19",
