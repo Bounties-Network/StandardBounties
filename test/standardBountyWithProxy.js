@@ -234,7 +234,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     let balance = await web3.eth.getBalance(newBounty.address);
 
@@ -393,7 +393,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.refundContribution(0, {from: accounts[0]});
 
@@ -421,7 +421,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     let balance = await web3.eth.getBalance(newBounty.address);
 
@@ -594,7 +594,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
@@ -610,7 +610,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
   });
 
   it("Verifies that I can accept a fulfillment paying out all tokens I have a balance of", async () => {
@@ -635,7 +635,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
@@ -678,7 +678,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
@@ -720,7 +720,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
@@ -759,7 +759,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
@@ -802,7 +802,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     let tokenBalance2 = await stdt2.balanceOf(newBounty.address);
 
@@ -845,7 +845,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillBounty([accounts[2]], [1], 1, "data1");
     await newBounty.fulfillBounty([accounts[3]], [1], 1, "data2");
@@ -917,7 +917,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
@@ -955,7 +955,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillAndAccept([accounts[2]], [1], 1, "data", ["0x0000000000000000000000000000000000000000", stdt.address], [100, 1000]);
 
@@ -994,7 +994,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillAndAccept([accounts[2]], [1], 1, "data",["0x0000000000000000000000000000000000000000"], [100]);
 
@@ -1008,7 +1008,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
 
   });
@@ -1033,9 +1033,9 @@ contract('StandardBountyProxy', function(accounts) {
 
     assert(parseInt(balance, 10) === 100);
 
-    let tokenBalance = await stdt.balanceOf(stdb.address);
+    let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillAndAccept([accounts[2]], [1], 1, "data", ["0x0000000000000000000000000000000000000000", stdt.address], [100, 1000]);
 
@@ -1076,7 +1076,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillAndAccept([accounts[2]], [1], 1, "data", ["0x0000000000000000000000000000000000000000", stdt.address], [50, 500]);
 
@@ -1116,7 +1116,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     try {
       await newBounty.fulfillAndAccept([accounts[2]], [1], 1, "data",["0x0000000000000000000000000000000000000000", stdt.address], [110, 1000]);
@@ -1149,7 +1149,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillAndAccept([accounts[2]], [1], 1, "data",["0x0000000000000000000000000000000000000000", stdt.address], [66, 666]);
 
@@ -1190,7 +1190,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     let tokenBalance2 = await stdt2.balanceOf(newBounty.address);
 
@@ -1227,7 +1227,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillAndAccept([accounts[2]], [1], 1, "data1", ["0x0000000000000000000000000000000000000000", stdt.address], [250, 250]);
 
@@ -1295,7 +1295,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     try {
       await newBounty.fulfillAndAccept([accounts[2]], [1], 1, "data", ["0x0000000000000000000000000000000000000000", stdt.address], [100,1000], {from: accounts[3]});
@@ -1327,7 +1327,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
@@ -1369,7 +1369,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
 
@@ -1421,7 +1421,7 @@ contract('StandardBountyProxy', function(accounts) {
 
     let tokenBalance = await stdt.balanceOf(newBounty.address);
 
-    (parseInt(tokenBalance, 10) === 1000);
+    assert(parseInt(tokenBalance, 10) === 1000);
 
     try {
       await newBounty.drainBounty(["0x0000000000000000000000000000000000000000", stdt.address], {from: accounts[3]});
