@@ -354,7 +354,11 @@ contract('StandardBountyProxy', function(accounts) {
 
     let newBounty = StandardBounty.at(stdbProxy.address);
 
-    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
+    var blockNumber = web3.eth.blockNumber;
+
+    var timestamp = web3.eth.getBlock(blockNumber).timestamp;
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) - 10, {from: accounts[0]});
 
     await newBounty.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
 
@@ -379,7 +383,11 @@ contract('StandardBountyProxy', function(accounts) {
 
     let newBounty = StandardBounty.at(stdbProxy.address);
 
-    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
+    var blockNumber = web3.eth.blockNumber;
+
+    var timestamp = web3.eth.getBlock(blockNumber).timestamp;
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) - 10, {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -407,7 +415,11 @@ contract('StandardBountyProxy', function(accounts) {
 
     let newBounty = StandardBounty.at(stdbProxy.address);
 
-    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
+    var blockNumber = web3.eth.blockNumber;
+
+    var timestamp = web3.eth.getBlock(blockNumber).timestamp;
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) - 10, {from: accounts[0]});
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -444,7 +456,11 @@ contract('StandardBountyProxy', function(accounts) {
 
     let newBounty = StandardBounty.at(stdbProxy.address);
 
-    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
+    var blockNumber = web3.eth.blockNumber;
+
+    var timestamp = web3.eth.getBlock(blockNumber).timestamp;
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) - 10, {from: accounts[0]});
 
     await newBounty.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
 
@@ -499,7 +515,11 @@ contract('StandardBountyProxy', function(accounts) {
 
     let newBounty = StandardBounty.at(stdbProxy.address);
 
-    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
+    var blockNumber = web3.eth.blockNumber;
+
+    var timestamp = web3.eth.getBlock(blockNumber).timestamp;
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) + 200, {from: accounts[0]});
 
     await newBounty.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
 
@@ -514,6 +534,8 @@ contract('StandardBountyProxy', function(accounts) {
     balance = await web3.eth.getBalance(newBounty.address);
 
     assert(parseInt(balance, 10) === 0);
+
+    await newBounty.changeDeadline(parseInt(timestamp, 10) - 200);
 
     try {
       await newBounty.refundContribution(0, {from: accounts[1]});
