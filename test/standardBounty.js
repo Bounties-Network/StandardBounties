@@ -131,6 +131,13 @@ contract('StandardBounty', function(accounts) {
 
     assert(parseInt(balance, 10) === 100);
 
+    let contribution = await stdb.getContribution(0);
+
+    assert(contribution[0] === accounts[1]);
+    assert(parseInt(contribution[1],10) === 100);
+    assert(contribution[2][0] === "0x0000000000000000000000000000000000000000");
+    assert(contribution[3] === false);
+
   });
 
   it("Verifies that I can refundableContribute to a standard bounty with tokens", async () => {
@@ -148,6 +155,13 @@ contract('StandardBounty', function(accounts) {
     let tokenBalance = await stdt.balanceOf(stdb.address);
 
     assert(parseInt(tokenBalance, 10) === 100);
+
+    let contribution = await stdb.getContribution(0);
+
+    assert(contribution[0] === accounts[0]);
+    assert(parseInt(contribution[1],10) === 100);
+    assert(contribution[2][0] === stdt.address);
+    assert(contribution[3] === false);
 
   });
 
@@ -437,6 +451,18 @@ contract('StandardBounty', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+
+  });
+
+  it("Verifies that I can submit my intention to fulfill a bounty", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    await stdb.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000", {from: accounts[0]});
+
+    await stdb.submitIntention().then((status) => {
+      assert.strictEqual('IntentionSubmitted', status.logs[0].event, 'did not emit the IntentionSubmitted event');
+    });
 
   });
 
