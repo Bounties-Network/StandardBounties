@@ -26,6 +26,9 @@
   },
   "homepage": "https://github.com/ConsenSys/StandardBounties#readme",
   "dependencies": {
+    "bignumber.js": "^7.2.1",
+    "ethjs-provider-http": "^0.1.6",
+    "ethjs-rpc": "^0.2.0",
     "solc": "^0.4.19",
     "truffle": "^4.0.6",
     "truffle-hdwallet-provider": "0.0.3"
@@ -35,6 +38,7 @@
     "eslint-plugin-node": "5.1.0",
     "eslint-plugin-react": "7.1.0",
     "eslint-plugin-standard": "3.0.1",
+    "eth-gas-reporter": "^0.1.7",
     "solidity-coverage": "^0.5.0"
   }
 }

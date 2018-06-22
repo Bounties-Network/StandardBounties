@@ -13,7 +13,10 @@ contract StandardBounty {
   address public masterCopy;
 
   address public controller;
-  string public data;
+
+  address public arbiter;
+
+  uint public deadline;
 
   bool public hasPaidOut;
 
@@ -27,15 +30,18 @@ contract StandardBounty {
    * Events
    */
 
-  event BountyInitialized(address _creator, address _controller, string _data);
+  event BountyInitialized(address _creator, address _controller, address _arbiter, string _data, uint _deadline);
   event ContributionAdded(address _contributor, uint _contributionId);
   event ContributionRefunded(uint _contributionId);
-  event BountyFulfilled(uint256 _fulfillmentId, address _submitter);
+  event IntentionSubmitted(address _fulfiller);
+  event BountyFulfilled(uint256 _fulfillmentId, address _submitter, string _data);
   event FulfillmentAccepted(uint256 _fulfillmentId, address _controller, StandardToken[] _payoutTokens, uint[] _tokenAmounts);
   event BountyDrained(address _controller, StandardToken[] _payoutTokens);
   event BountyChanged(address _oldController, address _newController, string _newData);
   event BountyControllerChanged(address _oldController, address _newController);
+  event BountyArbiterChanged(address _controller, address _arbiter);
   event BountyDataChanged(address _controller, string _newData);
+  event BountyDeadlineChanged(address _controller, uint _deadline);
   event MasterCopyChanged(address _controller, address _newMasterCopy);
 
   /*
@@ -45,7 +51,6 @@ contract StandardBounty {
       address[] fulfillers;
       uint[] numerators;
       uint denomenator;
-      string data;
       bool accepted;
   }
 
@@ -63,6 +68,11 @@ contract StandardBounty {
 
   modifier onlyController() {
       require(msg.sender == controller);
+      _;
+  }
+
+  modifier onlyApprover() {
+      require(msg.sender == controller || msg.sender == arbiter);
       _;
   }
 
@@ -131,11 +141,15 @@ contract StandardBounty {
     separate call from the constructor
     @param _controller the address which has the right to administer the funds in
     the bounty, to either accept submissions or drain the bounty of it's funds
+    @param _arbiter the address which only has the rights to accept submissions
     @param _data a string representing an IPFS hash, storing auxiliary data off-chain
+    @param _deadline a uint timestamp representing the deadline for receiving new submissions
     */
   function initializeBounty(
       address _controller,
-      string _data)
+      address _arbiter,
+      string _data,
+      uint _deadline)
       public
   {
     require(controller == address(0));
@@ -144,9 +158,10 @@ contract StandardBounty {
     // so this check prevents initialization from being called multiple times
 
     controller = _controller;
-    data = _data;
+    arbiter = _arbiter;
+    deadline = _deadline;
 
-    BountyInitialized(msg.sender, _controller, _data);
+    BountyInitialized(msg.sender, _controller, _arbiter, _data, _deadline);
   }
 
   /*
@@ -196,6 +211,8 @@ contract StandardBounty {
   onlyContributor(_contributionId)
   notYetRefunded(_contributionId)
   {
+    require(deadline < now);
+
     Contribution contribution = contributions[_contributionId];
     contribution.refunded = true;
 
@@ -212,6 +229,12 @@ contract StandardBounty {
       }
     }
     ContributionRefunded(_contributionId);
+  }
+
+  function submitIntention()
+      public
+  {
+      IntentionSubmitted(msg.sender);
   }
 
   /*
@@ -232,10 +255,12 @@ contract StandardBounty {
       sameLength(_fulfillers.length, _numerators.length)
       sumToOneAndNoneZero(_numerators, _denomenator)
   {
-      fulfillments.push(
-        Fulfillment(_fulfillers, _numerators, _denomenator, _data, false));
+      require(now < deadline);
 
-      BountyFulfilled((fulfillments.length - 1), msg.sender);
+      fulfillments.push(
+        Fulfillment(_fulfillers, _numerators, _denomenator, false));
+
+      BountyFulfilled((fulfillments.length - 1), msg.sender, _data);
   }
 
   /*
@@ -276,7 +301,7 @@ contract StandardBounty {
       public
       validateFulfillmentArrayIndex(_fulfillmentId)
       sameLength(_payoutTokens.length, _tokenAmounts.length)
-      onlyController
+      onlyApprover
   {
       // now that the bounty has paid out at least once, refunds are no longer possible
       hasPaidOut = true;
@@ -334,7 +359,7 @@ contract StandardBounty {
   function fulfillAndAccept(address[] _fulfillers, uint[] _numerators, uint _denomenator, string _data, StandardToken[] _payoutTokens, uint[] _tokenAmounts)
       public
       sameLength(_payoutTokens.length, _tokenAmounts.length)
-      onlyController
+      onlyApprover
   {
       //first fulfills the bounty for the fulfillers
       fulfillBounty(_fulfillers, _numerators, _denomenator, _data);
@@ -370,14 +395,17 @@ contract StandardBounty {
     @dev at any point the controller may call changeBounty, to change either
     the controller of the bounty, or the data associated with it
     @param _controller the address of the new controller
+    @param _arbiter the address of the new arbiter
     @param _data the new IPFS hash associated with the updated data
+    @param _deadline the new deadline
     */
-  function changeBounty(address _controller, string _data)
+  function changeBounty(address _controller, address _arbiter, string _data, uint _deadline)
       public
       onlyController
   {
       controller = _controller;
-      data = _data;
+      arbiter = _arbiter;
+      deadline = _deadline;
       BountyChanged(msg.sender, _controller, _data);
   }
 
@@ -395,6 +423,20 @@ contract StandardBounty {
   }
 
   /*
+    @dev at any point the controller may change the arbiter associated with
+    the bounty
+    @param _controller the address of the new controller
+    */
+  function changeArbiter(address _arbiter)
+      public
+      onlyController
+  {
+      arbiter = _arbiter;
+      BountyArbiterChanged(msg.sender, _arbiter);
+  }
+
+
+  /*
     @dev at any point the controller may change the data associated with
     the bounty
     @param _data the new IPFS hash associated with the updated data
@@ -403,8 +445,20 @@ contract StandardBounty {
       public
       onlyController
   {
-      data = _data;
       BountyDataChanged(msg.sender, _data);
+  }
+
+  /*
+    @dev at any point the controller may change the arbiter associated with
+    the bounty
+    @param _controller the address of the new controller
+    */
+  function changeDeadline(uint _deadline)
+      public
+      onlyController
+  {
+      deadline = deadline;
+      BountyDeadlineChanged(msg.sender, _deadline);
   }
 
   /*
@@ -430,13 +484,14 @@ contract StandardBounty {
   function getBounty()
       public
       constant
-      returns (address, string, bool, uint, address)
+      returns (address, bool, uint, address, address, uint)
   {
       return (controller,
-              data,
               hasPaidOut,
               fulfillments.length,
-              masterCopy);
+              masterCopy,
+              arbiter,
+              deadline);
   }
 
   /*
@@ -446,12 +501,11 @@ contract StandardBounty {
   function getFulfillment(uint _fulfillmentId)
       public
       constant
-      returns (address[], uint[], uint, string, bool)
+      returns (address[], uint[], uint, bool)
   {
       return (fulfillments[_fulfillmentId].fulfillers,
               fulfillments[_fulfillmentId].numerators,
               fulfillments[_fulfillmentId].denomenator,
-              fulfillments[_fulfillmentId].data,
               fulfillments[_fulfillmentId].accepted);
   }
 

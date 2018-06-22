@@ -31,5 +31,12 @@ module.exports = {
     testrpc: {
       network_id: 'default'
     }
+  },
+  mocha: {
+    reporter: 'eth-gas-reporter',
+    reporterOptions: {
+      currency: 'USD',
+      gasPrice: 6
+    }
   }
 }

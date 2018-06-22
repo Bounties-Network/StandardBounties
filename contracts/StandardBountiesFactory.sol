@@ -11,16 +11,18 @@ contract StandardBountiesFactory {
   address public masterCopy;
 
 
-  function StandardBountiesFactory(address _masterCopy){
+  function StandardBountiesFactory(address _masterCopy)
+  public
+  {
     masterCopy = _masterCopy;
   }
 
-  function createBounty(address _controller, string _data)
+  function createBounty(address _controller, address _arbiter, string _data, uint _deadline)
   public
   {
     address newBounty = new Proxy(masterCopy);
     bounties.push(StandardBounty(newBounty));
-    bounties[bounties.length - 1].initializeBounty(_controller, _data);
+    bounties[bounties.length - 1].initializeBounty(_controller, _arbiter, _data, _deadline);
 
     BountyCreated(bounties.length - 1, bounties[bounties.length - 1]);
   }
