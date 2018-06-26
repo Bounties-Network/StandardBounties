@@ -19,12 +19,15 @@ contract StandardBountiesFactory {
 
   function createBounty(address _controller, address _arbiter, string _data, uint _deadline)
   public
+  returns (address)
   {
     address newBounty = new Proxy(masterCopy);
     bounties.push(StandardBounty(newBounty));
     bounties[bounties.length - 1].initializeBounty(_controller, _arbiter, _data, _deadline);
 
     BountyCreated(bounties.length - 1, bounties[bounties.length - 1]);
+
+    return newBounty;
   }
 
   function getNumBounties()
