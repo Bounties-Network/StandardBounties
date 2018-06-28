@@ -6,7 +6,7 @@ const utils = require('./helpers/Utils');
 
 
 contract('StandardBountyProxy', function(accounts) {
-
+/*
 
   it("Verifies that I can deploy a standard bounty and a proxy that points to it", async () => {
 
@@ -1688,4 +1688,5 @@ contract('StandardBountyProxy', function(accounts) {
     }
 
   });
+  */
 });
