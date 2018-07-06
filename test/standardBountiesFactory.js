@@ -22,9 +22,9 @@ contract('StandardBountiesFactory', function(accounts) {
 
       let bounty = await StandardBounty.at(bountyAddress);
 
-      let controller = await bounty.controller();
+      let issuer = await bounty.issuer();
 
-      assert(controller == accounts[0]);
+      assert(issuer == accounts[0]);
 
       let total = await factory.getNumBounties();
       assert(parseInt(total, 10) == 1+i);

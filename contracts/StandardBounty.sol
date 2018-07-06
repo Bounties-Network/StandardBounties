@@ -12,7 +12,7 @@ contract StandardBounty {
 
   address public masterCopy;
 
-  address public controller;
+  address public issuer;
 
   address public arbiter;
 
@@ -30,19 +30,19 @@ contract StandardBounty {
    * Events
    */
 
-  event BountyInitialized(address _creator, address _controller, address _arbiter, string _data, uint _deadline);
+  event BountyInitialized(address _creator, address _issuer, address _arbiter, string _data, uint _deadline);
   event ContributionAdded(address _contributor, uint _contributionId);
   event ContributionRefunded(uint _contributionId);
   event IntentionSubmitted(address _fulfiller);
   event BountyFulfilled(uint256 _fulfillmentId, address _submitter, string _data);
-  event FulfillmentAccepted(uint256 _fulfillmentId, address _controller, StandardToken[] _payoutTokens, uint[] _tokenAmounts);
-  event BountyDrained(address _controller, StandardToken[] _payoutTokens);
+  event FulfillmentAccepted(uint256 _fulfillmentId, address _issuer, StandardToken[] _payoutTokens, uint[] _tokenAmounts);
+  event BountyDrained(address _issuer, StandardToken[] _payoutTokens);
   event BountyChanged(address _oldController, address _newController, string _newData);
   event BountyControllerChanged(address _oldController, address _newController);
-  event BountyArbiterChanged(address _controller, address _arbiter);
-  event BountyDataChanged(address _controller, string _newData);
-  event BountyDeadlineChanged(address _controller, uint _deadline);
-  event MasterCopyChanged(address _controller, address _newMasterCopy);
+  event BountyArbiterChanged(address _issuer, address _arbiter);
+  event BountyDataChanged(address _issuer, string _newData);
+  event BountyDeadlineChanged(address _issuer, uint _deadline);
+  event MasterCopyChanged(address _issuer, address _newMasterCopy);
 
   /*
    * Structs
@@ -66,13 +66,13 @@ contract StandardBounty {
    * Modifiers
    */
 
-  modifier onlyController() {
-      require(msg.sender == controller);
+  modifier onlyIssuer() {
+      require(msg.sender == issuer);
       _;
   }
 
   modifier onlyApprover() {
-      require(msg.sender == controller || msg.sender == arbiter);
+      require(msg.sender == issuer || msg.sender == arbiter);
       _;
   }
 
@@ -139,29 +139,29 @@ contract StandardBounty {
   /*
     @dev When using the proxy architecture, bounties must be initialized in a
     separate call from the constructor
-    @param _controller the address which has the right to administer the funds in
+    @param _issuer the address which has the right to administer the funds in
     the bounty, to either accept submissions or drain the bounty of it's funds
     @param _arbiter the address which only has the rights to accept submissions
     @param _data a string representing an IPFS hash, storing auxiliary data off-chain
     @param _deadline a uint timestamp representing the deadline for receiving new submissions
     */
   function initializeBounty(
-      address _controller,
+      address _issuer,
       address _arbiter,
       string _data,
       uint _deadline)
       public
   {
-    require(controller == address(0));
-    require(_controller != address(0));
-    // an controller of a bounty is only 0x0 when it is uninitialized,
+    require(issuer == address(0));
+    require(_issuer != address(0));
+    // an issuer of a bounty is only 0x0 when it is uninitialized,
     // so this check prevents initialization from being called multiple times
 
-    controller = _controller;
+    issuer = _issuer;
     arbiter = _arbiter;
     deadline = _deadline;
 
-    BountyInitialized(msg.sender, _controller, _arbiter, _data, _deadline);
+    BountyInitialized(msg.sender, _issuer, _arbiter, _data, _deadline);
   }
 
   /*
@@ -287,7 +287,7 @@ contract StandardBounty {
   }
 
   /*
-    @dev to pay out a given submission, the controller of the bounty must call
+    @dev to pay out a given submission, the issuer of the bounty must call
     acceptFulfillment, releasing a payment to the fulfillers, denoted in the specific
     token amounts for given tokens of their choosing
     @param _fulfillmentId the ID of the fulfillment being accepted
@@ -339,7 +339,7 @@ contract StandardBounty {
   }
 
   /*
-    @dev to circumvent requiring fulfillments to be submitted on-chain, controllers
+    @dev to circumvent requiring fulfillments to be submitted on-chain, issuers
     of the bounty may call this function to simultaneously submit the fulfillment
     on-chain for later audit, and accept that fulfillment to release payment
     @param _fulfillers an array of addresses which contributed to the submission
@@ -366,70 +366,70 @@ contract StandardBounty {
       acceptFulfillment(fulfillments.length - 1, _payoutTokens, _tokenAmounts);
   }
   /*
-    @dev if funds remain in the bounty and the controller wants to be refunded,
+    @dev if funds remain in the bounty and the issuer wants to be refunded,
     they may call this function to return the entire balance in the given tokens
     @param _payoutTokens the array of token addresses which are to be returned
-    to the controller
+    to the issuer
     NOTE: for ETH refunds, the address should be address(0)
     */
   function drainBounty(StandardToken[] _payoutTokens)
       public
-      onlyController
+      onlyIssuer
   {
     for (uint256 i = 0; i < _payoutTokens.length; i++){
-      // for each token that the controller wishes to receive
+      // for each token that the issuer wishes to receive
       uint toPay;
 
       if (_payoutTokens[i] == address(0)){
         toPay = this.balance;
-        controller.transfer(toPay);
+        issuer.transfer(toPay);
       } else {
         toPay = _payoutTokens[i].balanceOf(this);
-        require(_payoutTokens[i].transfer(controller, toPay));
+        require(_payoutTokens[i].transfer(issuer, toPay));
       }
     }
       BountyDrained(msg.sender, _payoutTokens);
   }
 
   /*
-    @dev at any point the controller may call changeBounty, to change either
-    the controller of the bounty, or the data associated with it
-    @param _controller the address of the new controller
+    @dev at any point the issuer may call changeBounty, to change either
+    the issuer of the bounty, or the data associated with it
+    @param _issuer the address of the new issuer
     @param _arbiter the address of the new arbiter
     @param _data the new IPFS hash associated with the updated data
     @param _deadline the new deadline
     */
-  function changeBounty(address _controller, address _arbiter, string _data, uint _deadline)
+  function changeBounty(address _issuer, address _arbiter, string _data, uint _deadline)
       public
-      onlyController
+      onlyIssuer
   {
-      controller = _controller;
+      issuer = _issuer;
       arbiter = _arbiter;
       deadline = _deadline;
-      BountyChanged(msg.sender, _controller, _data);
+      BountyChanged(msg.sender, _issuer, _data);
   }
 
   /*
-    @dev at any point the controller may change the controller associated with
+    @dev at any point the issuer may change the issuer associated with
     the bounty
-    @param _controller the address of the new controller
+    @param _issuer the address of the new issuer
     */
-  function changeController(address _controller)
+  function changeController(address _issuer)
       public
-      onlyController
+      onlyIssuer
   {
-      controller = _controller;
-      BountyControllerChanged(msg.sender, _controller);
+      issuer = _issuer;
+      BountyControllerChanged(msg.sender, _issuer);
   }
 
   /*
-    @dev at any point the controller may change the arbiter associated with
+    @dev at any point the issuer may change the arbiter associated with
     the bounty
-    @param _controller the address of the new controller
+    @param _arbiter the address of the new arbiter
     */
   function changeArbiter(address _arbiter)
       public
-      onlyController
+      onlyIssuer
   {
       arbiter = _arbiter;
       BountyArbiterChanged(msg.sender, _arbiter);
@@ -437,25 +437,25 @@ contract StandardBounty {
 
 
   /*
-    @dev at any point the controller may change the data associated with
+    @dev at any point the issuer may change the data associated with
     the bounty
     @param _data the new IPFS hash associated with the updated data
     */
   function changeData(string _data)
       public
-      onlyController
+      onlyIssuer
   {
       BountyDataChanged(msg.sender, _data);
   }
 
   /*
-    @dev at any point the controller may change the arbiter associated with
+    @dev at any point the issuer may change the arbiter associated with
     the bounty
-    @param _controller the address of the new controller
+    @param _issuer the address of the new issuer
     */
   function changeDeadline(uint _deadline)
       public
-      onlyController
+      onlyIssuer
   {
       deadline = deadline;
       BountyDeadlineChanged(msg.sender, _deadline);
@@ -469,7 +469,7 @@ contract StandardBounty {
     */
   function changeMasterCopy(StandardBounty _masterCopy)
       public
-      onlyController
+      onlyIssuer
   {
       require(address(_masterCopy) != 0);
       //this would freeze the bounty and make it unusable
@@ -486,7 +486,7 @@ contract StandardBounty {
       constant
       returns (address, bool, uint, address, address, uint)
   {
-      return (controller,
+      return (issuer,
               hasPaidOut,
               fulfillments.length,
               masterCopy,
