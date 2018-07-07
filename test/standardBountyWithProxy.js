@@ -1554,7 +1554,7 @@ contract('StandardBountyProxy', function(accounts) {
     assert(bounty[1] === false);
     assert(parseInt(bounty[2], 10) === 0);
 
-    await newBounty.changeController(accounts[4], {from: accounts[0]});
+    await newBounty.changeIssuer(accounts[4], {from: accounts[0]});
 
     bounty = await newBounty.getBounty();
 
@@ -1581,7 +1581,7 @@ contract('StandardBountyProxy', function(accounts) {
     assert(parseInt(bounty[2], 10) === 0);
 
     try {
-      await newBounty.changeController(accounts[4], {from: accounts[2]});
+      await newBounty.changeIssuer(accounts[4], {from: accounts[2]});
     } catch (error){
       return utils.ensureException(error);
     }
@@ -1631,7 +1631,7 @@ contract('StandardBountyProxy', function(accounts) {
       assert(parseInt(bounty[2], 10) === 0);
 
       try {
-        await newBounty.changeController(accounts[4], {from: accounts[2]});
+        await newBounty.changeIssuer(accounts[4], {from: accounts[2]});
       } catch (error){
         return utils.ensureException(error);
       }

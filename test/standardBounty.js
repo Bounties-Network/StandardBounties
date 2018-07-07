@@ -1346,7 +1346,7 @@ contract('StandardBounty', function(accounts) {
     assert(bounty[1] === false);
     assert(parseInt(bounty[2], 10) === 0);
 
-    await stdb.changeController(accounts[4], {from: accounts[0]});
+    await stdb.changeIssuer(accounts[4], {from: accounts[0]});
 
     bounty = await stdb.getBounty();
 
@@ -1369,7 +1369,7 @@ contract('StandardBounty', function(accounts) {
     assert(parseInt(bounty[2], 10) === 0);
 
     try {
-      await stdb.changeController(accounts[4], {from: accounts[2]});
+      await stdb.changeIssuer(accounts[4], {from: accounts[2]});
     } catch (error){
       return utils.ensureException(error);
     }

@@ -414,7 +414,7 @@ contract StandardBounty {
     the bounty
     @param _issuer the address of the new issuer
     */
-  function changeController(address _issuer)
+  function changeIssuer(address _issuer)
       public
       onlyIssuer
   {
