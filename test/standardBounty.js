@@ -387,6 +387,13 @@ contract('StandardBounty', function(accounts) {
 
     assert(parseInt(balance, 10) === 0);
 
+    let contribution = await stdb.getContribution(0);
+
+    assert(contribution[0] === accounts[0]);
+    assert(parseInt(contribution[1],10) === 100);
+    assert(contribution[2][0] === "0x0000000000000000000000000000000000000000");
+    assert(contribution[3] === true);
+
     try {
       await stdb.refundContribution(0, {from: accounts[0]});
     } catch (error){
