@@ -74,11 +74,10 @@ contract('StandardBountyProxy', function(accounts) {
 
     try {
       await newBounty.initializeBounty("0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0xdeadbeef", "181818181818", {from: accounts[0]});
-
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert (false);
   });
 
   it("Verifies that I can't initialize a standard bounty twice", async () => {
@@ -99,11 +98,10 @@ contract('StandardBountyProxy', function(accounts) {
 
     try {
       await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
-
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert (false);
   });
 
   it("Verifies that I can send ETH to a standard bounty", async () => {
@@ -273,7 +271,7 @@ contract('StandardBountyProxy', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert (false);
   });
 
   it("Verifies that I can't refundableContribute to a standard bounty with the wrong ETH amount", async () => {
@@ -315,6 +313,7 @@ contract('StandardBountyProxy', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert (false);
 
   });
 
@@ -353,11 +352,10 @@ contract('StandardBountyProxy', function(accounts) {
 
     try {
       await newBounty.refundableContribute([1000, 1000], ["0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 1000});
-
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert (false);
   });
 
   it("Verifies that I can refund a refundableContribute in ETH", async () => {
@@ -385,8 +383,6 @@ contract('StandardBountyProxy', function(accounts) {
     balance = await web3.eth.getBalance(newBounty.address);
 
     assert(parseInt(balance, 10) === 0);
-
-
   });
 
   it("Verifies that I can refund a refundableContribute in tokens", async () => {
@@ -488,12 +484,19 @@ contract('StandardBountyProxy', function(accounts) {
 
     assert(parseInt(balance, 10) === 0);
 
+    let contribution = await newBounty.getContribution(0);
+
+    assert(contribution[0] === accounts[0]);
+    assert(parseInt(contribution[1],10) === 100);
+    assert(contribution[2][0] === "0x0000000000000000000000000000000000000000");
+    assert(contribution[3] === true);
+
     try {
       await newBounty.refundContribution(0, {from: accounts[0]});
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert (false);
   });
 
   it("Verifies that I can't refund someone else's refundableContribute", async () => {
@@ -518,7 +521,7 @@ contract('StandardBountyProxy', function(accounts) {
       return utils.ensureException(error);
     }
 
-
+    assert (false);
   });
 
   it("Verifies that I can't refund a refundableContribute that has already paid", async () => {
@@ -556,7 +559,7 @@ contract('StandardBountyProxy', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert (false);
   });
 
   it("Verifies that I can submit my intention to fulfill a bounty", async () => {
@@ -592,32 +595,6 @@ contract('StandardBountyProxy', function(accounts) {
     assert(parseInt(balance, 10) === 100);
 
     await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
-
-  });
-
-  it("Verifies that I can't fulfill a bounty if I am the issuer", async () => {
-
-    let stdb = await StandardBounty.new();
-
-    let stdbProxy = await Proxy.new(stdb.address);
-
-    let newBounty = StandardBounty.at(stdbProxy.address);
-
-    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "181818181818", {from: accounts[0]});
-
-    await newBounty.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
-
-    let balance = await web3.eth.getBalance(newBounty.address);
-
-    assert(parseInt(balance, 10) === 100);
-
-    try {
-      await newBounty.fulfillBounty([accounts[0]], [1], 1, "data");
-
-    } catch (error){
-      return utils.ensureException(error);
-    }
-
   });
 
   it("Verifies that I can accept a fulfillment paying out some tokens I have a balance of", async () => {
@@ -811,8 +788,7 @@ contract('StandardBountyProxy', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
-
-
+    assert (false);
   });
 
   it("Verifies that I can accept a fulfillment paying out a fraction of the tokens I have a balance of (both numerator and denomenator)", async () => {
@@ -892,9 +868,8 @@ contract('StandardBountyProxy', function(accounts) {
       await newBounty.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address], [100, 1000, 1000]);
     } catch (error){
       return utils.ensureException(error);
-
     }
-
+    assert (false);
   });
 
   it("Verifies that I can accept several fulfillments paying equal fractions", async () => {
@@ -1002,7 +977,7 @@ contract('StandardBountyProxy', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert (false);
   });
 
   it("Verifies that I can fulfill and accept paying out all tokens I have a balance of", async () => {
@@ -1187,8 +1162,7 @@ contract('StandardBountyProxy', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
-
-
+    assert (false);
   });
 
   it("Verifies that I can fulfill and accept a fulfillment paying out a fraction of the tokens I have a balance of", async () => {
@@ -1262,9 +1236,8 @@ contract('StandardBountyProxy', function(accounts) {
       await newBounty.fulfillAndAccept([accounts[2]], [1], 1, "data", ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address], [100, 1000, 1000]);
     } catch (error){
       return utils.ensureException(error);
-
     }
-
+    assert (false);
   });
 
   it("Verifies that I can fulfill and accept several fulfillments paying equal fractions", async () => {
@@ -1364,7 +1337,7 @@ contract('StandardBountyProxy', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert (false);
   });
 
   it("Verifies that I can drain my own bounty before a payout", async () => {
@@ -1486,7 +1459,7 @@ contract('StandardBountyProxy', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert (false);
   });
 
   it("Verifies that I can change my own bounty", async () => {
@@ -1536,6 +1509,7 @@ contract('StandardBountyProxy', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
+    assert (false);
   });
 
   it("Verifies that I can change my own bounty's issuer", async () => {
@@ -1585,7 +1559,7 @@ contract('StandardBountyProxy', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert (false);
   });
 
     it("Verifies that I can change my own bounty's arbiter", async () => {
@@ -1635,7 +1609,7 @@ contract('StandardBountyProxy', function(accounts) {
       } catch (error){
         return utils.ensureException(error);
       }
-
+      assert (false);
     });
 
   it("Verifies that I can change my own bounty's data", async () => {
@@ -1686,6 +1660,169 @@ contract('StandardBountyProxy', function(accounts) {
     } catch (error){
       return utils.ensureException(error);
     }
-
+    assert (false);
   });
+
+  it("Verifies that I can't refund a contribution outside the length of the array", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    let stdbProxy = await Proxy.new(stdb.address);
+
+    let newBounty = StandardBounty.at(stdbProxy.address);
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000", {from: accounts[0]});
+
+    let bounty = await newBounty.getBounty();
+
+    try {
+      await newBounty.refundContribution(0, {from: accounts[0]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert (false);
+  });
+
+  it("Verifies that I can't accept a fulfillment outside the length of the array", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    let stdbProxy = await Proxy.new(stdb.address);
+
+    let newBounty = StandardBounty.at(stdbProxy.address);
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000", {from: accounts[0]});
+    await newBounty.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
+
+    await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
+
+    try {
+      await newBounty.acceptFulfillment(1, ["0x0000000000000000000000000000000000000000"], [100]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert (false);
+  });
+
+  it("Verifies that I can't fulfill a bounty with a 0 numerator fulfiller", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    let stdbProxy = await Proxy.new(stdb.address);
+
+    let newBounty = StandardBounty.at(stdbProxy.address);
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000", {from: accounts[0]});
+
+    try {
+      await newBounty.fulfillBounty([accounts[2], accounts[3]], [1, 0], 1, "data");
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert (false);
+  });
+  it("Verifies that I can't fulfill a bounty with a fractions that sum to more than 1", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    let stdbProxy = await Proxy.new(stdb.address);
+
+    let newBounty = StandardBounty.at(stdbProxy.address);
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000", {from: accounts[0]});
+
+    try {
+      await newBounty.fulfillBounty([accounts[2], accounts[3]], [4, 5], 8, "data");
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert (false);
+  });
+  it("Verifies that I can't fulfill a bounty with a fractions that sum to less than 1", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    let stdbProxy = await Proxy.new(stdb.address);
+
+    let newBounty = StandardBounty.at(stdbProxy.address);
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000", {from: accounts[0]});
+
+    try {
+      await newBounty.fulfillBounty([accounts[2], accounts[3]], [4, 3], 8, "data");
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert (false);
+  });
+  it("Verifies that I can't refundable contribute with an amount of 0", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    let stdbProxy = await Proxy.new(stdb.address);
+
+    let newBounty = StandardBounty.at(stdbProxy.address);
+
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000", {from: accounts[0]});
+
+    try {
+      await newBounty.refundableContribute([0], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert (false);
+  });
+
+  it("Verifies that I can't refund a contribution before the deadline", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    let stdbProxy = await Proxy.new(stdb.address);
+
+    let newBounty = StandardBounty.at(stdbProxy.address);
+
+    var blockNumber = web3.eth.blockNumber;
+
+    var timestamp = web3.eth.getBlock(blockNumber).timestamp;
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) + 100000, {from: accounts[0]});
+
+    await newBounty.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
+
+    let balance = await web3.eth.getBalance(newBounty.address);
+
+    assert(parseInt(balance, 10) === 100);
+
+    try {
+      await newBounty.refundContribution(0, {from: accounts[0]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert (false);
+  });
+  it("Verifies that I can't fulfill a bounty after the deadline", async () => {
+
+    let stdb = await StandardBounty.new();
+
+    let stdbProxy = await Proxy.new(stdb.address);
+
+    let newBounty = StandardBounty.at(stdbProxy.address);
+
+    var blockNumber = web3.eth.blockNumber;
+
+    var timestamp = web3.eth.getBlock(blockNumber).timestamp;
+
+    await newBounty.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) - 10, {from: accounts[0]});
+
+    await newBounty.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], {from: accounts[0], value: 100});
+
+    try {
+      await newBounty.fulfillBounty([accounts[2]], [1], 1, "data");
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert (false);
+  });
+
 });

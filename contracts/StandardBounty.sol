@@ -31,14 +31,15 @@ contract StandardBounty {
    */
 
   event BountyInitialized(address _creator, address _issuer, address _arbiter, string _data, uint _deadline);
+  event ReceivedETH(address _sender, uint _value);
   event ContributionAdded(address _contributor, uint _contributionId);
   event ContributionRefunded(uint _contributionId);
   event IntentionSubmitted(address _fulfiller);
   event BountyFulfilled(uint256 _fulfillmentId, address _submitter, string _data);
   event FulfillmentAccepted(uint256 _fulfillmentId, address _issuer, StandardToken[] _payoutTokens, uint[] _tokenAmounts);
   event BountyDrained(address _issuer, StandardToken[] _payoutTokens);
-  event BountyChanged(address _oldController, address _newController, string _newData);
-  event BountyControllerChanged(address _oldController, address _newController);
+  event BountyChanged(address _oldIssuer, address _newIssuer, address _newArbiter, string _newData, uint _newDeadline);
+  event BountyIssuerChanged(address _oldController, address _newController);
   event BountyArbiterChanged(address _issuer, address _arbiter);
   event BountyDataChanged(address _issuer, string _newData);
   event BountyDeadlineChanged(address _issuer, uint _deadline);
@@ -86,11 +87,6 @@ contract StandardBounty {
       _;
   }
 
-  modifier validateNotTooManyFulfillments(){
-    require((fulfillments.length + 1) > fulfillments.length);
-    _;
-  }
-
   modifier hasNotPaid(){
       require(!hasPaidOut);
       _;
@@ -134,6 +130,8 @@ contract StandardBounty {
   {
     // the fallback function is payable, so that people may contribute to a
     // bounty just by sending ETH to the contract address
+
+    ReceivedETH(msg.sender, msg.value);
   }
 
   /*
@@ -213,7 +211,7 @@ contract StandardBounty {
   {
     require(deadline < now);
 
-    Contribution contribution = contributions[_contributionId];
+    Contribution storage contribution = contributions[_contributionId];
     contribution.refunded = true;
 
     for (uint i = 0; i < contribution.amounts.length; i++){
@@ -251,7 +249,6 @@ contract StandardBounty {
     */
   function fulfillBounty(address[] _fulfillers, uint[] _numerators, uint _denomenator, string _data)
       public
-      validateNotTooManyFulfillments
       sameLength(_fulfillers.length, _numerators.length)
       sumToOneAndNoneZero(_numerators, _denomenator)
   {
@@ -309,9 +306,10 @@ contract StandardBounty {
 
       for (uint256 i = 0; i < _payoutTokens.length; i++){
         // for each token which the bounty issuer wishes to pay
-        for (uint256 j = 0; j < fulfillment.fulfillers.length; j++){
-          // for each fulfiller associated with the submission
-          if (_payoutTokens[i] == address(0)){
+        if (_payoutTokens[i] == address(0)){
+          for (uint256 j = 0; j < fulfillment.fulfillers.length; j++){
+            // for each fulfiller associated with the submission
+
             //checks to make sure there is a sufficient balance in ETH
             require(this.balance >= _tokenAmounts[i]);
 
@@ -321,7 +319,10 @@ contract StandardBounty {
               calculateFraction(_tokenAmounts[i],
                                 fulfillment.numerators[j],
                                 fulfillment.denomenator));
-          } else {
+          }
+        } else {
+          for (j = 0; j < fulfillment.fulfillers.length; j++){
+            // for each fulfiller associated with the submission
             //checks to make sure there is a sufficient balance in that token
             require(_payoutTokens[i].balanceOf(this) >= _tokenAmounts[i]);
             // calculates the payout for the fulfiller based on the total payout
@@ -331,8 +332,10 @@ contract StandardBounty {
               calculateFraction(_tokenAmounts[i],
                                 fulfillment.numerators[j],
                                 fulfillment.denomenator)));
+
           }
         }
+
       }
 
       FulfillmentAccepted(_fulfillmentId, msg.sender, _payoutTokens, _tokenAmounts);
@@ -406,7 +409,8 @@ contract StandardBounty {
       issuer = _issuer;
       arbiter = _arbiter;
       deadline = _deadline;
-      BountyChanged(msg.sender, _issuer, _data);
+
+      BountyChanged(msg.sender, _issuer, _arbiter, _data, _deadline);
   }
 
   /*
@@ -419,7 +423,7 @@ contract StandardBounty {
       onlyIssuer
   {
       issuer = _issuer;
-      BountyControllerChanged(msg.sender, _issuer);
+      BountyIssuerChanged(msg.sender, _issuer);
   }
 
   /*
