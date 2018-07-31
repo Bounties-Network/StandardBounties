@@ -87,11 +87,6 @@ contract StandardBounty {
       _;
   }
 
-  modifier validateNotTooManyFulfillments(){
-    require((fulfillments.length + 1) > fulfillments.length);
-    _;
-  }
-
   modifier hasNotPaid(){
       require(!hasPaidOut);
       _;
@@ -254,7 +249,6 @@ contract StandardBounty {
     */
   function fulfillBounty(address[] _fulfillers, uint[] _numerators, uint _denomenator, string _data)
       public
-      validateNotTooManyFulfillments
       sameLength(_fulfillers.length, _numerators.length)
       sumToOneAndNoneZero(_numerators, _denomenator)
   {
