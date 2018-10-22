@@ -197,6 +197,8 @@ contract StandardBounty {
           require(StandardToken(_tokens[i]).transferFrom(msg.sender, this, _amounts[i]));
       } else if (_tokenVersions[i] == 721) {
           ERC721BasicToken(_tokens[i]).transferFrom(msg.sender, this, _amounts[i]);
+      } else {
+        throw;
       }
 
       // the contribution in that token is only completed once the transfer
@@ -223,19 +225,25 @@ contract StandardBounty {
     Contribution contribution = contributions[_contributionId];
     contribution.refunded = true;
 
+
     for (uint i = 0; i < contribution.amounts.length; i++){
       // a contribution may only be refunded if it has finished contributing
       require(contribution.hasContributed[contribution.tokens[i]]);
 
+/*
       if (contribution.tokenVersions[i] == 0){
-        contribution.contributor.transfer(contribution.amounts[i]);
-      } else if (contribution.tokenVersions[i] == 20) {
+        contribution.contributor.transfer(this.balance/*contribution.amounts[i]);
+      } else */if (contribution.tokenVersions[i] == 20) {
         require(StandardToken(contribution.tokens[i]).transfer(contribution.contributor,
                                                 contribution.amounts[i]));
       } else if (contribution.tokenVersions[i] == 721) {
           ERC721BasicToken(contribution.tokens[i]).transferFrom(this, contribution.contributor, contribution.amounts[i]);
-      }
+      }/* else {
+        throw;
+      }*/
+
     }
+
     ContributionRefunded(_contributionId);
   }
 

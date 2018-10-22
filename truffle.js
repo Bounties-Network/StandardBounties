@@ -29,7 +29,8 @@ module.exports = {
       network_id: '3'
     },
     testrpc: {
-      network_id: 'default'
+      network_id: 'default',
+      gas: 4000000000
     }
   },
   mocha: {
