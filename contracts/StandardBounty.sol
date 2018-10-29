@@ -47,6 +47,8 @@ contract StandardBounty {
   event BountyDeadlineChanged(address _controller, uint _deadline);
   event MasterCopyChanged(address _controller, address _newMasterCopy);
 
+  event LogEvent(uint u1, uint u2, uint u3);
+
   /*
    * Structs
    */
@@ -230,17 +232,17 @@ contract StandardBounty {
       // a contribution may only be refunded if it has finished contributing
       require(contribution.hasContributed[contribution.tokens[i]]);
 
-/*
+
       if (contribution.tokenVersions[i] == 0){
-        contribution.contributor.transfer(this.balance/*contribution.amounts[i]);
-      } else */if (contribution.tokenVersions[i] == 20) {
+        contribution.contributor.transfer(contribution.amounts[i]);
+      } else if (contribution.tokenVersions[i] == 20) {
         require(StandardToken(contribution.tokens[i]).transfer(contribution.contributor,
                                                 contribution.amounts[i]));
       } else if (contribution.tokenVersions[i] == 721) {
           ERC721BasicToken(contribution.tokens[i]).transferFrom(this, contribution.contributor, contribution.amounts[i]);
-      }/* else {
+      } else {
         throw;
-      }*/
+      }
 
     }
 
@@ -291,35 +293,47 @@ contract StandardBounty {
   function acceptFulfillment(uint _fulfillmentId, address[] _payoutTokens, uint[] _tokenVersions, uint[][] _tokenAmounts)
       public
       validateFulfillmentArrayIndex(_fulfillmentId)
-      //sameLength(_payoutTokens.length, _tokenVersions.length)
-      //sameLength(_payoutTokens.length, _tokenAmounts[0].length)
+      sameLength(_payoutTokens.length, _tokenVersions.length)
       onlyApprover
   {
+
+    LogEvent(0, 0, _tokenAmounts[0][0]);
+
+
+    throw;
+    /*
+
       // now that the bounty has paid out at least once, refunds are no longer possible
       hasPaidOut = true;
-/*
+
       Fulfillment storage fulfillment = fulfillments[_fulfillmentId];
-      require(_tokenAmounts.length == fulfillment.fulfillers.length);
-      for (uint256 i = 0; i < _payoutTokens.length; i++){
-        // for each token which the bounty issuer wishes to pay
-        for (uint256 j = 0; j < fulfillment.fulfillers.length; j++){
-          // for each fulfiller associated with the submission
-          if (_tokenVersions[i] == 0){
+      //require(_tokenAmounts.length == fulfillment.fulfillers.length);
+
+      for (uint256 i = 0; i < fulfillment.fulfillers.length; i++){
+        // for each fulfiller associated with the submission
+        //require(_tokenAmounts[i].length == _payoutTokens.length);
+
+        for (uint256 j = 0; j < _payoutTokens.length; j++){
+          // for each token which the bounty issuer wishes to pay
+
+          if (_tokenVersions[j] == 0){
               require(this.balance >= _tokenAmounts[j][i]);
-              fulfillment.fulfillers[j].transfer(_tokenAmounts[j][i]);
-          } else if (_tokenVersions[i] == 20) {
-            require(StandardToken(_payoutTokens[i]).transfer(
-              fulfillment.fulfillers[j], _tokenAmounts[j][i]));
-          } else if (_tokenVersions[i] == 721) {
-            ERC721BasicToken(_payoutTokens[i]).transferFrom(
-              this, fulfillment.fulfillers[j], _tokenAmounts[j][i]);
+              fulfillment.fulfillers[i].transfer(_tokenAmounts[j][i]);
+          } else if (_tokenVersions[j] == 20) {
+            require(StandardToken(_payoutTokens[j]).transfer(
+              fulfillment.fulfillers[i], _tokenAmounts[j][i]));
+          } else if (_tokenVersions[j] == 721) {
+            ERC721BasicToken(_payoutTokens[j]).transferFrom(
+             this, fulfillment.fulfillers[i], _tokenAmounts[j][i]);
           } else {
             throw;
           }
+
         }
       }
 */
-      FulfillmentAccepted(_fulfillmentId, msg.sender, _payoutTokens, _tokenAmounts);
+      /* FulfillmentAccepted(_fulfillmentId, msg.sender, _payoutTokens, _tokenAmounts); */
+
   }
 
   /*

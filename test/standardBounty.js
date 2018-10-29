@@ -335,7 +335,7 @@ contract('StandardBounty', function(accounts) {
 
     assert(parseInt(balance, 10) === 100);
 
-    await stdbWrapper.refundContribution(0);
+    await stdb.refundContribution(0);
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -365,7 +365,7 @@ contract('StandardBounty', function(accounts) {
 
     assert(parseInt(tokenBalance, 10) === 1000);
 
-    await stdbWrapper.refundContribution(0);
+    await stdb.refundContribution(0);
 
     tokenBalance = await stdt.balanceOf(stdbWrapper.address);
 
@@ -398,7 +398,7 @@ contract('StandardBounty', function(accounts) {
 
     assert(parseInt(balance, 10) === 1000);
 
-    await stdbWrapper.refundContribution(0);
+    await stdb.refundContribution(0);
 
     tokenBalance = await stdt.balanceOf(stdbWrapper.address);
 
@@ -428,14 +428,14 @@ contract('StandardBounty', function(accounts) {
 
     assert(parseInt(balance, 10) === 100);
 
-    await stdbWrapper.refundContribution(0);
+    await stdb.refundContribution(0);
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
     assert(parseInt(balance, 10) === 0);
 
     try {
-      await stdbWrapper.refundContribution(0);
+      await stdb.refundContribution(0);
     } catch (error){
       return utils.ensureException(error);
     }
@@ -467,7 +467,7 @@ contract('StandardBounty', function(accounts) {
 
 
   });
-/*
+
   it("Verifies that I can't refund a refundableContribute that has already paid", async () => {
 
     const stdb = await StandardBounty.new();
@@ -481,7 +481,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdbWrapper.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], [0], {value: 100});
 
-    let balance = await web3.eth.getBalance(stdbWrapper.address);
+    let balance = await web3.eth.getBalance(stdb.address);
 
     assert(parseInt(balance, 10) === 100);
 
@@ -489,7 +489,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000"], [0], [[100]]);
 
-    balance = await web3.eth.getBalance(stdbWrapper.address);
+    balance = await web3.eth.getBalance(stdb.address);
 
     assert(parseInt(balance, 10) === 0);
 
@@ -502,7 +502,7 @@ contract('StandardBounty', function(accounts) {
     }
 
   });
-/*
+
   it("Verifies that I can submit my intention to fulfill a bounty", async () => {
 
     const stdb = await StandardBounty.new();
@@ -510,7 +510,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
 
-    await stdbWrapper.submitIntention().then((status) => {
+    await stdb.submitIntention().then((status) => {
       assert.strictEqual('IntentionSubmitted', status.logs[0].event, 'did not emit the IntentionSubmitted event');
     });
 
@@ -523,7 +523,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
 
-    await stdbWrapper.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], [0], {value: 100});
+    await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], [0], {value: 100});
 
     let balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -540,9 +540,9 @@ contract('StandardBounty', function(accounts) {
 
     await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
 
-    await stdbWrapper.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], [0], {value: 100});
+    await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], [0], {value: 100});
 
-    let balance = await web3.eth.getBalance(stdbWrapper.address);
+    let balance = await web3.eth.getBalance(stdb.address);
 
     assert(parseInt(balance, 10) === 100);
 
@@ -555,7 +555,7 @@ contract('StandardBounty', function(accounts) {
 
   });
 
-  it("Verifies that I can accept a fulfillment paying out some ERC721 tokens I have a balance of", async () => {
+  it.only("Verifies that I can accept a fulfillment paying out some ERC721 tokens I have a balance of", async () => {
 
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
@@ -570,32 +570,34 @@ contract('StandardBounty', function(accounts) {
 
     assert(owner === accounts[0]);
 
-    await stdt.approve(stdbWrapper.address, 123);
+    await stdt.approve(stdb.address, 123);
 
-    await stdbWrapper.refundableContribute([123], [stdt.address], [721]);
+    await stdb.refundableContribute([123], [stdt.address], [721]);
 
-    let tokenBalance = await stdt.balanceOf(stdbWrapper.address);
+    let tokenBalance = await stdt.balanceOf(stdb.address);
 
     assert(parseInt(tokenBalance, 10) === 1);
 
     owner = await stdt.ownerOf(123);
 
-    assert(owner === stdbWrapper.address);
+    assert(owner === stdb.address);
 
-    await stdbWrapper.fulfillBounty([accounts[2]], "data");
+    await stdb.fulfillBounty([accounts[2]], "data");
 
-    let fulfillment = await stdbWrapper.getFulfillment(0);
+    let fulfillment = await stdb.getFulfillment(0);
 
-    await stdbWrapper.acceptFulfillment(0, [stdt.address], [721], [[123]]);
+    let result = await stdbWrapper.acceptFulfillment(0, [stdt.address], [721], [[123]]);
 
-    tokenBalance = await stdt.balanceOf(stdbWrapper.address);
+
+  //  tokenBalance = await stdt.balanceOf(stdb.address);
+/*
 
     assert(parseInt(tokenBalance, 10) === 0);
 
     owner = await stdt.ownerOf(123);
 
     assert(owner === accounts[2]);
-
+*/
 
   });
 
@@ -610,13 +612,13 @@ contract('StandardBounty', function(accounts) {
 
     await stdt.approve(stdbWrapper.address, 1000);
 
-    await stdbWrapper.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
 
-    let balance = await web3.eth.getBalance(stdbWrapper.address);
+    let balance = await web3.eth.getBalance(stdb.address);
 
     assert(parseInt(balance, 10) === 100);
 
-    let tokenBalance = await stdt.balanceOf(stdbWrapper.address);
+    let tokenBalance = await stdt.balanceOf(stdb.address);
 
     assert(parseInt(tokenBalance, 10) === 1000);
 
@@ -626,11 +628,11 @@ contract('StandardBounty', function(accounts) {
 
     await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000"], [0], [[100]]);
 
-    balance = await web3.eth.getBalance(stdbWrapper.address);
+    balance = await web3.eth.getBalance(stdb.address);
 
     assert(parseInt(balance, 10) === 0);
 
-    tokenBalance = await stdt.balanceOf(stdbWrapper.address);
+    tokenBalance = await stdt.balanceOf(stdb.address);
 
     assert(parseInt(tokenBalance, 10) === 1000);
 
@@ -646,15 +648,15 @@ contract('StandardBounty', function(accounts) {
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
-    await stdt.approve(stdbWrapper.address, 1000);
+    await stdt.approve(stdb.address, 1000);
 
-    await stdbWrapper.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
 
-    let balance = await web3.eth.getBalance(stdbWrapper.address);
+    let balance = await web3.eth.getBalance(stdb.address);
 
     assert(parseInt(balance, 10) === 100);
 
-    let tokenBalance = await stdt.balanceOf(stdbWrapper.address);
+    let tokenBalance = await stdt.balanceOf(stdb.address);
 
     assert(parseInt(tokenBalance, 10) === 1000);
 
@@ -662,13 +664,13 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdbWrapper.getFulfillment(0);
 
-    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100], [1000]]);
+    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100, 1000]]);
 
-    balance = await web3.eth.getBalance(stdbWrapper.address);
+    balance = await web3.eth.getBalance(stdb.address);
 
     assert(parseInt(balance, 10) === 0);
 
-    tokenBalance = await stdt.balanceOf(stdbWrapper.address);
+    tokenBalance = await stdt.balanceOf(stdb.address);
 
     (parseInt(tokenBalance, 10) === 0);
 
@@ -679,6 +681,8 @@ contract('StandardBounty', function(accounts) {
 
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
+    const stdbWrapper2 = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[1]));
+
 
     await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
 
@@ -686,7 +690,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdt.approve(stdbWrapper.address, 1000);
 
-    await stdbWrapper.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
 
     let balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -700,7 +704,7 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdbWrapper.getFulfillment(0);
 
-    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100], [1000]], {from: accounts[1]});
+    await stdbWrapper2.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100, 1000]]);
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -724,7 +728,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdt.approve(stdbWrapper.address, 1000);
 
-    await stdbWrapper.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
 
     let balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -738,7 +742,7 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdbWrapper.getFulfillment(0);
 
-    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[50], [500]]);
+    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[50, 500]]);
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -761,7 +765,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdt.approve(stdbWrapper.address, 1000);
 
-    await stdbWrapper.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
 
     let balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -776,7 +780,7 @@ contract('StandardBounty', function(accounts) {
     let fulfillment = await stdbWrapper.getFulfillment(0);
 
     try {
-      await stdb.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[110], [1000]]);
+      await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[110, 1000]]);
     } catch (error){
       return utils.ensureException(error);
     }
@@ -795,7 +799,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdt.approve(stdbWrapper.address, 1000);
 
-    await stdbWrapper.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
 
     let balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -809,7 +813,7 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdbWrapper.getFulfillment(0);
 
-    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[66], [666]]);
+    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[66, 666]]);
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -833,7 +837,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdt.approve(stdbWrapper.address, 1000);
 
-    await stdbWrapper.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
 
     let balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -852,14 +856,14 @@ contract('StandardBounty', function(accounts) {
     let fulfillment = await stdbWrapper.getFulfillment(0);
 
     try {
-      await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address], [0, 20, 20], [[100], [1000], [1000]]);
+      await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address], [0, 20, 20], [[100, 1000, 1000]]);
     } catch (error){
       return utils.ensureException(error);
 
     }
 
   });
-
+/*
   it("Verifies that I can accept several fulfillments paying equal fractions", async () => {
 
     const stdb = await StandardBounty.new();
@@ -871,7 +875,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdt.approve(stdbWrapper.address, 1000);
 
-    await stdbWrapper.refundableContribute([1000, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 1000});
+    await stdb.refundableContribute([1000, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 1000});
 
     let balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -886,7 +890,7 @@ contract('StandardBounty', function(accounts) {
     await stdbWrapper.fulfillBounty([accounts[4]], "data3");
     await stdbWrapper.fulfillBounty([accounts[5]], "data4");
 
-    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[250], [250]]);
+    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[250, 250]]);
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -896,7 +900,7 @@ contract('StandardBounty', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 750);
 
-    await stdbWrapper.acceptFulfillment(1, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[250], [250]]);
+    await stdbWrapper.acceptFulfillment(1, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[250, 250]]);
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -906,7 +910,7 @@ contract('StandardBounty', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 500);
 
-    await stdbWrapper.acceptFulfillment(2, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[250], [250]]);
+    await stdbWrapper.acceptFulfillment(2, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[250, 250]]);
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -916,7 +920,7 @@ contract('StandardBounty', function(accounts) {
 
     (parseInt(tokenBalance, 10) === 250);
 
-    await stdbWrapper.acceptFulfillment(3, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[250], [250]]);
+    await stdbWrapper.acceptFulfillment(3, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[250, 250]]);
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -942,7 +946,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdt.approve(stdbWrapper.address, 1000);
 
-    await stdbWrapper.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
+    await stdb.refundableContribute([100, 1000], ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], {value: 100});
 
     let balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -957,7 +961,7 @@ contract('StandardBounty', function(accounts) {
     let fulfillment = await stdbWrapper.getFulfillment(0);
 
     try {
-      await stdbWrapper3.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100],[1000]], {from: accounts[3]});
+      await stdbWrapper3.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100, 1000]]);
     } catch (error){
       return utils.ensureException(error);
     }
