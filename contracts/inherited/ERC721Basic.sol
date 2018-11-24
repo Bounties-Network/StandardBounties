@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+ pragma solidity ^0.4.23;
 
 /**
  * @title SafeMath
@@ -270,6 +270,8 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
   // Mapping from owner to operator approvals
   mapping (address => mapping (address => bool)) internal operatorApprovals;
 
+
+  uint public testint;
   /**
    * @dev Guarantees msg.sender is owner of the given token
    * @param _tokenId uint256 ID of the token to validate its ownership belongs to msg.sender

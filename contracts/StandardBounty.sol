@@ -296,43 +296,36 @@ contract StandardBounty {
       sameLength(_payoutTokens.length, _tokenVersions.length)
       onlyApprover
   {
-
-    LogEvent(0, 0, _tokenAmounts[0][0]);
-
-
-    throw;
-    /*
-
+      
       // now that the bounty has paid out at least once, refunds are no longer possible
       hasPaidOut = true;
 
       Fulfillment storage fulfillment = fulfillments[_fulfillmentId];
-      //require(_tokenAmounts.length == fulfillment.fulfillers.length);
+      require(_tokenAmounts.length == fulfillment.fulfillers.length);
 
       for (uint256 i = 0; i < fulfillment.fulfillers.length; i++){
         // for each fulfiller associated with the submission
-        //require(_tokenAmounts[i].length == _payoutTokens.length);
+        require(_tokenAmounts[i].length == _payoutTokens.length);
 
         for (uint256 j = 0; j < _payoutTokens.length; j++){
           // for each token which the bounty issuer wishes to pay
 
           if (_tokenVersions[j] == 0){
-              require(this.balance >= _tokenAmounts[j][i]);
-              fulfillment.fulfillers[i].transfer(_tokenAmounts[j][i]);
+              require(this.balance >= _tokenAmounts[i][j]);
+              fulfillment.fulfillers[i].transfer(_tokenAmounts[i][j]);
           } else if (_tokenVersions[j] == 20) {
             require(StandardToken(_payoutTokens[j]).transfer(
-              fulfillment.fulfillers[i], _tokenAmounts[j][i]));
+              fulfillment.fulfillers[i], _tokenAmounts[i][j]));
           } else if (_tokenVersions[j] == 721) {
-            ERC721BasicToken(_payoutTokens[j]).transferFrom(
-             this, fulfillment.fulfillers[i], _tokenAmounts[j][i]);
+            ERC721BasicToken(_payoutTokens[j]).safeTransferFrom(this, fulfillment.fulfillers[i], _tokenAmounts[i][j]);
           } else {
             throw;
           }
 
         }
       }
-*/
-      /* FulfillmentAccepted(_fulfillmentId, msg.sender, _payoutTokens, _tokenAmounts); */
+
+       FulfillmentAccepted(_fulfillmentId, msg.sender, _payoutTokens, _tokenAmounts);
 
   }
 

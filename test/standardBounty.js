@@ -555,7 +555,7 @@ contract('StandardBounty', function(accounts) {
 
   });
 
-  it.only("Verifies that I can accept a fulfillment paying out some ERC721 tokens I have a balance of", async () => {
+  it("Verifies that I can accept a fulfillment paying out some ERC721 tokens I have a balance of", async () => {
 
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
@@ -586,18 +586,19 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdb.getFulfillment(0);
 
-    let result = await stdbWrapper.acceptFulfillment(0, [stdt.address], [721], [[123]]);
+    let result = await stdbWrapper.acceptFulfillment(0, [stdt.address], [721], [[123]], {gasLimit: 200000}).then((status) => {
+      console.log("result", status);
+    });
 
+    tokenBalance = await stdt.balanceOf(stdb.address);
 
-  //  tokenBalance = await stdt.balanceOf(stdb.address);
-/*
 
     assert(parseInt(tokenBalance, 10) === 0);
 
     owner = await stdt.ownerOf(123);
 
     assert(owner === accounts[2]);
-*/
+
 
   });
 
@@ -662,9 +663,9 @@ contract('StandardBounty', function(accounts) {
 
     await stdbWrapper.fulfillBounty([accounts[2]], "data");
 
-    let fulfillment = await stdbWrapper.getFulfillment(0);
+    let fulfillment = await stdb.getFulfillment(0);
 
-    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100, 1000]]);
+    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100, 1000]], {gasLimit: 1500000});
 
     balance = await web3.eth.getBalance(stdb.address);
 
@@ -673,7 +674,6 @@ contract('StandardBounty', function(accounts) {
     tokenBalance = await stdt.balanceOf(stdb.address);
 
     (parseInt(tokenBalance, 10) === 0);
-
 
   });
 
@@ -702,9 +702,9 @@ contract('StandardBounty', function(accounts) {
 
     await stdbWrapper.fulfillBounty([accounts[2]], "data");
 
-    let fulfillment = await stdbWrapper.getFulfillment(0);
+    let fulfillment = await stdb.getFulfillment(0);
 
-    await stdbWrapper2.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100, 1000]]);
+    await stdbWrapper2.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100, 1000]], {gasLimit: 1500000});
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
