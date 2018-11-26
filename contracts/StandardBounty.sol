@@ -309,17 +309,18 @@ contract StandardBounty {
 
         for (uint256 j = 0; j < _payoutTokens.length; j++){
           // for each token which the bounty issuer wishes to pay
-
-          if (_tokenVersions[j] == 0){
-              require(this.balance >= _tokenAmounts[i][j]);
-              fulfillment.fulfillers[i].transfer(_tokenAmounts[i][j]);
-          } else if (_tokenVersions[j] == 20) {
-            require(StandardToken(_payoutTokens[j]).transfer(
-              fulfillment.fulfillers[i], _tokenAmounts[i][j]));
-          } else if (_tokenVersions[j] == 721) {
-          //  ERC721BasicToken(_payoutTokens[j]).safeTransferFrom(this, fulfillment.fulfillers[i], _tokenAmounts[i][j]);
-          } else {
-            throw;
+          if (_tokenAmounts[i][j] != 0){
+            if (_tokenVersions[j] == 0){
+                require(this.balance >= _tokenAmounts[i][j]);
+                fulfillment.fulfillers[i].transfer(_tokenAmounts[i][j]);
+            } else if (_tokenVersions[j] == 20) {
+              require(StandardToken(_payoutTokens[j]).transfer(
+                fulfillment.fulfillers[i], _tokenAmounts[i][j]));
+            } else if (_tokenVersions[j] == 721) {
+                ERC721BasicToken(_payoutTokens[j]).safeTransferFrom(this, fulfillment.fulfillers[i], _tokenAmounts[i][j]);
+            } else {
+              throw;
+            }
           }
 
         }
