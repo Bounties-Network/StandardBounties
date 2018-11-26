@@ -296,7 +296,7 @@ contract StandardBounty {
       sameLength(_payoutTokens.length, _tokenVersions.length)
       onlyApprover
   {
-      
+
       // now that the bounty has paid out at least once, refunds are no longer possible
       hasPaidOut = true;
 
@@ -317,7 +317,7 @@ contract StandardBounty {
             require(StandardToken(_payoutTokens[j]).transfer(
               fulfillment.fulfillers[i], _tokenAmounts[i][j]));
           } else if (_tokenVersions[j] == 721) {
-            ERC721BasicToken(_payoutTokens[j]).safeTransferFrom(this, fulfillment.fulfillers[i], _tokenAmounts[i][j]);
+          //  ERC721BasicToken(_payoutTokens[j]).safeTransferFrom(this, fulfillment.fulfillers[i], _tokenAmounts[i][j]);
           } else {
             throw;
           }

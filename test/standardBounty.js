@@ -788,6 +788,36 @@ contract('StandardBounty', function(accounts) {
 
   });
 
+
+  it.only("Verifies that I can't accept a fulfillment paying out in multiple tokens to multiple people", async () => {
+
+    const stdb = await StandardBounty.new();
+    const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
+
+    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+
+    let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+    let stdt2 = await HumanStandardToken.new(1000000000, "Bounty Token2", 18, "BOUNT2");
+    let stdt3 = await ERC721BasicTokenMock.new();
+
+    await stdt3.mint(accounts[0], 123);
+    await stdt3.mint(accounts[0], 456);
+
+
+    await stdt.approve(stdbWrapper.address, 1000);
+    await stdt2.approve(stdbWrapper.address, 1000);
+    await stdt3.approve(stdb.address, 123);
+    await stdt3.approve(stdb.address, 456);
+
+    await stdb.refundableContribute([100, 1000, 1000, 123, 456], ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address, stdt3.address, stdt3.address], [0, 20, 20, 721, 721], {value: 100});
+
+    await stdbWrapper.fulfillBounty([accounts[2], accounts[3]], "data");
+
+    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address, stdt3.address, stdt3.address], [0, 20, 20, 721, 721], [[50, 500, 500, 123, 0], [50, 500, 500, 0, 456]], {gasLimit: 2000000});
+
+  });
+
+
   it("Verifies that I can accept a fulfillment paying out a fraction of the tokens I have a balance of", async () => {
 
     const stdb = await StandardBounty.new();
