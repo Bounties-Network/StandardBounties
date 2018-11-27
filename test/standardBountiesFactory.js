@@ -16,7 +16,7 @@ contract('StandardBountiesFactory', function(accounts) {
     let factory = await StandardBountiesFactory.new(stdb.address);
 
     for (var i = 0; i < 100; i++){
-      await factory.createBounty(accounts[0], accounts[1], "data"+i, "888888888888");
+      await factory.createBounty(accounts[0], [accounts[1]], "data"+i, "888888888888");
 
       let bountyAddress = await factory.bounties(i);
 

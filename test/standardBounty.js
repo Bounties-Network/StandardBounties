@@ -28,7 +28,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let bounty = await stdb.getBounty();
 
@@ -45,7 +45,7 @@ contract('StandardBounty', function(accounts) {
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
     try {
-      await stdbWrapper.initializeBounty("0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0xdeadbeef", "1800000000");
+      await stdbWrapper.initializeBounty("0x0000000000000000000000000000000000000000", ["0x0000000000000000000000000000000000000000"], "0xdeadbeef", "1800000000");
 
     } catch (error){
       return utils.ensureException(error);
@@ -58,7 +58,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let bounty = await stdb.getBounty();
 
@@ -67,7 +67,7 @@ contract('StandardBounty', function(accounts) {
     assert(parseInt(bounty[2], 10) === 0);
 
     try {
-      await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+      await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     } catch (error){
       return utils.ensureException(error);
@@ -80,7 +80,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     await web3.eth.sendTransaction({from: accounts[0], to: stdbWrapper.address, value: 100});
 
@@ -95,7 +95,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -113,7 +113,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     await web3.eth.sendTransaction({ from: accounts[0], to: stdb.address, value: 100});
 
@@ -137,7 +137,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], [0], {from: accounts[1], value: 100});
 
@@ -160,7 +160,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -187,7 +187,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -211,7 +211,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -231,7 +231,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     try {
       await stdb.refundableContribute([10000], ["0x0000000000000000000000000000000000000000"], [0], {value: 100});
@@ -247,7 +247,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -267,7 +267,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -287,7 +287,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -307,7 +307,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     try {
       await stdb.refundableContribute([1000, 1000], ["0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000"], [0, 0], {value: 1000});
@@ -327,7 +327,7 @@ contract('StandardBounty', function(accounts) {
 
     var timestamp = await web3.eth.getBlock(blockNumber).timestamp;
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) - 10 );
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", parseInt(timestamp, 10) - 10 );
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], [0], {value: 100});
 
@@ -353,7 +353,7 @@ contract('StandardBounty', function(accounts) {
 
     var timestamp = web3.eth.getBlock(blockNumber).timestamp;
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) - 10);
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", parseInt(timestamp, 10) - 10);
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -382,7 +382,7 @@ contract('StandardBounty', function(accounts) {
 
     var timestamp = web3.eth.getBlock(blockNumber).timestamp;
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) - 10);
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", parseInt(timestamp, 10) - 10);
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -420,7 +420,7 @@ contract('StandardBounty', function(accounts) {
 
     var timestamp = web3.eth.getBlock(blockNumber).timestamp;
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) - 10);
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", parseInt(timestamp, 10) - 10);
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], [0], {value: 100});
 
@@ -451,7 +451,7 @@ contract('StandardBounty', function(accounts) {
 
     var timestamp = web3.eth.getBlock(blockNumber).timestamp;
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) - 10);
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", parseInt(timestamp, 10) - 10);
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], [0], {value: 100});
 
@@ -477,7 +477,7 @@ contract('StandardBounty', function(accounts) {
 
     var timestamp = web3.eth.getBlock(blockNumber).timestamp;
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", parseInt(timestamp, 10) + 200);
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", parseInt(timestamp, 10) + 200);
 
     await stdbWrapper.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], [0], {value: 100});
 
@@ -487,7 +487,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdbWrapper.fulfillBounty([accounts[2]], "data");
 
-    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000"], [0], [[100]]);
+    await stdbWrapper.acceptFulfillment(0, 0, ["0x0000000000000000000000000000000000000000"], [0], [[100]]);
 
     balance = await web3.eth.getBalance(stdb.address);
 
@@ -508,7 +508,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     await stdb.submitIntention().then((status) => {
       assert.strictEqual('IntentionSubmitted', status.logs[0].event, 'did not emit the IntentionSubmitted event');
@@ -521,7 +521,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], [0], {value: 100});
 
@@ -538,7 +538,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     await stdb.refundableContribute([100], ["0x0000000000000000000000000000000000000000"], [0], {value: 100});
 
@@ -560,7 +560,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await ERC721BasicTokenMock.new();
 
@@ -586,12 +586,9 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdb.getFulfillment(0);
 
-    let result = await stdbWrapper.acceptFulfillment(0, [stdt.address], [721], [[123]], {gasLimit: 200000}).then((status) => {
-      console.log("result", status);
-    });
+    let result = await stdbWrapper.acceptFulfillment(0, 0, [stdt.address], [721], [[123]], {gasLimit: 200000});
 
     tokenBalance = await stdt.balanceOf(stdb.address);
-
 
     assert(parseInt(tokenBalance, 10) === 0);
 
@@ -607,7 +604,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -627,7 +624,7 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdbWrapper.getFulfillment(0);
 
-    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000"], [0], [[100]]);
+    await stdbWrapper.acceptFulfillment(0, 0, ["0x0000000000000000000000000000000000000000"], [0], [[100]]);
 
     balance = await web3.eth.getBalance(stdb.address);
 
@@ -645,7 +642,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -665,7 +662,7 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdb.getFulfillment(0);
 
-    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100, 1000]], {gasLimit: 1500000});
+    await stdbWrapper.acceptFulfillment(0, 0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100, 1000]], {gasLimit: 1500000});
 
     balance = await web3.eth.getBalance(stdb.address);
 
@@ -684,7 +681,7 @@ contract('StandardBounty', function(accounts) {
     const stdbWrapper2 = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[1]));
 
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -704,7 +701,7 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdb.getFulfillment(0);
 
-    await stdbWrapper2.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100, 1000]], {gasLimit: 1500000});
+    await stdbWrapper2.acceptFulfillment(0, 0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[100, 1000]], {gasLimit: 1500000});
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -722,7 +719,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -742,7 +739,7 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdbWrapper.getFulfillment(0);
 
-    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[50, 500]]);
+    await stdbWrapper.acceptFulfillment(0, 0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[50, 500]]);
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -759,7 +756,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -780,7 +777,7 @@ contract('StandardBounty', function(accounts) {
     let fulfillment = await stdbWrapper.getFulfillment(0);
 
     try {
-      await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[110, 1000]]);
+      await stdbWrapper.acceptFulfillment(0, 0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[110, 1000]]);
     } catch (error){
       return utils.ensureException(error);
     }
@@ -789,12 +786,12 @@ contract('StandardBounty', function(accounts) {
   });
 
 
-  it.only("Verifies that I can't accept a fulfillment paying out in multiple tokens to multiple people", async () => {
+  it("Verifies that I can't accept a fulfillment paying out in multiple tokens to multiple people", async () => {
 
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
     let stdt2 = await HumanStandardToken.new(1000000000, "Bounty Token2", 18, "BOUNT2");
@@ -813,7 +810,7 @@ contract('StandardBounty', function(accounts) {
 
     await stdbWrapper.fulfillBounty([accounts[2], accounts[3]], "data");
 
-    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address, stdt3.address, stdt3.address], [0, 20, 20, 721, 721], [[50, 500, 500, 123, 0], [50, 500, 500, 0, 456]], {gasLimit: 2000000});
+    await stdbWrapper.acceptFulfillment(0, 0, ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address, stdt3.address, stdt3.address], [0, 20, 20, 721, 721], [[50, 500, 500, 123, 0], [50, 500, 500, 0, 456]], {gasLimit: 2000000});
 
   });
 
@@ -823,7 +820,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -843,7 +840,7 @@ contract('StandardBounty', function(accounts) {
 
     let fulfillment = await stdbWrapper.getFulfillment(0);
 
-    await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[66, 666]]);
+    await stdbWrapper.acceptFulfillment(0, 0, ["0x0000000000000000000000000000000000000000", stdt.address], [0, 20], [[66, 666]]);
 
     balance = await web3.eth.getBalance(stdbWrapper.address);
 
@@ -860,7 +857,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
     let stdt2 = await HumanStandardToken.new(1000000000, "Bounty Token2", 18, "BOUNT2");
@@ -886,7 +883,7 @@ contract('StandardBounty', function(accounts) {
     let fulfillment = await stdbWrapper.getFulfillment(0);
 
     try {
-      await stdbWrapper.acceptFulfillment(0, ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address], [0, 20, 20], [[100, 1000, 1000]]);
+      await stdbWrapper.acceptFulfillment(0, 0, ["0x0000000000000000000000000000000000000000", stdt.address, stdt2.address], [0, 20, 20], [[100, 1000, 1000]]);
     } catch (error){
       return utils.ensureException(error);
 
@@ -899,7 +896,7 @@ contract('StandardBounty', function(accounts) {
     const stdb = await StandardBounty.new();
     const stdbWrapper = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[0]));
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -970,7 +967,7 @@ contract('StandardBounty', function(accounts) {
     const stdbWrapper3 = new Contract(stdb.address, stdbAbi.abi, web3Provider.getSigner(accounts[3]));
 
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1002,7 +999,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1038,7 +1035,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1084,7 +1081,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1117,7 +1114,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1152,7 +1149,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1187,7 +1184,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1221,7 +1218,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1250,7 +1247,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1284,7 +1281,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
     let stdt2 = await HumanStandardToken.new(1000000000, "Bounty Token2", 18, "BOUNT2");
@@ -1318,7 +1315,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1382,7 +1379,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1410,7 +1407,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let stdt = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
@@ -1438,7 +1435,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let bounty = await stdb.getBounty();
 
@@ -1460,7 +1457,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let bounty = await stdb.getBounty();
 
@@ -1479,7 +1476,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let bounty = await stdb.getBounty();
 
@@ -1501,7 +1498,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let bounty = await stdb.getBounty();
 
@@ -1521,7 +1518,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let bounty = await stdb.getBounty();
 
@@ -1543,7 +1540,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let bounty = await stdb.getBounty();
 
@@ -1563,7 +1560,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let bounty = await stdb.getBounty();
 
@@ -1586,7 +1583,7 @@ contract('StandardBounty', function(accounts) {
 
     let stdb = await StandardBounty.new();
 
-    await stdbWrapper.initializeBounty(accounts[0], accounts[1], "0xdeadbeef", "1800000000");
+    await stdbWrapper.initializeBounty(accounts[0], [accounts[1]], "0xdeadbeef", "1800000000");
 
     let bounty = await stdb.getBounty();
 

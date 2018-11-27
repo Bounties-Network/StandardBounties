@@ -17,12 +17,12 @@ contract StandardBountiesFactory {
     masterCopy = _masterCopy;
   }
 
-  function createBounty(address _controller, address _arbiter, string _data, uint _deadline)
+  function createBounty(address _controller, address[] _approvers, string _data, uint _deadline)
   public
   {
     address newBounty = new Proxy(masterCopy);
     bounties.push(StandardBounty(newBounty));
-    bounties[bounties.length - 1].initializeBounty(_controller, _arbiter, _data, _deadline);
+    bounties[bounties.length - 1].initializeBounty(_controller, _approvers, _data, _deadline);
 
     BountyCreated(bounties.length - 1, bounties[bounties.length - 1]);
   }

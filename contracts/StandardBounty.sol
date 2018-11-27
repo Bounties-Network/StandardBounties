@@ -17,7 +17,7 @@ contract StandardBounty {
 
   address public controller;
 
-  address public arbiter;
+  address[] public approvers;
 
   uint public deadline;
 
@@ -33,7 +33,7 @@ contract StandardBounty {
    * Events
    */
 
-  event BountyInitialized(address _creator, address _controller, address _arbiter, string _data, uint _deadline);
+  event BountyInitialized(address _creator, address _controller, address[] _approvers, string _data, uint _deadline);
   event ContributionAdded(address _contributor, uint _contributionId);
   event ContributionRefunded(uint _contributionId);
   event IntentionSubmitted(address _fulfiller);
@@ -42,7 +42,7 @@ contract StandardBounty {
   event BountyDrained(address _controller, address[] _payoutTokens, uint[] _tokenAmounts);
   event BountyChanged(address _oldController, address _newController, string _newData);
   event BountyControllerChanged(address _oldController, address _newController);
-  event BountyArbiterChanged(address _controller, address _arbiter);
+  event BountyApproverChanged(address _controller, uint _approverId, address _approver);
   event BountyDataChanged(address _controller, string _newData);
   event BountyDeadlineChanged(address _controller, uint _deadline);
   event MasterCopyChanged(address _controller, address _newMasterCopy);
@@ -75,8 +75,8 @@ contract StandardBounty {
       _;
   }
 
-  modifier onlyApprover() {
-      require(msg.sender == controller || msg.sender == arbiter);
+  modifier canApprove(uint _approverId) {
+      require(msg.sender == controller || msg.sender == approvers[_approverId]);
       _;
   }
 
@@ -87,6 +87,11 @@ contract StandardBounty {
 
   modifier validateFulfillmentArrayIndex(uint _index) {
       require(_index < fulfillments.length);
+      _;
+  }
+
+  modifier validateApproverArrayIndex(uint _index) {
+      require(_index < approvers.length);
       _;
   }
 
@@ -151,7 +156,7 @@ contract StandardBounty {
     */
   function initializeBounty(
       address _controller,
-      address _arbiter,
+      address[] _approvers,
       string _data,
       uint _deadline)
       public
@@ -162,10 +167,10 @@ contract StandardBounty {
     // so this check prevents initialization from being called multiple times
 
     controller = _controller;
-    arbiter = _arbiter;
+    approvers = _approvers;
     deadline = _deadline;
 
-    BountyInitialized(msg.sender, _controller, _arbiter, _data, _deadline);
+    BountyInitialized(msg.sender, _controller, _approvers, _data, _deadline);
   }
 
   /*
@@ -290,11 +295,12 @@ contract StandardBounty {
     @param _tokenAmounts the array of the number of units of each _payoutToken
     which are rewarded to the fulfillment in question
     */
-  function acceptFulfillment(uint _fulfillmentId, address[] _payoutTokens, uint[] _tokenVersions, uint[][] _tokenAmounts)
+  function acceptFulfillment(uint _approverId, uint _fulfillmentId, address[] _payoutTokens, uint[] _tokenVersions, uint[][] _tokenAmounts)
       public
       validateFulfillmentArrayIndex(_fulfillmentId)
+      validateApproverArrayIndex(_approverId)
       sameLength(_payoutTokens.length, _tokenVersions.length)
-      onlyApprover
+      canApprove(_approverId)
   {
 
       // now that the bounty has paid out at least once, refunds are no longer possible
@@ -349,15 +355,14 @@ contract StandardBounty {
     @param _tokenAmounts the array of the number of units of each _payoutToken
     which are rewarded to the fulfillment in question
     */
-  function fulfillAndAccept(address[] _fulfillers, string _data, address[] _payoutTokens, uint[] _tokenVersions, uint[][] _tokenAmounts)
+  function fulfillAndAccept(uint _approverId, address[] _fulfillers, string _data, address[] _payoutTokens, uint[] _tokenVersions, uint[][] _tokenAmounts)
       public
-      onlyApprover
   {
       // first fulfills the bounty for the fulfillers
       fulfillBounty(_fulfillers, _data);
 
       // then accepts the fulfillment
-      acceptFulfillment(fulfillments.length - 1, _payoutTokens, _tokenVersions, _tokenAmounts);
+      acceptFulfillment(_approverId, fulfillments.length - 1, _payoutTokens, _tokenVersions, _tokenAmounts);
   }
   /*
     @dev if funds remain in the bounty and the controller wants to be refunded,
@@ -397,12 +402,12 @@ contract StandardBounty {
     @param _data the new IPFS hash associated with the updated data
     @param _deadline the new deadline
     */
-  function changeBounty(address _controller, address _arbiter, string _data, uint _deadline)
+  function changeBounty(address _controller, address[] _approvers, string _data, uint _deadline)
       public
       onlyController
   {
       controller = _controller;
-      arbiter = _arbiter;
+      approvers = _approvers;
       deadline = _deadline;
       BountyChanged(msg.sender, _controller, _data);
   }
@@ -425,12 +430,13 @@ contract StandardBounty {
     the bounty
     @param _controller the address of the new controller
     */
-  function changeArbiter(address _arbiter)
+  function changeApprover(uint _approverId, address _approver)
       public
       onlyController
+      validateApproverArrayIndex(_approverId)
   {
-      arbiter = _arbiter;
-      BountyArbiterChanged(msg.sender, _arbiter);
+      approvers[_approverId] = _approver;
+      BountyApproverChanged(msg.sender, _approverId, _approver);
   }
 
 
@@ -459,21 +465,13 @@ contract StandardBounty {
       BountyDeadlineChanged(msg.sender, _deadline);
   }
 
-  /*
-    @dev in order for proxy contracts to be able to change the master copy address
-    that they rely on, they may call this function to instruct their proxy to now
-    point to a new contract
-    @param _masterCopy the new address of the master copy contract
-    */
-  function changeMasterCopy(StandardBounty _masterCopy)
+  function addApprover(address[] _approvers)
       public
       onlyController
   {
-      require(address(_masterCopy) != 0);
-      //this would freeze the bounty and make it unusable
-
-      masterCopy = _masterCopy;
-      MasterCopyChanged(msg.sender, _masterCopy);
+      for (uint i = 0; i < _approvers.length; i++){
+        approvers.push(_approvers[i]);
+      }
   }
 
   /*
@@ -482,13 +480,13 @@ contract StandardBounty {
   function getBounty()
       public
       constant
-      returns (address, bool, uint, address, address, uint)
+      returns (address, bool, uint, address, address[], uint)
   {
       return (controller,
               hasPaidOut,
               fulfillments.length,
               masterCopy,
-              arbiter,
+              approvers,
               deadline);
   }
 
