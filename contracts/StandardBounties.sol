@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 pragma experimental ABIEncoderV2;
 
-import "./inherited/StandardToken.sol";
+import "./inherited/ERC20Token.sol";
 import "./inherited/ERC721Basic.sol";
 
 /// @title StandardBounties
@@ -177,6 +177,7 @@ contract StandardBounties {
        payable
        public
        validateBountyArrayIndex(_bountyId)
+       hasNotPaid(_bountyId)
    {
        bounties[_bountyId].contributions.push(Contribution(msg.sender, _amount, false));
        bounties[_bountyId].balance += _amount;
@@ -185,8 +186,10 @@ contract StandardBounties {
            require(_amount > 0);
            require(msg.value == _amount);
        } else if (bounties[_bountyId].tokenVersion == 20) {
+           require(msg.value == 0);
            require(StandardToken(bounties[_bountyId].token).transferFrom(msg.sender, this, _amount));
        } else if (bounties[_bountyId].tokenVersion == 721) {
+           require(msg.value == 0);
            ERC721BasicToken(bounties[_bountyId].token).transferFrom(msg.sender, this, _amount);
        } else {
          throw;

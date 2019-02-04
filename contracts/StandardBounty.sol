@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 pragma experimental ABIEncoderV2;
 
-import "./inherited/StandardToken.sol";
+import "./inherited/ERC20Token.sol";
 import "./inherited/ERC721Basic.sol";
 
 /// @title StandardBounties

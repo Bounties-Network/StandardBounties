@@ -10,7 +10,7 @@ pragma solidity ^0.4.8;
 
 import "./Token.sol";
 
-contract StandardToken is Token {
+contract ERC20Token is Token {
 
     function transfer(address _to, uint256 _value) returns (bool success) {
         //Default assumes totalSupply can't be over max (2^256 - 1).
