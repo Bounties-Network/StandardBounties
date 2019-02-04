@@ -339,7 +339,6 @@ contract StandardBounty {
       public
       onlyController
   {
-      // for each token that the controller wishes to receive
       if (tokenVersion == 0){
           controller.transfer(_tokenAmount);
       } else if (tokenVersion == 20) {
