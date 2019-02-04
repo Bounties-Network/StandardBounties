@@ -21,6 +21,10 @@ contract StandardBounty {
 
   uint public deadline;
 
+  address public token;
+
+  uint public tokenVersion;
+
   bool public hasPaidOut;
 
   Fulfillment[] public fulfillments;
@@ -33,13 +37,13 @@ contract StandardBounty {
    * Events
    */
 
-  event BountyInitialized(address _creator, address _controller, address[] _approvers, string _data, uint _deadline);
+  event BountyInitialized(address _creator, address _controller, address[] _approvers, string _data, uint _deadline, address _token, uint _tokenVersion);
   event ContributionAdded(address _contributor, uint _contributionId);
   event ContributionRefunded(uint _contributionId);
   event IntentionSubmitted(address _fulfiller);
   event BountyFulfilled(uint256 _fulfillmentId, address _submitter, string _data);
-  event FulfillmentAccepted(uint256 _fulfillmentId, address _controller, address[] _payoutTokens, uint[][] _tokenAmounts);
-  event BountyDrained(address _controller, address[] _payoutTokens, uint[] _tokenAmounts);
+  event FulfillmentAccepted(uint256 _fulfillmentId, address _controller, uint[] _tokenAmounts);
+  event BountyDrained(address _controller, uint _tokenAmount);
   event BountyChanged(address _oldController, address _newController, string _newData);
   event BountyControllerChanged(address _oldController, address _newController);
   event BountyApproverChanged(address _controller, uint _approverId, address _approver);
@@ -47,7 +51,6 @@ contract StandardBounty {
   event BountyDeadlineChanged(address _controller, uint _deadline);
   event MasterCopyChanged(address _controller, address _newMasterCopy);
 
-  event LogEvent(uint u1, uint u2, uint u3);
 
   /*
    * Structs
@@ -59,11 +62,8 @@ contract StandardBounty {
 
   struct Contribution {
       address contributor;
-      uint[] amounts;
-      address[] tokens;
-      uint[] tokenVersions;
+      uint amount;
       bool refunded;
-      mapping (address => bool) hasContributed;
   }
 
   /*
@@ -120,18 +120,6 @@ contract StandardBounty {
       _;
   }
 
-  modifier sumToOneAndNoneZero(uint[] _numerators, uint _denomenator){
-    // to determine whether the fractions sum to 1, we will sum the numerators
-    // and require that this sum equals the denomenator
-      uint sum = 0;
-      for (uint i = 0; i < _numerators.length; i++){
-        require(_numerators[i] > 0);
-        sum += _numerators[i];
-      }
-      require(sum == _denomenator);
-      _;
-  }
-
 
   /*
    * Public functions
@@ -158,7 +146,9 @@ contract StandardBounty {
       address _controller,
       address[] _approvers,
       string _data,
-      uint _deadline)
+      uint _deadline,
+      address _token,
+      uint _tokenVersion)
       public
   {
     require(controller == address(0));
@@ -169,8 +159,10 @@ contract StandardBounty {
     controller = _controller;
     approvers = _approvers;
     deadline = _deadline;
+    token = _token;
+    tokenVersion = _tokenVersion;
 
-    BountyInitialized(msg.sender, _controller, _approvers, _data, _deadline);
+    BountyInitialized(msg.sender, _controller, _approvers, _data, _deadline, _token, _tokenVersion);
   }
 
   /*
@@ -185,33 +177,25 @@ contract StandardBounty {
     @param _tokenVersions an array of integegers representing the version of the token
     contract (ie 0 for ETH, 20 for ERC20, 721 for ERC721)
     */
-  function refundableContribute(uint[] _amounts, address[] _tokens, uint[] _tokenVersions)
+  function refundableContribute(uint _amount)
   public
   payable
-  sameLength(_amounts.length, _tokens.length)
-  sameLength(_amounts.length, _tokenVersions.length)
   {
-    contributions.push(Contribution(msg.sender, _amounts, _tokens, _tokenVersions, false));
+    contributions.push(Contribution(msg.sender, _amount, false));
     uint contributionId = contributions.length - 1;
-    for (uint i = 0; i < _amounts.length; i++){
-      // contributions cannot contain multiple transactions in the same token
 
-      //require(!contributions[contributionId].hasContributed[_tokens[i]]);
-      if (_tokenVersions[i] == 0){
-          require(_amounts[i] > 0);
-          require(msg.value == _amounts[i]);
-      } else if (_tokenVersions[i] == 20) {
-          require(StandardToken(_tokens[i]).transferFrom(msg.sender, this, _amounts[i]));
-      } else if (_tokenVersions[i] == 721) {
-          ERC721BasicToken(_tokens[i]).transferFrom(msg.sender, this, _amounts[i]);
-      } else {
-        throw;
-      }
-
-      // the contribution in that token is only completed once the transfer
-      // has been performed
-      contributions[contributionId].hasContributed[_tokens[i]] = true;
+    if (tokenVersion == 0){
+        require(_amount > 0);
+        require(msg.value == _amount);
+    } else if (tokenVersion == 20) {
+        require(StandardToken(token).transferFrom(msg.sender, this, _amount));
+    } else if (tokenVersion == 721) {
+        ERC721BasicToken(token).transferFrom(msg.sender, this, _amount);
+    } else {
+      throw;
     }
+
+
     ContributionAdded(msg.sender, contributions.length - 1);
   }
 
@@ -232,23 +216,15 @@ contract StandardBounty {
     Contribution contribution = contributions[_contributionId];
     contribution.refunded = true;
 
-
-    for (uint i = 0; i < contribution.amounts.length; i++){
-      // a contribution may only be refunded if it has finished contributing
-      require(contribution.hasContributed[contribution.tokens[i]]);
-
-
-      if (contribution.tokenVersions[i] == 0){
-        contribution.contributor.transfer(contribution.amounts[i]);
-      } else if (contribution.tokenVersions[i] == 20) {
-        require(StandardToken(contribution.tokens[i]).transfer(contribution.contributor,
-                                                contribution.amounts[i]));
-      } else if (contribution.tokenVersions[i] == 721) {
-          ERC721BasicToken(contribution.tokens[i]).transferFrom(this, contribution.contributor, contribution.amounts[i]);
-      } else {
-        throw;
-      }
-
+    if (tokenVersion == 0){
+      contribution.contributor.transfer(contribution.amount);
+    } else if (tokenVersion == 20) {
+      require(StandardToken(token).transfer(contribution.contributor,
+                                              contribution.amount));
+    } else if (tokenVersion == 721) {
+        ERC721BasicToken(token).transferFrom(this, contribution.contributor, contribution.amount);
+    } else {
+      throw;
     }
 
     ContributionRefunded(_contributionId);
@@ -288,18 +264,14 @@ contract StandardBounty {
     acceptFulfillment, releasing a payment to the fulfillers, denoted in the specific
     token amounts for given tokens of their choosing
     @param _fulfillmentId the ID of the fulfillment being accepted
-    @param _payoutTokens the array of addresses corresponding to tokens which
-    are being paid out to the fulfillers
-    @param _tokenVersions an array of integegers representing the version of the token
-    contract (ie 0 for ETH, 20 for ERC20, 721 for ERC721)
     @param _tokenAmounts the array of the number of units of each _payoutToken
     which are rewarded to the fulfillment in question
     */
-  function acceptFulfillment(uint _approverId, uint _fulfillmentId, address[] _payoutTokens, uint[] _tokenVersions, uint[][] _tokenAmounts)
+  function acceptFulfillment(uint _approverId, uint _fulfillmentId,  uint[] _tokenAmounts)
       public
       validateFulfillmentArrayIndex(_fulfillmentId)
       validateApproverArrayIndex(_approverId)
-      sameLength(_payoutTokens.length, _tokenVersions.length)
+      sameLength(_tokenAmounts.length, fulfillments[_fulfillmentId].fulfillers.length)
       canApprove(_approverId)
   {
 
@@ -311,28 +283,24 @@ contract StandardBounty {
 
       for (uint256 i = 0; i < fulfillment.fulfillers.length; i++){
         // for each fulfiller associated with the submission
-        require(_tokenAmounts[i].length == _payoutTokens.length);
 
-        for (uint256 j = 0; j < _payoutTokens.length; j++){
-          // for each token which the bounty issuer wishes to pay
-          if (_tokenAmounts[i][j] != 0){
-            if (_tokenVersions[j] == 0){
-                require(this.balance >= _tokenAmounts[i][j]);
-                fulfillment.fulfillers[i].transfer(_tokenAmounts[i][j]);
-            } else if (_tokenVersions[j] == 20) {
-              require(StandardToken(_payoutTokens[j]).transfer(
-                fulfillment.fulfillers[i], _tokenAmounts[i][j]));
-            } else if (_tokenVersions[j] == 721) {
-                ERC721BasicToken(_payoutTokens[j]).safeTransferFrom(this, fulfillment.fulfillers[i], _tokenAmounts[i][j]);
-            } else {
-              throw;
-            }
+        if (_tokenAmounts[i] != 0){
+          if (tokenVersion == 0){
+              require(this.balance >= _tokenAmounts[i]);
+              fulfillment.fulfillers[i].transfer(_tokenAmounts[i]);
+          } else if (tokenVersion == 20) {
+            require(StandardToken(token).transfer(
+              fulfillment.fulfillers[i], _tokenAmounts[i]));
+          } else if (tokenVersion == 721) {
+              ERC721BasicToken(token).safeTransferFrom(this, fulfillment.fulfillers[i], _tokenAmounts[i]);
+          } else {
+            throw;
           }
-
         }
+
       }
 
-       FulfillmentAccepted(_fulfillmentId, msg.sender, _payoutTokens, _tokenAmounts);
+       FulfillmentAccepted(_fulfillmentId, msg.sender, _tokenAmounts);
 
   }
 
@@ -342,12 +310,6 @@ contract StandardBounty {
     on-chain for later audit, and accept that fulfillment to release payment
     @param _fulfillers an array of addresses which contributed to the submission
     (and should be paid)
-    @param _numerators an array of numerators for the fractions of the payout which
-    should go to each fulfiller
-    @param _denominator the denomenator for the fractions of the payout going to
-    each fulfiller
-    @param _data a string representing an IPFS hash, storing the data associated
-    with the submission
     @param _payoutTokens the array of addresses corresponding to tokens which
     are being paid out to the fulfillers
     @param _tokenVersions an array of integegers representing the version of the token
@@ -355,14 +317,14 @@ contract StandardBounty {
     @param _tokenAmounts the array of the number of units of each _payoutToken
     which are rewarded to the fulfillment in question
     */
-  function fulfillAndAccept(uint _approverId, address[] _fulfillers, string _data, address[] _payoutTokens, uint[] _tokenVersions, uint[][] _tokenAmounts)
+  function fulfillAndAccept(uint _approverId, address[] _fulfillers, string _data, uint[] _tokenAmounts)
       public
   {
       // first fulfills the bounty for the fulfillers
       fulfillBounty(_fulfillers, _data);
 
       // then accepts the fulfillment
-      acceptFulfillment(_approverId, fulfillments.length - 1, _payoutTokens, _tokenVersions, _tokenAmounts);
+      acceptFulfillment(_approverId, fulfillments.length - 1, _tokenAmounts);
   }
   /*
     @dev if funds remain in the bounty and the controller wants to be refunded,
@@ -373,25 +335,22 @@ contract StandardBounty {
     contract (ie 0 for ETH, 20 for ERC20, 721 for ERC721)
     @param _tokenAmounts the values of the tokens which are being drained
     */
-  function drainBounty(address[] _payoutTokens, uint[] _tokenVersions, uint[] _tokenAmounts)
+  function drainBounty(uint _tokenAmount)
       public
       onlyController
-      sameLength(_payoutTokens.length, _tokenVersions.length)
-      sameLength(_payoutTokens.length, _tokenAmounts.length)
   {
-    for (uint256 i = 0; i < _payoutTokens.length; i++){
       // for each token that the controller wishes to receive
-      if (_tokenVersions[i] == 0){
-          controller.transfer(_tokenAmounts[i]);
-      } else if (_tokenVersions[i] == 20) {
-        require(StandardToken(_payoutTokens[i]).transfer(
-          controller, _tokenAmounts[i]));
-      } else if (_tokenVersions[i] == 721) {
-        ERC721BasicToken(_payoutTokens[i]).transferFrom(
-          this, controller, _tokenAmounts[i]);
+      if (tokenVersion == 0){
+          controller.transfer(_tokenAmount);
+      } else if (tokenVersion == 20) {
+        require(StandardToken(token).transfer(
+          controller, _tokenAmount));
+      } else if (tokenVersion == 721) {
+        ERC721BasicToken(token).transferFrom(
+          this, controller, _tokenAmount);
       }
-    }
-      BountyDrained(msg.sender, _payoutTokens, _tokenAmounts);
+
+      BountyDrained(msg.sender, _tokenAmount);
   }
 
   /*
@@ -510,12 +469,10 @@ contract StandardBounty {
   function getContribution(uint _contributionId)
       public
       constant
-      returns (address, uint[], address[], uint[], bool)
+      returns (address, uint, bool)
   {
       return (contributions[_contributionId].contributor,
-              contributions[_contributionId].amounts,
-              contributions[_contributionId].tokens,
-              contributions[_contributionId].tokenVersions,
+              contributions[_contributionId].amount,
               contributions[_contributionId].refunded);
   }
 }
