@@ -16,7 +16,7 @@ contract StandardBounties {
   event BountyIssued(uint _bountyId, address _creator, address _issuer, address[] _approvers, string _data, uint _deadline, address _token, uint _tokenVersion);
   event ContributionAdded(uint _bountyId, uint _contributionId, address _contributor, uint _amount);
   event ContributionRefunded(uint _bountyId, uint _contributionId);
-  event IntentionSubmitted(uint _bountyId, address _fulfiller);
+  event ActionPerformed(uint _bountyId, address _fulfiller, string _data);
   event BountyFulfilled(uint _bountyId, uint _fulfillmentId, address[] _fulfillers, string _data, address _submitter);
   event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId, address[] _fulfillers, string _data, address _submitter);
   event FulfillmentAccepted(uint _bountyId, uint  _fulfillmentId, address _approver, uint[] _tokenAmounts);
@@ -231,11 +231,11 @@ contract StandardBounties {
      emit ContributionRefunded(_bountyId, _contributionId);
    }
 
-   function submitIntention(uint _bountyId)
+   function performAction(uint _bountyId, string _data)
        public
        validateBountyArrayIndex(_bountyId)
    {
-       emit IntentionSubmitted(_bountyId, msg.sender);
+       emit ActionPerformed(_bountyId, msg.sender, _data);
    }
 
 
@@ -500,4 +500,42 @@ contract StandardBounties {
        return bounties;
    }
 
+
+   function metaAction(bytes signature, string _data, uint256 nonce) public returns (bool) {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),"metaAction", _data, _nonce));
+     address signer = getSigner(metaHash,signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer!=address(0));
+     require(nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     emit ActionPerformed(_bountyId, signer, _data);
+   }
+
+
+   function getSigner(bytes32 _hash, bytes _signature) internal pure returns (address){
+     bytes32 r;
+     bytes32 s;
+     uint8 v;
+     if (_signature.length != 65) {
+       return address(0);
+     }
+     assembly {
+       r := mload(add(_signature, 32))
+       s := mload(add(_signature, 64))
+       v := byte(0, mload(add(_signature, 96)))
+     }
+     if (v < 27) {
+       v += 27;
+     }
+     if (v != 27 && v != 28) {
+       return address(0);
+     } else {
+       return ecrecover(keccak256(
+         abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
+       ), v, r, s);
+     }
+   }
 }
