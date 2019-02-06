@@ -11,11 +11,11 @@ Machine-based, rapid creation of many tokens would not necessarily need these ex
 
 .*/
 
-import "./StandardToken.sol";
+import "./ERC20Token.sol";
 
 pragma solidity ^0.4.8;
 
-contract HumanStandardToken is StandardToken {
+contract HumanStandardToken is ERC20Token {
 
     /* Public variables of the token */
 

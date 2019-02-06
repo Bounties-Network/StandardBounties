@@ -60,6 +60,7 @@ contract StandardBounties {
    */
 
   Bounty[] public bounties;
+  mapping(address=> uint) public replayNonce;
 
   /*
    * Enums
@@ -187,7 +188,7 @@ contract StandardBounties {
            require(msg.value == _amount);
        } else if (bounties[_bountyId].tokenVersion == 20) {
            require(msg.value == 0);
-           require(StandardToken(bounties[_bountyId].token).transferFrom(msg.sender, this, _amount));
+           require(ERC20Token(bounties[_bountyId].token).transferFrom(msg.sender, this, _amount));
        } else if (bounties[_bountyId].tokenVersion == 721) {
            require(msg.value == 0);
            ERC721BasicToken(bounties[_bountyId].token).transferFrom(msg.sender, this, _amount);
@@ -220,7 +221,7 @@ contract StandardBounties {
      if (bounties[_bountyId].tokenVersion == 0){
        contribution.contributor.transfer(contribution.amount);
      } else if (bounties[_bountyId].tokenVersion == 20) {
-       require(StandardToken(bounties[_bountyId].token).transfer(contribution.contributor,
+       require(ERC20Token(bounties[_bountyId].token).transfer(contribution.contributor,
                                                contribution.amount));
      } else if (bounties[_bountyId].tokenVersion == 721) {
          ERC721BasicToken(bounties[_bountyId].token).transferFrom(this, contribution.contributor, contribution.amount);
@@ -291,7 +292,7 @@ contract StandardBounties {
            if (bounties[_bountyId].tokenVersion == 0){
                fulfillment.fulfillers[i].transfer(_tokenAmounts[i]);
            } else if (bounties[_bountyId].tokenVersion == 20) {
-             require(StandardToken(bounties[_bountyId].token).transfer(
+             require(ERC20Token(bounties[_bountyId].token).transfer(
                fulfillment.fulfillers[i], _tokenAmounts[i]));
            } else if (bounties[_bountyId].tokenVersion == 721) {
                ERC721BasicToken(bounties[_bountyId].token).safeTransferFrom(this, fulfillment.fulfillers[i], _tokenAmounts[i]);
@@ -329,7 +330,7 @@ contract StandardBounties {
        if (bounties[_bountyId].tokenVersion == 0){
            bounties[_bountyId].issuer.transfer(_tokenAmount);
        } else if (bounties[_bountyId].tokenVersion == 20) {
-         require(StandardToken(bounties[_bountyId].token).transfer(
+         require(ERC20Token(bounties[_bountyId].token).transfer(
            bounties[_bountyId].issuer, _tokenAmount));
        } else if (bounties[_bountyId].tokenVersion == 721) {
          ERC721BasicToken(bounties[_bountyId].token).transferFrom(
@@ -501,12 +502,12 @@ contract StandardBounties {
    }
 
 
-   function metaAction(bytes signature, string _data, uint256 nonce) public returns (bool) {
-     bytes32 metaHash = keccak256(abi.encodePacked(address(this),"metaAction", _data, _nonce));
+   function metaAction(bytes signature, uint _bountyId, string _data, uint256 _nonce) public returns (bool) {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),"metaAction", _bountyId, _data, _nonce));
      address signer = getSigner(metaHash,signature);
      //make sure signer doesn't come back as 0x0
      require(signer!=address(0));
-     require(nonce == replayNonce[signer]);
+     require(_nonce == replayNonce[signer]);
 
      //increase the nonce to prevent replay attacks
      replayNonce[signer]++;
