@@ -1,4 +1,4 @@
- pragma solidity ^0.4.23;
+ pragma solidity 0.5.0;
 
 /**
  * @title SafeMath
@@ -173,7 +173,7 @@ contract ERC721Receiver {
   function onERC721Received(
     address _from,
     uint256 _tokenId,
-    bytes _data
+    bytes memory _data
   )
     public
     returns(bytes4);
@@ -220,7 +220,7 @@ contract ERC721Basic is ERC165 {
     address _from,
     address _to,
     uint256 _tokenId,
-    bytes _data
+    bytes memory _data
   )
     public;
 }
@@ -452,7 +452,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     address _from,
     address _to,
     uint256 _tokenId,
-    bytes _data
+    bytes memory _data
   )
     public
     canTransfer(_tokenId)
@@ -559,7 +559,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     address _from,
     address _to,
     uint256 _tokenId,
-    bytes _data
+    bytes memory _data
   )
     internal
     returns (bool)
