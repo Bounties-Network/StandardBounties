@@ -7,7 +7,7 @@ const BN = require('bignumber.js');
 
 contract('StandardBounties', function(accounts) {
 
-
+/*
   it("[ETH] Verifies that the StandardBounties registry works", async () => {
 
     let registry = await StandardBounties.new();
@@ -25,5 +25,5 @@ contract('StandardBounties', function(accounts) {
     assert(parseInt(total, 10) == 1, parseInt(total, 10));
 
   });
-
+*/
 });
