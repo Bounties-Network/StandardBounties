@@ -13,27 +13,29 @@ contract StandardBounties {
   /*
    * Events
    */
-  event BountyIssued(uint _bountyId, address payable _creator, address payable _issuer, address [] _approvers, string _data, uint _deadline, address _token, uint _tokenVersion);
+  event BountyIssued(uint _bountyId, address payable _creator, address payable [] _issuers, address [] _approvers, string _data, uint _deadline, address _token, uint _tokenVersion);
   event ContributionAdded(uint _bountyId, uint _contributionId, address payable _contributor, uint _amount);
   event ContributionRefunded(uint _bountyId, uint _contributionId);
   event ActionPerformed(uint _bountyId, address _fulfiller, string _data);
-  event BountyFulfilled(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data, address payable _submitter);
-  event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data, address payable _submitter);
-  event FulfillmentAccepted(uint _bountyId, uint  _fulfillmentId, address payable _approver, uint[] _tokenAmounts);
-  event BountyDrained(uint _bountyId, address payable _issuer, uint _tokenAmount);
-  event BountyChanged(uint _bountyId, address payable _oldIssuer, address payable _newIssuer, address payable [] _approvers, string _data, uint _deadline);
-  event BountyControllerChanged(uint _bountyId, address payable _oldIssuer, address payable  _newIssuer);
-  event BountyApproverChanged(uint _bountyId, address payable _issuer, uint _approverId, address payable _approver);
-  event BountyApproversAdded(uint _bountyId, address payable _issuer, address [] _approvers);
-  event BountyDataChanged(uint _bountyId, address payable _issuer, string _data);
-  event BountyDeadlineChanged(uint _bountyId, address payable _issuer, uint _deadline);
+  event BountyFulfilled(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data, address _submitter);
+  event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data, address _submitter);
+  event FulfillmentAccepted(uint _bountyId, uint  _fulfillmentId, address _approver, uint[] _tokenAmounts);
+  event BountyChanged(uint _bountyId, address _changer, address payable [] _issuers, address payable [] _approvers, string _data, uint _deadline);
+  event BountyIssuerChanged(uint _bountyId, address _changer, uint _issuerId, address payable _issuer);
+  event BountyIssuersAdded(uint _bountyId, address _changer, address payable [] _issuers);
+  event BountyIssuersReplaced(uint _bountyId, address _changer, address payable [] _issuers);
+  event BountyApproverChanged(uint _bountyId, address payable _changer, uint _approverId, address payable _approver);
+  event BountyApproversAdded(uint _bountyId, address _changer, address [] _approvers);
+  event BountyApproversReplaced(uint _bountyId, address _changer, address [] _approvers);
+  event BountyDataChanged(uint _bountyId, address _changer, string _data);
+  event BountyDeadlineChanged(uint _bountyId, address _changer, uint _deadline);
 
   /*
    * Structs
    */
 
   struct Bounty {
-      address payable issuer;
+      address payable [] issuers;
       address [] approvers;
       uint deadline;
       address token;
@@ -46,7 +48,7 @@ contract StandardBounties {
 
   struct Fulfillment {
       address payable [] fulfillers;
-      address payable submitter;
+      address submitter;
   }
 
   struct Contribution {
@@ -62,67 +64,97 @@ contract StandardBounties {
   mapping(uint => Bounty) public bounties;
   mapping(address => uint) public replayNonce;
 
-  /*
-   * Enums
-   */
-
 
   /*
    * Modifiers
    */
 
-   modifier validateBountyArrayIndex(uint _index){
+   modifier validateBountyArrayIndex(
+     uint _index)
+   {
      require(_index < numBounties);
      _;
    }
 
-   modifier validateContributionArrayIndex(uint _bountyId, uint _index) {
+   modifier validateContributionArrayIndex(
+     uint _bountyId,
+     uint _index)
+     {
        require(_index < bounties[_bountyId].contributions.length);
        _;
    }
 
-   modifier validateFulfillmentArrayIndex(uint _bountyId, uint _index) {
+   modifier validateFulfillmentArrayIndex(
+     uint _bountyId,
+     uint _index)
+   {
        require(_index < bounties[_bountyId].fulfillments.length);
        _;
    }
 
-   modifier validateApproverArrayIndex(uint _bountyId, uint _index) {
+   modifier validateIssuerArrayIndex(
+     uint _bountyId,
+     uint _index)
+   {
+       require(_index < bounties[_bountyId].issuers.length || _index == 0);
+       _;
+   }
+
+   modifier validateApproverArrayIndex(
+     uint _bountyId,
+     uint _index)
+   {
        require(_index < bounties[_bountyId].approvers.length || _index == 0);
        _;
    }
 
-   modifier onlyIssuer(uint _bountyId) {
-       require(msg.sender == bounties[_bountyId].issuer);
+   modifier onlyIssuer(
+     address _sender,
+     uint _bountyId,
+     uint _issuerId)
+   {
+       require(_sender == bounties[_bountyId].issuers[_issuerId]);
        _;
    }
 
-   modifier onlySubmitter(uint _bountyId, uint _fulfillmentId) {
-       require(msg.sender == bounties[_bountyId].fulfillments[_fulfillmentId].submitter);
+   modifier onlySubmitter(
+     address _sender,
+     uint _bountyId,
+     uint _fulfillmentId)
+   {
+       require(_sender == bounties[_bountyId]
+                            .fulfillments[_fulfillmentId].submitter);
        _;
    }
 
-   modifier onlyContributor(uint _bountyId, uint _contributionId) {
-       require(msg.sender == bounties[_bountyId].contributions[_contributionId].contributor);
+   modifier onlyContributor(
+     address _sender,
+     uint _bountyId,
+     uint _contributionId)
+   {
+       require(_sender == bounties[_bountyId]
+                            .contributions[_contributionId].contributor);
        _;
    }
 
-   modifier canApprove(uint _bountyId, uint _approverId) {
-       require(msg.sender == bounties[_bountyId].issuer || msg.sender == bounties[_bountyId].approvers[_approverId]);
+   modifier isApprover(
+     address _sender,
+     uint _bountyId,
+     uint _approverId) {
+       require(_sender == bounties[_bountyId].approvers[_approverId]);
        _;
    }
 
-   modifier hasNotPaid(uint _bountyId){
+   modifier hasNotPaid(
+     uint _bountyId){
        require(!bounties[_bountyId].hasPaidOut);
        _;
    }
 
-   modifier hasNotRefunded(uint _bountyId, uint _contributionId){
+   modifier hasNotRefunded(
+     uint _bountyId,
+     uint _contributionId){
        require(!bounties[_bountyId].contributions[_contributionId].refunded);
-       _;
-   }
-
-   modifier amountIsNotZero(uint _amount) {
-       require(_amount != 0);
        _;
    }
 
@@ -131,12 +163,11 @@ contract StandardBounties {
     */
 
    /// @dev issueBounty(): instantiates a new draft bounty
-   /// @param _issuer the address of the intended issuer of the bounty
    /// @param _deadline the unix timestamp after which fulfillments will no longer be accepted
    /// @param _data the requirements of the bounty
    /// @param _token the address of the contract if _paysTokens is true
    function issueBounty(
-       address payable _issuer,
+       address payable [] memory _issuers,
        address [] memory _approvers,
        string memory _data,
        uint _deadline,
@@ -144,28 +175,57 @@ contract StandardBounties {
        uint _tokenVersion,
        uint _depositAmount)
        public
+       payable
        returns (uint)
    {
-       require(_issuer != address(0));
-
-       Bounty storage newBounty = bounties[numBounties];
-       newBounty.issuer = _issuer;
-       newBounty.approvers = _approvers;
-       newBounty.deadline = _deadline;
-       newBounty.token = _token;
-       newBounty.tokenVersion = _tokenVersion;
-
-       uint bountyId = numBounties;
-
-       numBounties++;
-
-       emit BountyIssued(bountyId, msg.sender, _issuer, _approvers, _data, _deadline, _token, _tokenVersion);
-
-       if (_depositAmount > 0){
-         contribute(bountyId, _depositAmount);
-       }
-       return (bountyId);
+     return _issueBounty(msg.sender,
+                        _issuers,
+                        _approvers,
+                        _data,
+                        _deadline,
+                        _token,
+                        _tokenVersion,
+                        _depositAmount);
    }
+
+   function _issueBounty(
+     address payable _sender,
+     address payable [] memory _issuers,
+     address [] memory _approvers,
+     string memory _data,
+     uint _deadline,
+     address _token,
+     uint _tokenVersion,
+     uint _depositAmount)
+     internal
+     returns (uint)
+   {
+     Bounty storage newBounty = bounties[numBounties];
+     newBounty.issuers = _issuers;
+     newBounty.approvers = _approvers;
+     newBounty.deadline = _deadline;
+     newBounty.token = _token;
+     newBounty.tokenVersion = _tokenVersion;
+
+     uint bountyId = numBounties;
+
+     numBounties++;
+
+     emit BountyIssued(bountyId,
+                       _sender,
+                       _issuers,
+                       _approvers,
+                       _data,
+                       _deadline,
+                       _token,
+                       _tokenVersion);
+
+     if (_depositAmount > 0){
+       contribute(bountyId, _depositAmount);
+     }
+     return (bountyId);
+   }
+
 
 
    /// @dev contribute(): a function allowing anyone to contribute tokens to a
@@ -175,113 +235,223 @@ contract StandardBounties {
    /// @param _amount the amount being contributed in ether to prevent accidental deposits
    /// @notice Please note you funds will be at the mercy of the issuer
    ///  and can be drained at any moment. Be careful!
-   function contribute (uint _bountyId, uint _amount)
-       payable
+   function contribute (
+     uint _bountyId,
+     uint _amount)
        public
-       validateBountyArrayIndex(_bountyId)
-       hasNotPaid(_bountyId)
+       payable
    {
-       bounties[_bountyId].contributions.push(Contribution(msg.sender, _amount, false));
-       bounties[_bountyId].balance += _amount;
-
-       if (bounties[_bountyId].tokenVersion == 0){
-           require(_amount > 0);
-           require(msg.value == _amount);
-       } else if (bounties[_bountyId].tokenVersion == 20) {
-           require(msg.value == 0);
-           require(ERC20Token(bounties[_bountyId].token).transferFrom(msg.sender, address(this), _amount));
-       } else if (bounties[_bountyId].tokenVersion == 721) {
-           require(msg.value == 0);
-           ERC721BasicToken(bounties[_bountyId].token).transferFrom(msg.sender, address(this), _amount);
-       } else {
-         revert();
-       }
-
-       emit ContributionAdded(_bountyId, bounties[_bountyId].contributions.length - 1, msg.sender, _amount);
+     _contribute(msg.sender, _bountyId, _amount);
    }
+
+ function _contribute(
+   address payable _sender,
+   uint _bountyId,
+   uint _amount)
+   internal
+   validateBountyArrayIndex(_bountyId)
+   {
+     bounties[_bountyId].contributions
+        .push(Contribution(_sender, _amount, false));
+     bounties[_bountyId].balance += _amount;
+
+     if (bounties[_bountyId].tokenVersion == 0){
+         require(_amount > 0);
+         require(msg.value == _amount);
+     } else if (bounties[_bountyId].tokenVersion == 20) {
+         require(msg.value == 0);
+         require(ERC20Token(bounties[_bountyId].token)
+            .transferFrom(_sender, address(this), _amount));
+     } else if (bounties[_bountyId].tokenVersion == 721) {
+         require(msg.value == 0);
+         ERC721BasicToken(bounties[_bountyId].token)
+            .transferFrom(_sender, address(this), _amount);
+     } else {
+       revert();
+     }
+
+     emit ContributionAdded(_bountyId,
+                            bounties[_bountyId].contributions.length - 1,
+                            _sender,
+                            _amount);
+  }
+
+
 
    /*
      @dev If a bounty has not accepted any fulfillments yet, refunds may be requested
      by contributors who originally called refundableContribute().
      @param _contributionId the ID of the contribution which is being refunded
      */
-   function refundContribution(uint _bountyId, uint _contributionId)
+
+   function refundContribution(
+     uint _bountyId,
+     uint _contributionId)
    public
-   hasNotPaid(_bountyId)
+   {
+     _refundContribution(msg.sender, _bountyId, _contributionId);
+   }
+
+  function _refundContribution(
+   address _sender,
+   uint _bountyId,
+   uint _contributionId)
+   internal
    validateBountyArrayIndex(_bountyId)
+   hasNotPaid(_bountyId)
    validateContributionArrayIndex(_bountyId, _contributionId)
-   onlyContributor(_bountyId, _contributionId)
+   onlyContributor(_sender, _bountyId, _contributionId)
    hasNotRefunded(_bountyId, _contributionId)
    {
-     require(bounties[_bountyId].deadline < now);
-
-     Contribution storage contribution = bounties[_bountyId].contributions[_contributionId];
+     require(now > bounties[_bountyId].deadline);
+     Contribution storage contribution = bounties[_bountyId]
+                                            .contributions[_contributionId];
      contribution.refunded = true;
      bounties[_bountyId].balance -= contribution.amount;
 
-     if (bounties[_bountyId].tokenVersion == 0){
-       contribution.contributor.transfer(contribution.amount);
-     } else if (bounties[_bountyId].tokenVersion == 20) {
-       require(ERC20Token(bounties[_bountyId].token).transfer(contribution.contributor,
-                                               contribution.amount));
-     } else if (bounties[_bountyId].tokenVersion == 721) {
-         ERC721BasicToken(bounties[_bountyId].token).transferFrom(address(this), contribution.contributor, contribution.amount);
-     } else {
-       revert();
-     }
+     transferTokens(_bountyId, contribution.contributor, contribution.amount);
 
      emit ContributionRefunded(_bountyId, _contributionId);
+     //TODO: add contribution amount to event -- add token + version + msg.sender if gas costs don't suck
    }
+
+   function refundContributions(
+     uint _bountyId,
+     uint [] memory _contributionIds)
+    public
+    {
+      _refundContributions(msg.sender, _bountyId, _contributionIds);
+    }
+
+    function _refundContributions(
+      address _sender,
+      uint _bountyId,
+      uint [] memory _contributionIds)
+      internal
+     {
+       for (uint i = 0; i < _contributionIds.length; i++){
+         _refundContribution(_sender, _bountyId, _contributionIds[i]);
+       }
+     }
 
    function performAction(uint _bountyId, string memory _data)
        public
        validateBountyArrayIndex(_bountyId)
    {
-       emit ActionPerformed(_bountyId, msg.sender, _data);
+       _performAction(msg.sender, _bountyId, _data);
    }
+
+   function _performAction(
+     address _sender,
+     uint _bountyId,
+     string memory _data)
+     internal
+     validateBountyArrayIndex(_bountyId)
+     {
+         emit ActionPerformed(_bountyId, _sender, _data);
+     }
+
 
 
    /// @dev fulfillBounty(): submit a fulfillment for the given bounty
    /// @param _bountyId the index of the bounty
    /// @param _data the data artifacts representing the fulfillment of the bounty
-   function fulfillBounty(uint _bountyId, address payable [] memory  _fulfillers, string memory _data)
+   function fulfillBounty(
+     uint _bountyId,
+     address payable [] memory  _fulfillers,
+     string memory _data)
        public
-       validateBountyArrayIndex(_bountyId)
    {
-       require(now < bounties[_bountyId].deadline);
-
-       bounties[_bountyId].fulfillments.push(Fulfillment(_fulfillers, msg.sender));
-
-       emit BountyFulfilled(_bountyId, (bounties[_bountyId].fulfillments.length - 1), _fulfillers, _data, msg.sender);
+       _fulfillBounty(msg.sender, _bountyId, _fulfillers, _data);
    }
+
+   function _fulfillBounty(
+     address _sender,
+     uint _bountyId,
+     address payable [] memory  _fulfillers,
+     string memory _data)
+     internal
+     validateBountyArrayIndex(_bountyId)
+     {
+         require(now < bounties[_bountyId].deadline);
+         require(_fulfillers.length > 0);
+
+         bounties[_bountyId].fulfillments.push(Fulfillment(_fulfillers,
+                                                           _sender));
+
+         emit BountyFulfilled(_bountyId,
+                              (bounties[_bountyId].fulfillments.length - 1),
+                              _fulfillers,
+                              _data,
+                              _sender);
+     }
 
    /// @dev updateFulfillment(): Submit updated data for a given fulfillment
    /// @param _bountyId the index of the bounty
    /// @param _fulfillmentId the index of the fulfillment
    /// @param _data the new data being submitted
-   function updateFulfillment(uint _bountyId, uint _fulfillmentId, address payable [] memory _fulfillers, string memory _data)
-       public
-       validateBountyArrayIndex(_bountyId)
-       validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
-       onlySubmitter(_bountyId, _fulfillmentId)
+   function updateFulfillment(
+     uint _bountyId,
+     uint _fulfillmentId,
+     address payable [] memory _fulfillers,
+     string memory _data)
+     public
    {
-       bounties[_bountyId].fulfillments[_bountyId].fulfillers = _fulfillers;
-       emit FulfillmentUpdated(_bountyId, _fulfillmentId, _fulfillers, _data, msg.sender);
+     _updateFulfillment(msg.sender, _bountyId, _fulfillmentId, _fulfillers, _data);
    }
+
+   function _updateFulfillment(
+     address _sender,
+     uint _bountyId,
+     uint _fulfillmentId,
+     address payable [] memory _fulfillers,
+     string memory _data)
+     internal
+     validateBountyArrayIndex(_bountyId)
+     validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
+     onlySubmitter(_sender, _bountyId, _fulfillmentId)
+     {
+       bounties[_bountyId].fulfillments[_bountyId].fulfillers = _fulfillers;
+       emit FulfillmentUpdated(_bountyId,
+                               _fulfillmentId,
+                               _fulfillers,
+                               _data,
+                               _sender);
+     }
 
    /// @dev acceptFulfillment(): accept a given fulfillment
    /// @param _bountyId the index of the bounty
    /// @param _fulfillmentId the index of the fulfillment being accepted
-   function acceptFulfillment(uint _bountyId, uint _fulfillmentId, uint _approverId, uint[] memory _tokenAmounts)
-       public
-       validateBountyArrayIndex(_bountyId)
-       validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
-       canApprove(_bountyId, _approverId)
+   function acceptFulfillment(
+     uint _bountyId,
+     uint _fulfillmentId,
+     uint _approverId,
+     uint[] memory _tokenAmounts)
+     public
+   {
+      _acceptFulfillment(msg.sender,
+                         _bountyId,
+                         _fulfillmentId,
+                         _approverId,
+                         _tokenAmounts);
+   }
+
+   function _acceptFulfillment(
+     address _sender,
+     uint _bountyId,
+     uint _fulfillmentId,
+     uint _approverId,
+     uint[] memory _tokenAmounts)
+     internal
+     validateBountyArrayIndex(_bountyId)
+     validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
+     isApprover(_sender, _bountyId, _approverId)
    {
        // now that the bounty has paid out at least once, refunds are no longer possible
        bounties[_bountyId].hasPaidOut = true;
 
-       Fulfillment storage fulfillment = bounties[_bountyId].fulfillments[_fulfillmentId];
+       Fulfillment storage fulfillment = bounties[_bountyId]
+                                            .fulfillments[_fulfillmentId];
        require(_tokenAmounts.length == fulfillment.fulfillers.length);
 
        for (uint256 i = 0; i < fulfillment.fulfillers.length; i++){
@@ -290,56 +460,54 @@ contract StandardBounties {
          bounties[_bountyId].balance -= _tokenAmounts[i];
 
          if (_tokenAmounts[i] != 0){
-           if (bounties[_bountyId].tokenVersion == 0){
-               fulfillment.fulfillers[i].transfer(_tokenAmounts[i]);
-           } else if (bounties[_bountyId].tokenVersion == 20) {
-             require(ERC20Token(bounties[_bountyId].token).transfer(
-               fulfillment.fulfillers[i], _tokenAmounts[i]));
-           } else if (bounties[_bountyId].tokenVersion == 721) {
-               ERC721BasicToken(bounties[_bountyId].token).safeTransferFrom(address(this), fulfillment.fulfillers[i], _tokenAmounts[i]);
-           } else {
-             revert();
-           }
+           transferTokens(_bountyId,
+                          fulfillment.fulfillers[i],
+                          _tokenAmounts[i]);
          }
 
        }
-       emit FulfillmentAccepted(_bountyId, _fulfillmentId, msg.sender, _tokenAmounts);
+       emit FulfillmentAccepted(_bountyId,
+                                _fulfillmentId,
+                                _sender,
+                                _tokenAmounts);
    }
 
-   function fulfillAndAccept(uint _bountyId, uint _approverId, address payable [] memory _fulfillers, string memory _data, uint[] memory _tokenAmounts)
+   function fulfillAndAccept(
+     uint _bountyId,
+     address payable [] memory _fulfillers,
+     string memory _data,
+     uint _approverId,
+     uint[] memory _tokenAmounts)
        public
    {
+     _fulfillAndAccept(msg.sender,
+                       _bountyId,
+                       _fulfillers,
+                       _data,
+                       _approverId,
+                       _tokenAmounts);
+   }
+
+   function _fulfillAndAccept(
+     address _sender,
+     uint _bountyId,
+     address payable [] memory _fulfillers,
+     string memory _data,
+     uint _approverId,
+     uint[] memory _tokenAmounts)
+     internal
+     {
        // first fulfills the bounty for the fulfillers
-       fulfillBounty(_bountyId, _fulfillers, _data);
+       _fulfillBounty(_sender, _bountyId, _fulfillers, _data);
 
        // then accepts the fulfillment
-       acceptFulfillment(_bountyId, bounties[_bountyId].fulfillments.length - 1, _approverId,  _tokenAmounts);
-   }
+       _acceptFulfillment(_sender,
+                          _bountyId,
+                          bounties[_bountyId].fulfillments.length - 1,
+                          _approverId,
+                          _tokenAmounts);
+     }
 
-   /// @dev drainBounty(): drains the contract of it's remaining
-   /// funds, and moves the bounty into stage 3 (dead) since it was
-   /// either killed in draft stage, or never accepted any fulfillments
-   /// @param _bountyId the index of the bounty
-   function drainBounty(uint _bountyId, uint _tokenAmount)
-       public
-       validateBountyArrayIndex(_bountyId)
-       onlyIssuer(_bountyId)
-   {
-       require(bounties[_bountyId].balance >= _tokenAmount);
-       bounties[_bountyId].balance -= _tokenAmount;
-
-       if (bounties[_bountyId].tokenVersion == 0){
-           bounties[_bountyId].issuer.transfer(_tokenAmount);
-       } else if (bounties[_bountyId].tokenVersion == 20) {
-         require(ERC20Token(bounties[_bountyId].token).transfer(
-           bounties[_bountyId].issuer, _tokenAmount));
-       } else if (bounties[_bountyId].tokenVersion == 721) {
-         ERC721BasicToken(bounties[_bountyId].token).transferFrom(
-           address(this), bounties[_bountyId].issuer, _tokenAmount);
-       }
-
-       emit BountyDrained(_bountyId, msg.sender, _tokenAmount);
-   }
 
    /*
      @dev at any point the controller may call changeBounty, to change either
@@ -349,29 +517,76 @@ contract StandardBounties {
      @param _data the new IPFS hash associated with the updated data
      @param _deadline the new deadline
      */
-   function changeBounty(uint _bountyId, address payable _issuer, address payable [] memory _approvers, string memory _data, uint _deadline)
+   function changeBounty(
+     uint _bountyId,
+     uint _issuerId,
+     address payable [] memory _issuers,
+     address payable [] memory _approvers,
+     string memory _data,
+     uint _deadline)
        public
-       validateBountyArrayIndex(_bountyId)
-       onlyIssuer(_bountyId)
    {
-       bounties[_bountyId].issuer = _issuer;
-       bounties[_bountyId].approvers = _approvers;
-       bounties[_bountyId].deadline = _deadline;
-       emit BountyChanged(_bountyId, msg.sender, _issuer, _approvers, _data, _deadline);
+     _changeBounty(msg.sender,
+                   _bountyId,
+                   _issuerId,
+                   _issuers,
+                   _approvers,
+                   _data,
+                   _deadline);
    }
 
-   /*
-     @dev at any point the controller may change the controller associated with
-     the bounty
-     @param _controller the address of the new controller
-     */
-   function changeController(uint _bountyId, address payable _issuer)
+   function _changeBounty(
+     address _sender,
+     uint _bountyId,
+     uint _issuerId,
+     address payable [] memory _issuers,
+     address payable [] memory _approvers,
+     string memory _data,
+     uint _deadline)
+     internal
+     validateBountyArrayIndex(_bountyId)
+     validateIssuerArrayIndex(_bountyId, _issuerId)
+     onlyIssuer(_sender, _bountyId, _issuerId)
+     {
+       bounties[_bountyId].issuers = _issuers;
+       bounties[_bountyId].approvers = _approvers;
+       bounties[_bountyId].deadline = _deadline;
+       emit BountyChanged(_bountyId,
+                          _sender,
+                          _issuers,
+                          _approvers,
+                          _data,
+                          _deadline);
+     }
+
+   function changeIssuer(
+     uint _bountyId,
+     uint _issuerId,
+     uint _issuerIdToChange,
+     address payable _newIssuer)
        public
-       validateBountyArrayIndex(_bountyId)
-       onlyIssuer(_bountyId)
    {
-       bounties[_bountyId].issuer = _issuer;
-       emit BountyControllerChanged(_bountyId, msg.sender, _issuer);
+       _changeIssuer(msg.sender,
+                     _bountyId,
+                     _issuerId,
+                     _issuerIdToChange,
+                     _newIssuer);
+   }
+
+   function _changeIssuer(
+     address _sender,
+     uint _bountyId,
+     uint _issuerId,
+     uint _issuerIdToChange,
+     address payable _newIssuer)
+       internal
+       validateBountyArrayIndex(_bountyId)
+       validateIssuerArrayIndex(_bountyId, _issuerId)
+       validateIssuerArrayIndex(_bountyId, _issuerIdToChange)
+       onlyIssuer(_sender, _bountyId, _issuerId)
+   {
+       bounties[_bountyId].issuers[_issuerIdToChange] = _newIssuer;
+       emit BountyIssuerChanged(_bountyId, _sender, _issuerId, _newIssuer);
    }
 
    /*
@@ -379,15 +594,39 @@ contract StandardBounties {
      the bounty
      @param _controller the address of the new controller
      */
-   function changeApprover(uint _bountyId, uint _approverId, address payable _approver)
+   function changeApprover(
+     uint _bountyId,
+     uint _issuerId,
+     uint _approverId,
+     address payable _approver)
        public
+   {
+       _changeApprover(msg.sender,
+                       _bountyId,
+                       _issuerId,
+                       _approverId,
+                       _approver);
+   }
+
+   function _changeApprover(
+     address _sender,
+     uint _bountyId,
+     uint _issuerId,
+     uint _approverId,
+     address payable _approver)
+       internal
        validateBountyArrayIndex(_bountyId)
-       onlyIssuer(_bountyId)
+       validateIssuerArrayIndex(_bountyId, _issuerId)
+       onlyIssuer(_sender, _bountyId, _issuerId)
        validateApproverArrayIndex(_bountyId, _approverId)
    {
        bounties[_bountyId].approvers[_approverId] = _approver;
-       emit BountyApproverChanged(_bountyId, msg.sender, _approverId, _approver);
+       emit BountyApproverChanged(_bountyId,
+                                  msg.sender,
+                                  _approverId,
+                                  _approver);
    }
+
 
 
    /*
@@ -395,10 +634,24 @@ contract StandardBounties {
      the bounty
      @param _data the new IPFS hash associated with the updated data
      */
-   function changeData(uint _bountyId, string memory _data)
+   function changeData(
+     uint _bountyId,
+     uint _issuerId,
+     string memory _data)
        public
+   {
+     _changeData(msg.sender, _bountyId, _issuerId, _data);
+   }
+
+   function _changeData(
+     address _sender,
+     uint _bountyId,
+     uint _issuerId,
+     string memory _data)
+       internal
        validateBountyArrayIndex(_bountyId)
-       onlyIssuer(_bountyId)
+       validateIssuerArrayIndex(_bountyId, _issuerId)
+       onlyIssuer(_sender, _bountyId, _issuerId)
    {
        emit BountyDataChanged(_bountyId, msg.sender, _data);
    }
@@ -408,26 +661,129 @@ contract StandardBounties {
      the bounty
      @param _controller the address of the new controller
      */
-   function changeDeadline(uint _bountyId, uint _deadline)
+   function changeDeadline(uint _bountyId, uint _issuerId, uint _deadline)
        public
-       validateBountyArrayIndex(_bountyId)
-       onlyIssuer(_bountyId)
    {
-       bounties[_bountyId].deadline = _deadline;
-       emit BountyDeadlineChanged(_bountyId, msg.sender, _deadline);
+       _changeDeadline(msg.sender, _bountyId, _issuerId, _deadline);
    }
 
-   function addApprovers(uint _bountyId, address[] memory _approvers)
-       public
+   function _changeDeadline(
+     address _sender,
+     uint _bountyId,
+     uint _issuerId,
+     uint _deadline)
+       internal
        validateBountyArrayIndex(_bountyId)
-       onlyIssuer(_bountyId)
+       validateIssuerArrayIndex(_bountyId, _issuerId)
+       onlyIssuer(_sender, _bountyId, _issuerId)
+   {
+       bounties[_bountyId].deadline = _deadline;
+       emit BountyDeadlineChanged(_bountyId, _sender, _deadline);
+   }
+
+   function addIssuers(
+     uint _bountyId,
+     uint _issuerId,
+     address payable [] memory _issuers)
+     public
+   {
+       _addIssuers(msg.sender, _bountyId, _issuerId, _issuers);
+   }
+
+   function _addIssuers(
+     address _sender,
+     uint _bountyId,
+     uint _issuerId,
+     address payable [] memory _issuers)
+     internal
+     validateBountyArrayIndex(_bountyId)
+     validateIssuerArrayIndex(_bountyId, _issuerId)
+     onlyIssuer(_sender, _bountyId, _issuerId)
+   {
+       for (uint i = 0; i < _issuers.length; i++){
+         bounties[_bountyId].issuers.push(_issuers[i]);
+       }
+       emit BountyIssuersAdded(_bountyId, _sender, _issuers);
+   }
+
+
+   function replaceIssuers(
+     uint _bountyId,
+     uint _issuerId,
+     address payable [] memory _issuers)
+     public
+    {
+       _replaceIssuers(msg.sender, _bountyId, _issuerId, _issuers);
+    }
+
+    function _replaceIssuers(
+      address _sender,
+      uint _bountyId,
+      uint _issuerId,
+      address payable [] memory _issuers)
+        internal
+        validateBountyArrayIndex(_bountyId)
+        validateIssuerArrayIndex(_bountyId, _issuerId)
+        onlyIssuer(_sender, _bountyId, _issuerId)
+     {
+        bounties[_bountyId].issuers = _issuers;
+
+        emit BountyIssuersReplaced(_bountyId, _sender, _issuers);
+     }
+
+
+
+
+
+   function addApprovers(
+     uint _bountyId,
+     uint _issuerId,
+     address [] memory _approvers)
+     public
+   {
+       _addApprovers(msg.sender, _bountyId, _issuerId, _approvers);
+   }
+
+   function _addApprovers(
+     address _sender,
+     uint _bountyId,
+     uint _issuerId,
+     address [] memory _approvers)
+       internal
+       validateBountyArrayIndex(_bountyId)
+       validateIssuerArrayIndex(_bountyId, _issuerId)
+       onlyIssuer(_sender, _bountyId, _issuerId)
    {
        for (uint i = 0; i < _approvers.length; i++){
          bounties[_bountyId].approvers.push(_approvers[i]);
        }
-       emit BountyApproversAdded(_bountyId, msg.sender, _approvers);
+       emit BountyApproversAdded(_bountyId, _sender, _approvers);
    }
 
+
+   function replaceApprovers(
+     uint _bountyId,
+     uint _issuerId,
+     address [] memory _approvers)
+       public
+    {
+       _replaceApprovers(msg.sender, _bountyId, _issuerId, _approvers);
+    }
+
+    function _replaceApprovers(
+      address _sender,
+      uint _bountyId,
+      uint _issuerId,
+      address [] memory _approvers)
+      internal
+      validateBountyArrayIndex(_bountyId)
+      validateIssuerArrayIndex(_bountyId, _issuerId)
+      onlyIssuer(_sender, _bountyId, _issuerId)
+     {
+        bounties[_bountyId].approvers = _approvers;
+
+        emit BountyApproversReplaced(_bountyId, _sender, _approvers);
+     }
 
    /// @dev getBounty(): Returns the details of the bounty
    /// @param _bountyId the index of the bounty
@@ -465,15 +821,6 @@ contract StandardBounties {
        return (bounties[_bountyId].contributions);
    }
 
-   /// @dev getNumBounties() returns the number of bounties in the registry
-   /// @return Returns the number of bounties
-   function getNumFulfillments(uint _bountyId)
-       public
-       view
-       returns (uint)
-   {
-       return bounties[_bountyId].fulfillments.length;
-   }
 
    /// @dev getNumFulfillments() returns the number of fulfillments for a given milestone
    /// @return Returns the number of fulfillments
@@ -486,21 +833,537 @@ contract StandardBounties {
    }
 
 
-   function metaAction(bytes memory signature, uint _bountyId, string memory _data, uint256 _nonce) public returns (bool) {
-     bytes32 metaHash = keccak256(abi.encodePacked(address(this),"metaAction", _bountyId, _data, _nonce));
-     address signer = getSigner(metaHash,signature);
+   function metaIssueBounty(
+     bytes memory signature,
+     address payable [] memory _issuers,
+     address [] memory _approvers,
+     string memory _data,
+     uint _deadline,
+     address _token,
+     uint _tokenVersion,
+     uint _depositAmount,
+     uint _nonce)
+     public
+     payable
+     returns (uint)
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaIssueBounty",
+                                                   _issuers,
+                                                   _approvers,
+                                                   _data,
+                                                   _deadline,
+                                                   _token,
+                                                   _tokenVersion,
+                                                   _depositAmount,
+                                                   _nonce));
+     address signer = getSigner(metaHash, signature);
+
      //make sure signer doesn't come back as 0x0
-     require(signer!=address(0));
+     require(signer != address(0));
      require(_nonce == replayNonce[signer]);
 
      //increase the nonce to prevent replay attacks
      replayNonce[signer]++;
 
-     emit ActionPerformed(_bountyId, signer, _data);
+     return _issueBounty(address(uint160(signer)),
+                        _issuers,
+                        _approvers,
+                        _data,
+                        _deadline,
+                        _token,
+                        _tokenVersion,
+                        _depositAmount);
+   }
+
+   function metaContribute(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _amount,
+     uint _nonce)
+     public
+     payable
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaContribute",
+                                                   _bountyId,
+                                                   _amount,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _contribute(address(uint160(signer)), _bountyId, _amount);
+   }
+
+   function metaRefundContribution(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _contributionId,
+     uint _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaRefundContribution",
+                                                   _bountyId,
+                                                   _contributionId,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _refundContribution(signer, _bountyId, _contributionId);
+   }
+
+   function metaRefundContributions(
+     bytes memory _signature,
+     uint _bountyId,
+     uint [] memory _contributionIds,
+     uint _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaRefundContributions",
+                                                   _bountyId,
+                                                   _contributionIds,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _refundContributions(signer, _bountyId, _contributionIds);
+   }
+
+   function metaPerformAction(
+     bytes memory _signature,
+     uint _bountyId,
+     string memory _data,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaPerformAction",
+                                                   _bountyId,
+                                                   _data,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _performAction(signer, _bountyId, _data);
+   }
+
+   function metaFulfillBounty(
+     bytes memory _signature,
+     uint _bountyId,
+     address payable [] memory  _fulfillers,
+     string memory _data,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaFulfillBounty",
+                                                   _bountyId,
+                                                   _fulfillers,
+                                                   _data,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _fulfillBounty(signer, _bountyId, _fulfillers, _data);
+   }
+
+   function metaUpdateFulfillment(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _fulfillmentId,
+     address payable [] memory  _fulfillers,
+     string memory _data,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaUpdateFulfillment",
+                                                   _bountyId,
+                                                   _fulfillmentId,
+                                                   _fulfillers,
+                                                   _data,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _updateFulfillment(signer, _bountyId, _fulfillmentId, _fulfillers, _data);
+   }
+
+   function metaAcceptFulfillment(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _fulfillmentId,
+     uint _approverId,
+     uint [] memory _tokenAmounts,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaAcceptFulfillment",
+                                                   _bountyId,
+                                                   _fulfillmentId,
+                                                   _approverId,
+                                                   _tokenAmounts,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _acceptFulfillment(signer,
+                        _bountyId,
+                        _fulfillmentId,
+                        _approverId,
+                        _tokenAmounts);
+   }
+
+   function metaFulfillAndAccept(
+     bytes memory _signature,
+     uint _bountyId,
+     address payable [] memory _fulfillers,
+     string memory _data,
+     uint _approverId,
+     uint [] memory _tokenAmounts,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaFulfillAndAccept",
+                                                   _bountyId,
+                                                   _fulfillers,
+                                                   _data,
+                                                   _approverId,
+                                                   _tokenAmounts,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _fulfillAndAccept(signer,
+                       _bountyId,
+                       _fulfillers,
+                       _data,
+                       _approverId,
+                       _tokenAmounts);
+   }
+
+   function metaChangeBounty(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _issuerId,
+     address payable [] memory _issuers,
+     address payable [] memory _approvers,
+     string memory _data,
+     uint _deadline,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaChangeBounty",
+                                                   _bountyId,
+                                                   _issuerId,
+                                                   _issuers,
+                                                   _approvers,
+                                                   _data,
+                                                   _deadline,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _changeBounty(signer,
+                   _bountyId,
+                   _issuerId,
+                   _issuers,
+                   _approvers,
+                   _data,
+                   _deadline);
+   }
+
+   function metaChangeIssuer(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _issuerId,
+     uint _issuerIdToChange,
+     address payable _newIssuer,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaChangeIssuer",
+                                                   _bountyId,
+                                                   _issuerId,
+                                                   _issuerIdToChange,
+                                                   _newIssuer,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _changeIssuer(signer,
+                   _bountyId,
+                   _issuerId,
+                   _issuerIdToChange,
+                   _newIssuer);
+   }
+
+   function metaChangeApprover(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _issuerId,
+     uint _approverId,
+     address payable _approver,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaChangeApprover",
+                                                   _bountyId,
+                                                   _issuerId,
+                                                   _approverId,
+                                                   _approver,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _changeApprover(signer,
+                   _bountyId,
+                   _issuerId,
+                   _approverId,
+                   _approver);
+   }
+
+   function metaChangeData(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _issuerId,
+     string memory _data,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaChangeData",
+                                                   _bountyId,
+                                                   _issuerId,
+                                                   _data,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _changeData(signer,
+                 _bountyId,
+                 _issuerId,
+                 _data);
+   }
+
+   function metaChangeDeadline(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _issuerId,
+     uint  _deadline,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaChangeDeadline",
+                                                   _bountyId,
+                                                   _issuerId,
+                                                   _deadline,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _changeDeadline(signer,
+                     _bountyId,
+                     _issuerId,
+                     _deadline);
+   }
+
+   function metaAddIssuers(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _issuerId,
+     address payable [] memory _issuers,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaAddIssuers",
+                                                   _bountyId,
+                                                   _issuerId,
+                                                   _issuers,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _addIssuers(signer,
+                 _bountyId,
+                 _issuerId,
+                 _issuers);
+   }
+
+   function metaReplaceIssuers(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _issuerId,
+     address payable [] memory _issuers,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaReplaceIssuers",
+                                                   _bountyId,
+                                                   _issuerId,
+                                                   _issuers,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _replaceIssuers(signer,
+                     _bountyId,
+                     _issuerId,
+                     _issuers);
+   }
+
+   function metaAddApprovers(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _issuerId,
+     address payable [] memory _approvers,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaAddApprovers",
+                                                   _bountyId,
+                                                   _issuerId,
+                                                   _approvers,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _addIssuers(signer,
+                 _bountyId,
+                 _issuerId,
+                 _approvers);
+   }
+
+   function metaReplaceApprovers(
+     bytes memory _signature,
+     uint _bountyId,
+     uint _issuerId,
+     address payable [] memory _approvers,
+     uint256 _nonce)
+     public
+     {
+     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                   "metaReplaceApprovers",
+                                                   _bountyId,
+                                                   _issuerId,
+                                                   _approvers,
+                                                   _nonce));
+     address signer = getSigner(metaHash, _signature);
+     //make sure signer doesn't come back as 0x0
+     require(signer != address(0));
+     require(_nonce == replayNonce[signer]);
+
+     //increase the nonce to prevent replay attacks
+     replayNonce[signer]++;
+
+     _replaceIssuers(signer,
+                     _bountyId,
+                     _issuerId,
+                     _approvers);
    }
 
 
-   function getSigner(bytes32 _hash, bytes memory _signature) internal pure returns (address){
+   function getSigner(
+     bytes32 _hash,
+     bytes memory _signature)
+     internal
+     pure
+     returns (address)
+   {
      bytes32 r;
      bytes32 s;
      uint8 v;
@@ -521,6 +1384,21 @@ contract StandardBounties {
        return ecrecover(keccak256(
          abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
        ), v, r, s);
+     }
+   }
+
+   function transferTokens(uint _bountyId, address payable _to, uint _amount)
+   internal
+   {
+     if (bounties[_bountyId].tokenVersion == 0){
+         _to.transfer(_amount);
+     } else if (bounties[_bountyId].tokenVersion == 20) {
+       require(ERC20Token(bounties[_bountyId].token).transfer(_to, _amount));
+     } else if (bounties[_bountyId].tokenVersion == 721) {
+         ERC721BasicToken(bounties[_bountyId].token)
+         .safeTransferFrom(address(this), _to, _amount);
+     } else {
+       revert();
      }
    }
 }
