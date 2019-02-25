@@ -196,6 +196,7 @@ contract StandardBounties {
      uint _tokenVersion,
      uint _depositAmount)
      public
+     payable
      senderIsValid(_sender)
      returns (uint)
    {
