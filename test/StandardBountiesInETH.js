@@ -698,7 +698,7 @@ contract('StandardBounties', function(accounts) {
     assert(false, "Should have thrown an error");
   });
 
-  it("[ETH] Verifies that I can't the issuer of a bounty if I didn't issue it", async () => {
+  it("[ETH] Verifies that I can't change the issuer of a bounty if I didn't issue it", async () => {
     let registry = await StandardBounties.new();
 
     await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
@@ -711,52 +711,503 @@ contract('StandardBounties', function(accounts) {
     assert(false, "Should have thrown an error");
   });
 
-  it("[ETH] Verifies that I can change a bounty's approver", async () => {
+  it("[ETH] Verifies that I can't the issuer with an out of bounds issuer ID", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.changeIssuer(accounts[0], 0, 1, 0, accounts[1], {from: accounts[0]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't the issuer changing an out of bounds issuer ID", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.changeIssuer(accounts[0], 0, 0, 1, accounts[1], {from: accounts[0]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that changing a bounty's issuer emits an event", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+
+    await registry.changeIssuer(accounts[0], 0, 0, 0, accounts[1]).then((status) => {
+      assert.strictEqual('BountyIssuerChanged', status.logs[0].event, 'did not emit the BountyIssuerChanged event');
+    });
+  });
+
+  it("[ETH] Verifies that I can change the approver of my bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+
+    await registry.changeApprover(accounts[0], 0, 0, 0, accounts[5]);
+
+    var bounty = await registry.getBounty(0);
+
+    assert(bounty.approvers[0] === accounts[5]);
 
   });
 
-  it("[ETH] Verifies that I can't change an out of bounds bounty's approver", async () => {
+  it("[ETH] Verifies that I can't change the approver of an out of bounds bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.changeApprover(accounts[0], 1, 0, 0, accounts[5]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't change the approver of a bounty if I didn't issue it", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.changeApprover(accounts[1], 0, 0, 0, accounts[5], {from: accounts[1]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't the issuer with an out of bounds issuer ID", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.changeApprover(accounts[0], 0, 1, 0, accounts[5], {from: accounts[0]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't the issuer changing an out of bounds approver ID", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.changeApprover(accounts[0], 0, 0, 2, accounts[5], {from: accounts[0]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that changing a bounty's approver emits an event", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    await registry.changeApprover(accounts[0], 0, 0, 0, accounts[5]).then((status) => {
+      assert.strictEqual('BountyApproverChanged', status.logs[0].event, 'did not emit the BountyApproverChanged event');
+    });
+  });
+
+
+  it("[ETH] Verifies that I can change the data of my bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+
+    await registry.changeData(accounts[0], 0, 0, "data2").then((status) => {
+      assert.strictEqual('data2',  status.logs[0].args[2]);
+    });
 
   });
 
-  it("[ETH] Verifies that I can't change a bounty's approver if I didn't issue it", async () => {
+  it("[ETH] Verifies that I can't change the data of an out of bounds bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.changeData(accounts[0], 1, 0, "data2");
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't change the data of a bounty if I didn't issue it", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.changeData(accounts[1], 0, 0, "data2", {from: accounts[1]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't change the data with an out of bounds issuer ID", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.changeData(accounts[0], 0, 1, "data2", {from: accounts[0]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that changing a bounty's data emits an event", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    await registry.changeData(accounts[0], 0, 0, "data2").then((status) => {
+      assert.strictEqual('BountyDataChanged', status.logs[0].event, 'did not emit the BountyDataChanged event');
+    });
+  });
+
+  it("[ETH] Verifies that I can change the deadline of my bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+
+    await registry.changeDeadline(accounts[0], 0, 0, 2628821098);
+
+    var bounty = await registry.getBounty(0);
+
+    assert(bounty.deadline == 2628821098);
 
   });
 
-  it("[ETH] Verifies that I can change a bounty's data", async () => {
+  it("[ETH] Verifies that I can't change the deadline of an out of bounds bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.changeDeadline(accounts[0], 1, 0, 2628821098);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't change the deadline of a bounty if I didn't issue it", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.changeDeadline(accounts[1], 0, 0, 2628821098, {from: accounts[1]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't change the deadline with an out of bounds issuer ID", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.changeDeadline(accounts[0], 0, 1, 2628821098, {from: accounts[0]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that changing a bounty's deadline emits an event", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    await registry.changeDeadline(accounts[0], 0, 0, 2628821098).then((status) => {
+      assert.strictEqual('BountyDeadlineChanged', status.logs[0].event, 'did not emit the BountyDeadlineChanged event');
+    });
+  });
+
+  it("[ETH] Verifies that I can add issuers to my bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+
+    await registry.addIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
+
+    var bounty = await registry.getBounty(0);
+
+    assert(bounty.issuers[1] == accounts[5]);
+    assert(bounty.issuers[2] == accounts[6]);
+
 
   });
 
-  it("[ETH] Verifies that I can't change an out of bounds bounty's data", async () => {
+  it("[ETH] Verifies that I can't add issuers to an out of bounds bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.addIssuers(accounts[0], 1, 0, [accounts[5], accounts[6]]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't add issuers to a bounty if I didn't issue it", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.addIssuers(accounts[1], 0, 0, [accounts[5], accounts[6]], {from: accounts[1]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't add issuers with an out of bounds issuer ID", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.addIssuers(accounts[0], 0, 1, [accounts[5], accounts[6]], {from: accounts[0]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that adding issuers to a bounty emits an event", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    await registry.addIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
+      assert.strictEqual('BountyIssuersAdded', status.logs[0].event, 'did not emit the BountyIssuersAdded event');
+    });
+  });
+
+  it("[ETH] Verifies that I can replace the issuers of my bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+
+    await registry.replaceIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
+
+    var bounty = await registry.getBounty(0);
+
+    assert(bounty.issuers[0] == accounts[5]);
+    assert(bounty.issuers[1] == accounts[6]);
+
 
   });
 
-  it("[ETH] Verifies that I can't change a bounty's data if I didn't issue it", async () => {
+  it("[ETH] Verifies that I can't replace issuers for an out of bounds bounty", async () => {
+    let registry = await StandardBounties.new();
 
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.replaceIssuers(accounts[0], 1, 0, [accounts[5], accounts[6]]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
   });
 
-  it("[ETH] Verifies that I can change a bounty's deadline", async () => {
+  it("[ETH] Verifies that I can't replace issuers for a bounty if I didn't issue it", async () => {
+    let registry = await StandardBounties.new();
 
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.replaceIssuers(accounts[1], 0, 0, [accounts[5], accounts[6]], {from: accounts[1]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
   });
 
-  it("[ETH] Verifies that I can't change an out of bounds bounty's deadline", async () => {
+  it("[ETH] Verifies that I can't replace issuers with an out of bounds issuer ID", async () => {
+    let registry = await StandardBounties.new();
 
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.replaceIssuers(accounts[0], 0, 1, [accounts[5], accounts[6]], {from: accounts[0]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
   });
 
-  it("[ETH] Verifies that I can't change a bounty's deadline if I didn't issue it", async () => {
+  it("[ETH] Verifies that replacing issuers of a bounty emits an event", async () => {
+    let registry = await StandardBounties.new();
 
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    await registry.replaceIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
+      assert.strictEqual('BountyIssuersReplaced', status.logs[0].event, 'did not emit the BountyIssuersReplaced event');
+    });
   });
 
-  it("[ETH] Verifies that I can add approvers to a bounty", async () => {
+
+  it("[ETH] Verifies that I can add approvers to my bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+
+    await registry.addApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
+
+    var bounty = await registry.getBounty(0);
+
+    assert(bounty.approvers[2] == accounts[5]);
+    assert(bounty.approvers[3] == accounts[6]);
+
 
   });
 
   it("[ETH] Verifies that I can't add approvers to an out of bounds bounty", async () => {
+    let registry = await StandardBounties.new();
 
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.addApprovers(accounts[0], 1, 0, [accounts[5], accounts[6]]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
   });
 
   it("[ETH] Verifies that I can't add approvers to a bounty if I didn't issue it", async () => {
+    let registry = await StandardBounties.new();
 
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.addApprovers(accounts[1], 0, 0, [accounts[5], accounts[6]], {from: accounts[1]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't add approvers with an out of bounds issuer ID", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.addApprovers(accounts[0], 0, 1, [accounts[5], accounts[6]], {from: accounts[0]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that adding approvers to a bounty emits an event", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    await registry.addApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
+      assert.strictEqual('BountyApproversAdded', status.logs[0].event, 'did not emit the BountyApproversAdded event');
+    });
+  });
+
+  it("[ETH] Verifies that I can replace the approvers of my bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+
+    await registry.replaceApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
+
+    var bounty = await registry.getBounty(0);
+
+    assert(bounty.approvers[0] == accounts[5]);
+    assert(bounty.approvers[1] == accounts[6]);
+
+
+  });
+
+  it("[ETH] Verifies that I can't replace approvers for an out of bounds bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.replaceApprovers(accounts[0], 1, 0, [accounts[5], accounts[6]]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't replace approvers for a bounty if I didn't issue it", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.replaceApprovers(accounts[1], 0, 0, [accounts[5], accounts[6]], {from: accounts[1]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't replace approvers with an out of bounds issuer ID", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    try {
+      await registry.replaceApprovers(accounts[0], 0, 1, [accounts[5], accounts[6]], {from: accounts[0]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that replacing approvers of a bounty emits an event", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+
+    await registry.replaceApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
+      assert.strictEqual('BountyApproversReplaced', status.logs[0].event, 'did not emit the BountyApproversReplaced event');
+    });
   });
 
 });
