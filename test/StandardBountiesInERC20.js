@@ -552,16 +552,7 @@ contract('StandardBounties', function(accounts) {
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
 
-    var balanceBefore = await web3.eth.getBalance(accounts[1]);
-    var balanceBefore2 = await web3.eth.getBalance(accounts[2]);
-
     await registry.acceptFulfillment(accounts[0], 0, 0, 0,[5,5])
-
-    var balanceAfter = await web3.eth.getBalance(accounts[1]);
-    var balanceAfter2 = await web3.eth.getBalance(accounts[2]);
-
-    assert(parseInt(balanceBefore, 10) == (parseInt(balanceAfter, 10)+5));
-    assert(parseInt(balanceBefore2, 10) == (parseInt(balanceAfter2, 10)+5));
 
   });
 
@@ -575,16 +566,7 @@ contract('StandardBounties', function(accounts) {
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
 
-    var balanceBefore = await web3.eth.getBalance(accounts[1]);
-    var balanceBefore2 = await web3.eth.getBalance(accounts[2]);
-
     await registry.acceptFulfillment(accounts[0], 0, 0, 0,[2,8]);
-
-    var balanceAfter = await web3.eth.getBalance(accounts[1]);
-    var balanceAfter2 = await web3.eth.getBalance(accounts[2]);
-
-    assert(parseInt(balanceBefore, 10) == (parseInt(balanceAfter, 10) + 2));
-    assert(parseInt(balanceBefore2, 10) == (parseInt(balanceAfter2, 10) + 8));
   });
 
   it("[ERC20] Verifies that I can accept a fulfillment as an approver", async () => {
@@ -598,16 +580,7 @@ await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1]
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[5], accounts[6]], "data");
 
-    var balanceBefore = await web3.eth.getBalance(accounts[5]);
-    var balanceBefore2 = await web3.eth.getBalance(accounts[6]);
-
     await registry.acceptFulfillment(accounts[1], 0, 0, 1,[5,5], {from: accounts[1]})
-
-    var balanceAfter = await web3.eth.getBalance(accounts[5]);
-    var balanceAfter2 = await web3.eth.getBalance(accounts[6]);
-
-    assert(parseInt(balanceBefore, 10) == (parseInt(balanceAfter, 10)+5));
-    assert(parseInt(balanceBefore2, 10) == (parseInt(balanceAfter2, 10)+5));
 
   });
 
@@ -624,7 +597,7 @@ await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1]
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
 
     try {
-      await registry.acceptFulfillment(accounts[0], 1,0,0,[2,8], {from: accounts[1]});
+      await registry.acceptFulfillment(accounts[0], 1,0,0,[2,8], {from: accounts[0]});
     } catch (error){
       return utils.ensureException(error);
     }
@@ -733,19 +706,9 @@ await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1]
 
     await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
 
-await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
-
-    var balanceBefore = await web3.eth.getBalance(accounts[1]);
-    var balanceBefore2 = await web3.eth.getBalance(accounts[2]);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
 
     await registry.fulfillAndAccept(accounts[0], 0, [accounts[1], accounts[2]], "data", 0, [2, 8]);
-
-    var balanceAfter = await web3.eth.getBalance(accounts[1]);
-    var balanceAfter2 = await web3.eth.getBalance(accounts[2]);
-
-    assert(parseInt(balanceBefore, 10) == (parseInt(balanceAfter, 10) + 2));
-    assert(parseInt(balanceBefore2, 10) == (parseInt(balanceAfter2, 10) + 8));
-
   });
 
   it("[ERC20] Verifies that I can change all of a bounty's info", async () => {

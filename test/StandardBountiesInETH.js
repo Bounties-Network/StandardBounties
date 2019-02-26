@@ -524,7 +524,7 @@ contract('StandardBounties', function(accounts) {
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
 
     try {
-      await registry.acceptFulfillment(accounts[0], 1,0,0,[2,8], {from: accounts[1]});
+      await registry.acceptFulfillment(accounts[0], 1,0,0,[2,8], {from: accounts[0]});
     } catch (error){
       return utils.ensureException(error);
     }
