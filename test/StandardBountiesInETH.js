@@ -1093,7 +1093,6 @@ contract('StandardBounties', function(accounts) {
     assert(bounty.approvers[2] == accounts[5]);
     assert(bounty.approvers[3] == accounts[6]);
 
-
   });
 
   it("[ETH] Verifies that I can't add approvers to an out of bounds bounty", async () => {
