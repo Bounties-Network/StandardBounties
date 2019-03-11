@@ -644,10 +644,10 @@ contract StandardBounties {
   validateIssuerArrayIndex(_bountyId, _issuerId)
   onlyIssuer(_sender, _bountyId, _issuerId)
   {
-  for (uint i = 0; i < _approvers.length; i++){
-  bounties[_bountyId].approvers.push(_approvers[i]);
-  }
-  emit BountyApproversAdded(_bountyId, _sender, _approvers);
+    for (uint i = 0; i < _approvers.length; i++){
+      bounties[_bountyId].approvers.push(_approvers[i]);
+    }
+    emit BountyApproversAdded(_bountyId, _sender, _approvers);
   }
 
   /// @dev replaceApprovers(): Allows any of the issuers to replace the approvers of the bounty
@@ -666,9 +666,9 @@ contract StandardBounties {
   validateIssuerArrayIndex(_bountyId, _issuerId)
   onlyIssuer(_sender, _bountyId, _issuerId)
   {
-  bounties[_bountyId].approvers = _approvers;
+    bounties[_bountyId].approvers = _approvers;
 
-  emit BountyApproversReplaced(_bountyId, _sender, _approvers);
+    emit BountyApproversReplaced(_bountyId, _sender, _approvers);
   }
 
   /// @dev getBounty(): Returns the details of the bounty
