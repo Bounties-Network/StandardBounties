@@ -310,11 +310,11 @@ contract('StandardBounties', function(accounts) {
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
 
-    let fulfillments = await registry.getBountyFulfillments(0);
-    assert(fulfillments.length == 1);
-    assert(fulfillments[0].fulfillers[0] == accounts[1]);
-    assert(fulfillments[0].fulfillers[1] == accounts[2]);
-    assert(fulfillments[0].submitter == accounts[0]);
+    let bounty = await registry.getBounty(0);
+    assert(bounty.fulfillments.length == 1);
+    assert(bounty.fulfillments[0].fulfillers[0] == accounts[1]);
+    assert(bounty.fulfillments[0].fulfillers[1] == accounts[2]);
+    assert(bounty.fulfillments[0].submitter == accounts[0]);
 
   });
 
@@ -380,12 +380,12 @@ contract('StandardBounties', function(accounts) {
 
     await registry.updateFulfillment(accounts[0], 0, 0, [accounts[3], accounts[4]], "data2");
 
-    let fulfillments = await registry.getBountyFulfillments(0);
+    let bounty = await registry.getBounty(0);
 
-    assert(fulfillments.length == 1);
-    assert(fulfillments[0].fulfillers[0] == accounts[3]);
-    assert(fulfillments[0].fulfillers[1] == accounts[4]);
-    assert(fulfillments[0].submitter == accounts[0]);
+    assert(bounty.fulfillments.length == 1);
+    assert(bounty.fulfillments[0].fulfillers[0] == accounts[3]);
+    assert(bounty.fulfillments[0].fulfillers[1] == accounts[4]);
+    assert(bounty.fulfillments[0].submitter == accounts[0]);
 
 
   });
