@@ -630,21 +630,21 @@ contract StandardBounties {
   /// @param _issuerId the index of the issuer who is calling the function
   /// @param _approvers the array of addresses to add to the list of valid approvers
   function addApprovers(
-  address _sender,
-  uint _bountyId,
-  uint _issuerId,
-  address [] memory _approvers)
-  public
-  senderIsValid(_sender)
-  validateBountyArrayIndex(_bountyId)
-  validateIssuerArrayIndex(_bountyId, _issuerId)
-  onlyIssuer(_sender, _bountyId, _issuerId)
+    address _sender,
+    uint _bountyId,
+    uint _issuerId,
+    address [] memory _approvers)
+    public
+    senderIsValid(_sender)
+    validateBountyArrayIndex(_bountyId)
+    validateIssuerArrayIndex(_bountyId, _issuerId)
+    onlyIssuer(_sender, _bountyId, _issuerId)
   {
-  for (uint i = 0; i < _approvers.length; i++){
-  bounties[_bountyId].approvers.push(_approvers[i]);
-  }
+    for (uint i = 0; i < _approvers.length; i++){
+      bounties[_bountyId].approvers.push(_approvers[i]);
+    }
 
-  emit BountyApproversUpdated(_bountyId, _sender, bounties[_bountyId].approvers);
+    emit BountyApproversUpdated(_bountyId, _sender, bounties[_bountyId].approvers);
   }
 
   /// @dev replaceApprovers(): Allows any of the issuers to replace the approvers of the bounty
