@@ -1,8 +1,8 @@
 pragma solidity 0.5.0;
 pragma experimental ABIEncoderV2;
 
-import "./inherited/ERC20Token.sol";
-import "./inherited/ERC721Basic.sol";
+import "./ERC20Token.sol";
+import "./ERC721Basic.sol";
 
 /// @title StandardBounties
 /// @dev A contract for issuing bounties on Ethereum paying in ETH, ERC20, or ERC721 tokens
@@ -174,7 +174,7 @@ contract StandardBounties {
   /// @param _issuers the array of addresses who will be the issuers of the bounty
   /// @param _approvers the array of addresses who will be the approvers of the bounty
   /// @param _data the IPFS hash representing the JSON object storing the details of the bounty (see docs for schema details)
-  /// @param _deadline the timestamp which will become the deadline of the bounty
+  /// @param _deadline the time0stamp which will become the deadline of the bounty
   /// @param _token the address of the token which will be used for the bounty
   /// @param _tokenVersion the version of the token being used for the bounty (0 for ETH, 20 for ERC20, 721 for ERC721)
   /// @param _depositAmount the amount of tokens being deposited to the bounty, which will create a new contribution to the bounty
@@ -509,13 +509,12 @@ contract StandardBounties {
     public
     senderIsValid(_sender)
     validateBountyArrayIndex(_bountyId)
-    validateIssuerArrayIndex(_bountyId, _issuerId)
     validateIssuerArrayIndex(_bountyId, _issuerIdToChange)
     onlyIssuer(_sender, _bountyId, _issuerId)
   {
     bounties[_bountyId].issuers[_issuerIdToChange] = _newIssuer;
 
-    emit BountyIssuerChanged(_bountyId, _sender, _issuerId, _newIssuer);
+    emit BountyIssuersUpdated(_bountyId, _sender, bounties[_bountyId].issuers);
   }
 
   /// @dev changeApprover(): Allows any of the issuers to change a particular approver of the bounty
@@ -533,16 +532,12 @@ contract StandardBounties {
     public
     senderIsValid(_sender)
     validateBountyArrayIndex(_bountyId)
-    validateIssuerArrayIndex(_bountyId, _issuerId)
     onlyIssuer(_sender, _bountyId, _issuerId)
     validateApproverArrayIndex(_bountyId, _approverId)
   {
     bounties[_bountyId].approvers[_approverId] = _approver;
 
-    emit BountyApproverChanged(_bountyId,
-              msg.sender,
-              _approverId,
-              _approver);
+    emit BountyApproversUpdated(_bountyId, _sender, bounties[_bountyId].approvers);
   }
 
   /// @dev changeData(): Allows any of the issuers to change the data the bounty
@@ -604,7 +599,8 @@ contract StandardBounties {
     for (uint i = 0; i < _issuers.length; i++){
       bounties[_bountyId].issuers.push(_issuers[i]);
     }
-    emit BountyIssuersAdded(_bountyId, _sender, _issuers);
+
+    emit BountyIssuersUpdated(_bountyId, _sender, bounties[_bountyId].issuers);
   }
 
   /// @dev replaceIssuers(): Allows any of the issuers to replace the issuers of the bounty
@@ -625,7 +621,7 @@ contract StandardBounties {
   {
     bounties[_bountyId].issuers = _issuers;
 
-    emit BountyIssuersReplaced(_bountyId, _sender, _issuers);
+    emit BountyIssuersUpdated(_bountyId, _sender, bounties[_bountyId].issuers);
   }
 
   /// @dev addApprovers(): Allows any of the issuers to add more approvers to the bounty
@@ -644,10 +640,11 @@ contract StandardBounties {
   validateIssuerArrayIndex(_bountyId, _issuerId)
   onlyIssuer(_sender, _bountyId, _issuerId)
   {
-    for (uint i = 0; i < _approvers.length; i++){
-      bounties[_bountyId].approvers.push(_approvers[i]);
-    }
-    emit BountyApproversAdded(_bountyId, _sender, _approvers);
+  for (uint i = 0; i < _approvers.length; i++){
+  bounties[_bountyId].approvers.push(_approvers[i]);
+  }
+
+  emit BountyApproversUpdated(_bountyId, _sender, bounties[_bountyId].approvers);
   }
 
   /// @dev replaceApprovers(): Allows any of the issuers to replace the approvers of the bounty
@@ -666,9 +663,9 @@ contract StandardBounties {
   validateIssuerArrayIndex(_bountyId, _issuerId)
   onlyIssuer(_sender, _bountyId, _issuerId)
   {
-    bounties[_bountyId].approvers = _approvers;
+  bounties[_bountyId].approvers = _approvers;
 
-    emit BountyApproversReplaced(_bountyId, _sender, _approvers);
+  emit BountyApproversUpdated(_bountyId, _sender, bounties[_bountyId].approvers);
   }
 
   /// @dev getBounty(): Returns the details of the bounty
@@ -711,12 +708,8 @@ contract StandardBounties {
   event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data);
   event FulfillmentAccepted(uint _bountyId, uint  _fulfillmentId, address _approver, uint[] _tokenAmounts);
   event BountyChanged(uint _bountyId, address _changer, address payable [] _issuers, address payable [] _approvers, string _data, uint _deadline);
-  event BountyIssuerChanged(uint _bountyId, address _changer, uint _issuerId, address payable _issuer);
-  event BountyIssuersAdded(uint _bountyId, address _changer, address payable [] _issuers);
-  event BountyIssuersReplaced(uint _bountyId, address _changer, address payable [] _issuers);
-  event BountyApproverChanged(uint _bountyId, address payable _changer, uint _approverId, address payable _approver);
-  event BountyApproversAdded(uint _bountyId, address _changer, address [] _approvers);
-  event BountyApproversReplaced(uint _bountyId, address _changer, address [] _approvers);
+  event BountyIssuersUpdated(uint _bountyId, address _changer, address payable [] _issuers);
+  event BountyApproversUpdated(uint _bountyId, address _changer, address [] _approvers);
   event BountyDataChanged(uint _bountyId, address _changer, string _data);
   event BountyDeadlineChanged(uint _bountyId, address _changer, uint _deadline);
 }
