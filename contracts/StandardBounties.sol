@@ -653,19 +653,19 @@ contract StandardBounties {
   /// @param _issuerId the index of the issuer who is calling the function
   /// @param _approvers the array of addresses to replace the list of valid approvers
   function replaceApprovers(
-  address _sender,
-  uint _bountyId,
-  uint _issuerId,
-  address [] memory _approvers)
-  public
-  senderIsValid(_sender)
-  validateBountyArrayIndex(_bountyId)
-  validateIssuerArrayIndex(_bountyId, _issuerId)
-  onlyIssuer(_sender, _bountyId, _issuerId)
+    address _sender,
+    uint _bountyId,
+    uint _issuerId,
+    address [] memory _approvers)
+    public
+    senderIsValid(_sender)
+    validateBountyArrayIndex(_bountyId)
+    validateIssuerArrayIndex(_bountyId, _issuerId)
+    onlyIssuer(_sender, _bountyId, _issuerId)
   {
-  bounties[_bountyId].approvers = _approvers;
+    bounties[_bountyId].approvers = _approvers;
 
-  emit BountyApproversUpdated(_bountyId, _sender, bounties[_bountyId].approvers);
+    emit BountyApproversUpdated(_bountyId, _sender, bounties[_bountyId].approvers);
   }
 
   /// @dev getBounty(): Returns the details of the bounty
