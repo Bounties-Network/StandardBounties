@@ -1,8 +1,8 @@
 pragma solidity 0.5.0;
 pragma experimental ABIEncoderV2;
 
-import "./ERC20Token.sol";
-import "./ERC721Basic.sol";
+import "./inherited/ERC20Token.sol";
+import "./inherited/ERC721Basic.sol";
 
 /// @title StandardBounties
 /// @dev A contract for issuing bounties on Ethereum paying in ETH, ERC20, or ERC721 tokens
@@ -174,7 +174,7 @@ contract StandardBounties {
   /// @param _issuers the array of addresses who will be the issuers of the bounty
   /// @param _approvers the array of addresses who will be the approvers of the bounty
   /// @param _data the IPFS hash representing the JSON object storing the details of the bounty (see docs for schema details)
-  /// @param _deadline the time0stamp which will become the deadline of the bounty
+  /// @param _deadline the timestamp which will become the deadline of the bounty
   /// @param _token the address of the token which will be used for the bounty
   /// @param _tokenVersion the version of the token being used for the bounty (0 for ETH, 20 for ERC20, 721 for ERC721)
   /// @param _depositAmount the amount of tokens being deposited to the bounty, which will create a new contribution to the bounty
