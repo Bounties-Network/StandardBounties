@@ -512,6 +512,8 @@ contract StandardBounties {
     validateIssuerArrayIndex(_bountyId, _issuerIdToChange)
     onlyIssuer(_sender, _bountyId, _issuerId)
   {
+    require(_issuerId < bounties[_bountyId].issuers.length || _issuerId == 0);
+
     bounties[_bountyId].issuers[_issuerIdToChange] = _newIssuer;
 
     emit BountyIssuersUpdated(_bountyId, _sender, bounties[_bountyId].issuers);
