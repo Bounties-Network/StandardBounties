@@ -43,9 +43,9 @@ contract('StandardBounties', function(accounts) {
 
     assert(parseInt(total, 10) == 1, parseInt(total, 10));
 
-    let bounty = await registry.bounties(0);
+    let hasToken = await registry.tokenBalances(0, 1);
 
-    assert(parseInt(bounty.balance, 10) == 1);
+    assert(hasToken);
 
   });
 
@@ -95,9 +95,9 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.approve(registry.address, 2);
     await registry.contribute(accounts[0], 0, 2);
 
-    let bounty = await registry.bounties(0);
+    let hasToken = await registry.tokenBalances(0, 2);
 
-    assert(parseInt(bounty.balance, 10) == 3);
+    assert(hasToken);
 
   });
 
@@ -182,20 +182,21 @@ contract('StandardBounties', function(accounts) {
 
     await registry.contribute(accounts[0], 0, 1);
 
-    let bounty = await registry.bounties(0);
+    let hasToken = await registry.tokenBalances(0, 1);
 
-    assert(parseInt(bounty.balance, 10) == 1);
+    assert(hasToken);
 
     var block = await web3.eth.getBlock('latest');
 
     await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
 
-
     await registry.refundContribution(accounts[0], 0,0);
 
     bounty = await registry.bounties(0);
 
-    assert(parseInt(bounty.balance, 10) == 0);
+    hasToken = await registry.tokenBalances(0, 1);
+
+    assert(!hasToken);
   });
 
   it("[ERC721] Verifies that I can refund multiple contributions in ERC721 tokens", async () => {
@@ -209,18 +210,18 @@ contract('StandardBounties', function(accounts) {
 
     await registry.contribute(accounts[0], 0, 1);
 
-    let bounty = await registry.bounties(0);
+    let hasToken = await registry.tokenBalances(0, 1);
 
-    assert(parseInt(bounty.balance, 10) == 1);
+    assert(hasToken);
 
     await bountyToken.mint(accounts[0], 3);
     await bountyToken.approve(registry.address, 3);
 
     await registry.contribute(accounts[0], 0, 3);
 
-    bounty = await registry.bounties(0);
+    hasToken = await registry.tokenBalances(0, 3);
 
-    assert(parseInt(bounty.balance, 10) == 4);
+    assert(hasToken);
 
     var block = await web3.eth.getBlock('latest');
 
@@ -228,15 +229,15 @@ contract('StandardBounties', function(accounts) {
 
     await registry.refundContribution(accounts[0], 0, 0);
 
-    bounty = await registry.bounties(0);
+    hasToken = await registry.tokenBalances(0, 1);
 
-    assert(parseInt(bounty.balance, 10) == 3);
+    assert(!hasToken);
 
     await registry.refundContribution(accounts[0], 0, 1);
 
-    bounty = await registry.bounties(0);
+    hasToken = await registry.tokenBalances(0, 3);
 
-    assert(parseInt(bounty.balance, 10) == 0);
+    assert(!hasToken);
   });
 
   it("[ERC721] Verifies that I can't refund a contribution to a bounty which is out of bounds", async () => {
@@ -377,9 +378,9 @@ contract('StandardBounties', function(accounts) {
     await registry.contribute(accounts[0], 0, 1);
 
 
-    let bounty = await registry.bounties(0);
+    let hasToken = await registry.tokenBalances(0, 1);
 
-    assert(parseInt(bounty.balance, 10) == 1);
+    assert(hasToken);
 
     var block = await web3.eth.getBlock('latest');
 
