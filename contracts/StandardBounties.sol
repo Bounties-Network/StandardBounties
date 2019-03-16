@@ -364,6 +364,7 @@ contract StandardBounties {
       validateBountyArrayIndex(_bountyId)
       onlyIssuer(_bountyId)
   {
+      require(bounties[_bountyId].bountyStage != BountyStages.Dead);
       transitionToState(_bountyId, BountyStages.Dead);
       uint oldBalance = bounties[_bountyId].balance;
       bounties[_bountyId].balance = 0;
@@ -391,6 +392,7 @@ contract StandardBounties {
       validateBountyArrayIndex(_bountyId)
       onlyIssuer(_bountyId)
       newDeadlineIsValid(_bountyId, _newDeadline)
+      validateDeadline(_newDeadline)
   {
       bounties[_bountyId].deadline = _newDeadline;
 
@@ -408,21 +410,6 @@ contract StandardBounties {
   {
       bounties[_bountyId].issuer = _newIssuer;
       IssuerTransferred(_bountyId, _newIssuer);
-  }
-
-
-  /// @dev changeBountyDeadline(): allows the issuer to change a bounty's deadline
-  /// @param _bountyId the index of the bounty
-  /// @param _newDeadline the new deadline for the bounty
-  function changeBountyDeadline(uint _bountyId, uint _newDeadline)
-      public
-      validateBountyArrayIndex(_bountyId)
-      onlyIssuer(_bountyId)
-      validateDeadline(_newDeadline)
-      isAtStage(_bountyId, BountyStages.Draft)
-  {
-      bounties[_bountyId].deadline = _newDeadline;
-      BountyChanged(_bountyId);
   }
 
   /// @dev changeData(): allows the issuer to change a bounty's data
