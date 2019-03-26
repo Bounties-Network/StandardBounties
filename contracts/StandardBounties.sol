@@ -42,6 +42,8 @@ contract StandardBounties {
 
   uint public numBounties; // An integer storing the total number of bounties in the contract
   mapping(uint => Bounty) public bounties; // A mapping of bountyIDs to bounties
+  mapping (uint => mapping (uint => bool)) public tokenBalances; // A mapping of bountyIds to tokenIds to booleans, storing whether a given bounty has a given token in its balance
+
 
   address owner; // The address of the individual who's allowed to set the metaTxRelayer address
   address metaTxRelayer; // The address of the meta transaction relayer whose _sender is automatically trusted for all contract calls
@@ -243,18 +245,23 @@ contract StandardBounties {
     bounties[_bountyId].contributions.push(
       Contribution(_sender, _amount, false)); // Adds the contribution to the bounty
 
-    bounties[_bountyId].balance += _amount; // Increments the balance of the bounty
-
     require(_amount > 0); // Contributions of the amount 0 should fail
 
     if (bounties[_bountyId].tokenVersion == 0){
+      bounties[_bountyId].balance += _amount; // Increments the balance of the bounty
+
       require(msg.value == _amount);
     } else if (bounties[_bountyId].tokenVersion == 20) {
+      bounties[_bountyId].balance += _amount; // Increments the balance of the bounty
+
       require(msg.value == 0); // Ensures users don't accidentally send ETH alongside a token contribution, locking up funds
       require(ERC20Token(bounties[_bountyId].token).transferFrom(_sender,
                                                                  address(this),
                                                                  _amount));
     } else if (bounties[_bountyId].tokenVersion == 721) {
+      tokenBalances[_bountyId][_amount] = true; // Adds the 721 token to the balance of the bounty
+
+
       require(msg.value == 0); // Ensures users don't accidentally send ETH alongside a token contribution, locking up funds
       ERC721BasicToken(bounties[_bountyId].token).transferFrom(_sender,
                                                                address(this),
@@ -291,7 +298,6 @@ contract StandardBounties {
       bounties[_bountyId].contributions[_contributionId];
 
     contribution.refunded = true;
-    bounties[_bountyId].balance -= contribution.amount;
 
     transferTokens(_bountyId, contribution.contributor, contribution.amount); // Performs the disbursal of tokens to the contributor
 
@@ -413,9 +419,8 @@ contract StandardBounties {
 
     for (uint256 i = 0; i < fulfillment.fulfillers.length; i++){
       // for each fulfiller associated with the submission
-      require(bounties[_bountyId].balance >= _tokenAmounts[i]); // Checks that the bounty has a sufficient balance to make the payout
-
-      bounties[_bountyId].balance -= _tokenAmounts[i];
+      require(bounties[_bountyId].balance >= _tokenAmounts[i] ||
+              tokenBalances[_bountyId][_tokenAmounts[i]]); // Checks that the bounty has a sufficient balance to make the payout
 
       if (_tokenAmounts[i] != 0){
         transferTokens(_bountyId, fulfillment.fulfillers[i], _tokenAmounts[i]);
@@ -687,10 +692,16 @@ contract StandardBounties {
     internal
   {
     if (bounties[_bountyId].tokenVersion == 0){
+      bounties[_bountyId].balance -= _amount;
+
       _to.transfer(_amount);
     } else if (bounties[_bountyId].tokenVersion == 20) {
+      bounties[_bountyId].balance -= _amount;
+
       require(ERC20Token(bounties[_bountyId].token).transfer(_to, _amount));
     } else if (bounties[_bountyId].tokenVersion == 721) {
+      tokenBalances[_bountyId][_amount] = false; // Adds the 721 token to the balance of the bounty
+
       ERC721BasicToken(bounties[_bountyId].token).safeTransferFrom(address(this),
                                                                    _to,
                                                                    _amount);
