@@ -45,13 +45,19 @@ contract StandardBounties {
   mapping (uint => mapping (uint => bool)) public tokenBalances; // A mapping of bountyIds to tokenIds to booleans, storing whether a given bounty has a given token in its balance
 
 
-  address owner; // The address of the individual who's allowed to set the metaTxRelayer address
-  address metaTxRelayer; // The address of the meta transaction relayer whose _sender is automatically trusted for all contract calls
+  address public owner; // The address of the individual who's allowed to set the metaTxRelayer address
+  address public metaTxRelayer; // The address of the meta transaction relayer whose _sender is automatically trusted for all contract calls
 
+  bool public callStarted; // Ensures mutex for the entire contract
 
   /*
    * Modifiers
    */
+
+  modifier callNotStarted(){
+    require(!callStarted);
+    _;
+  }
 
   modifier validateBountyArrayIndex(
     uint _index)
@@ -80,7 +86,7 @@ contract StandardBounties {
     uint _bountyId,
     uint _index)
   {
-    require(_index < bounties[_bountyId].issuers.length || _index == 0);
+    require(_index < bounties[_bountyId].issuers.length);
     _;
   }
 
@@ -88,7 +94,7 @@ contract StandardBounties {
     uint _bountyId,
     uint _index)
   {
-    require(_index < bounties[_bountyId].approvers.length || _index == 0);
+    require(_index < bounties[_bountyId].approvers.length);
     _;
   }
 
@@ -164,7 +170,7 @@ contract StandardBounties {
   /// @dev setMetaTxRelayer(): Sets the address of the meta transaction relayer
   /// @param _relayer the address of the relayer
   function setMetaTxRelayer(address _relayer)
-    public
+    external
   {
     require(msg.sender == owner); // Checks that only the owner can call
     require(metaTxRelayer == address(0)); // Ensures the meta tx relayer can only be set once
@@ -179,8 +185,53 @@ contract StandardBounties {
   /// @param _deadline the timestamp which will become the deadline of the bounty
   /// @param _token the address of the token which will be used for the bounty
   /// @param _tokenVersion the version of the token being used for the bounty (0 for ETH, 20 for ERC20, 721 for ERC721)
-  /// @param _depositAmount the amount of tokens being deposited to the bounty, which will create a new contribution to the bounty
+
   function issueBounty(
+    address payable _sender,
+    address payable [] memory _issuers,
+    address [] memory _approvers,
+    string memory _data,
+    uint _deadline,
+    address _token,
+    uint _tokenVersion)
+    public
+    payable
+    senderIsValid(_sender)
+    returns (uint)
+  {
+    require(_tokenVersion == 0 || _tokenVersion == 20 || _tokenVersion == 721); // Ensures a bounty can only be issued with a valid token version
+    require(_issuers.length > 0 || _approvers.length > 0); // Ensures there's at least 1 issuer or approver, so funds don't get stuck
+
+    uint bountyId = numBounties; // The next bounty's index will always equal the number of existing bounties
+
+    Bounty storage newBounty = bounties[bountyId];
+    newBounty.issuers = _issuers;
+    newBounty.approvers = _approvers;
+    newBounty.deadline = _deadline;
+    newBounty.tokenVersion = _tokenVersion;
+
+    if (_tokenVersion != 0) {
+      newBounty.token = _token;
+    }
+
+    numBounties++; // Increments the number of bounties, since a new one has just been added
+
+    emit BountyIssued(bountyId,
+                      _sender,
+                      _issuers,
+                      _approvers,
+                      _data, // Instead of storing the string on-chain, it is emitted within the event for easy off-chain consumption
+                      _deadline,
+                      _token,
+                      _tokenVersion);
+
+    return (bountyId);
+  }
+
+  /// @param _depositAmount the amount of tokens being deposited to the bounty, which will create a new contribution to the bounty
+
+
+  function issueAndContribute(
     address payable _sender,
     address payable [] memory _issuers,
     address [] memory _approvers,
@@ -191,37 +242,13 @@ contract StandardBounties {
     uint _depositAmount)
     public
     payable
-    senderIsValid(_sender)
-    returns (uint)
+    returns(uint)
   {
-    require(_tokenVersion == 0 || _tokenVersion == 20 || _tokenVersion == 721); // Ensures a bounty can only be issued with a valid token version
+    uint bountyId = issueBounty(_sender, _issuers, _approvers, _data, _deadline, _token, _tokenVersion);
 
-    uint bountyId = numBounties; // The next bounty's index will always equal the number of existing bounties
-
-    Bounty storage newBounty = bounties[bountyId];
-    newBounty.issuers = _issuers;
-    newBounty.approvers = _approvers;
-    newBounty.deadline = _deadline;
-    newBounty.token = _token;
-    newBounty.tokenVersion = _tokenVersion;
-
-    numBounties++; // Increments the number of bounties, since a new one has just been added
-
-    emit BountyIssued(bountyId,
-    _sender,
-    _issuers,
-    _approvers,
-    _data, // Instead of storing the string on-chain, it is emitted within the event for easy off-chain consumption
-    _deadline,
-    _token,
-    _tokenVersion);
-
-    // If the issuer wants to make a contribution while they issue the bounty, trigger that call
-    if (_depositAmount > 0){
-      contribute(_sender, bountyId, _depositAmount);
-    }
-    return (bountyId);
+    contribute(_sender, bountyId, _depositAmount);
   }
+
 
   /// @dev contribute(): Allows users to contribute tokens to a given bounty.
   ///                    Contributing merits no privelages to administer the
@@ -241,17 +268,22 @@ contract StandardBounties {
     payable
     senderIsValid(_sender)
     validateBountyArrayIndex(_bountyId)
+    callNotStarted
   {
+    require(_amount > 0); // Contributions of 0 tokens or token ID 0 should fail
+
+    callStarted = true;
+
     bounties[_bountyId].contributions.push(
       Contribution(_sender, _amount, false)); // Adds the contribution to the bounty
 
-    require(_amount > 0); // Contributions of the amount 0 should fail
-
     if (bounties[_bountyId].tokenVersion == 0){
+
       bounties[_bountyId].balance += _amount; // Increments the balance of the bounty
 
       require(msg.value == _amount);
     } else if (bounties[_bountyId].tokenVersion == 20) {
+
       bounties[_bountyId].balance += _amount; // Increments the balance of the bounty
 
       require(msg.value == 0); // Ensures users don't accidentally send ETH alongside a token contribution, locking up funds
@@ -266,12 +298,15 @@ contract StandardBounties {
       ERC721BasicToken(bounties[_bountyId].token).transferFrom(_sender,
                                                                address(this),
                                                                _amount);
+    } else {
+      revert();
     }
 
     emit ContributionAdded(_bountyId,
                            bounties[_bountyId].contributions.length - 1, // The new contributionId
                            _sender,
                            _amount);
+    callStarted = false;
   }
 
   /// @dev refundContribution(): Allows users to refund the contributions they've
@@ -291,7 +326,9 @@ contract StandardBounties {
     onlyContributor(_sender, _bountyId, _contributionId)
     hasNotPaid(_bountyId)
     hasNotRefunded(_bountyId, _contributionId)
+    callNotStarted
   {
+    callStarted = true;
     require(now > bounties[_bountyId].deadline); // Refunds may only be processed after the deadline has elapsed
 
     Contribution storage contribution =
@@ -302,6 +339,7 @@ contract StandardBounties {
     transferTokens(_bountyId, contribution.contributor, contribution.amount); // Performs the disbursal of tokens to the contributor
 
     emit ContributionRefunded(_bountyId, _contributionId);
+    callStarted = false;
   }
 
   /// @dev refundContributions(): Allows users to refund their contributions in bulk
@@ -380,7 +418,7 @@ contract StandardBounties {
   validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
   onlySubmitter(_sender, _bountyId, _fulfillmentId) // Only the original submitter of a fulfillment may update their submission
   {
-    bounties[_bountyId].fulfillments[_bountyId].fulfillers = _fulfillers;
+    bounties[_bountyId].fulfillments[_fulfillmentId].fulfillers = _fulfillers;
     emit FulfillmentUpdated(_bountyId,
                             _fulfillmentId,
                             _fulfillers,
@@ -408,7 +446,10 @@ contract StandardBounties {
     validateBountyArrayIndex(_bountyId)
     validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
     isApprover(_sender, _bountyId, _approverId)
+    callNotStarted
   {
+    callStarted = true;
+
     // now that the bounty has paid out at least once, refunds are no longer possible
     bounties[_bountyId].hasPaidOut = true;
 
@@ -422,14 +463,15 @@ contract StandardBounties {
       require(bounties[_bountyId].balance >= _tokenAmounts[i] ||
               tokenBalances[_bountyId][_tokenAmounts[i]]); // Checks that the bounty has a sufficient balance to make the payout
 
-      if (_tokenAmounts[i] != 0){
-        transferTokens(_bountyId, fulfillment.fulfillers[i], _tokenAmounts[i]);
-      }
+        if (_tokenAmounts[i] > 0) {
+          transferTokens(_bountyId, fulfillment.fulfillers[i], _tokenAmounts[i]);
+        }
     }
     emit FulfillmentAccepted(_bountyId,
                              _fulfillmentId,
                              _sender,
                              _tokenAmounts);
+    callStarted = false;
   }
 
   /// @dev fulfillAndAccept(): Allows any of the approvers to fulfill and accept a submission simultaneously
@@ -484,10 +526,13 @@ contract StandardBounties {
     uint _deadline)
     public
     senderIsValid(_sender)
-    validateBountyArrayIndex(_bountyId)
-    validateIssuerArrayIndex(_bountyId, _issuerId)
-    onlyIssuer(_sender, _bountyId, _issuerId)
   {
+    require(_bountyId < numBounties); // makes the validateBountyArrayIndex modifier in-line to avoid stack too deep errors
+    require(_issuerId < bounties[_bountyId].issuers.length); // makes the validateIssuerArrayIndex modifier in-line to avoid stack too deep errors
+    require(_sender == bounties[_bountyId].issuers[_issuerId]); // makes the onlyIssuer modifier in-line to avoid stack too deep errors
+
+    require(_issuers.length > 0 || _approvers.length > 0); // Ensures there's at least 1 issuer or approver, so funds don't get stuck
+
     bounties[_bountyId].issuers = _issuers;
     bounties[_bountyId].approvers = _approvers;
     bounties[_bountyId].deadline = _deadline;
@@ -536,7 +581,7 @@ contract StandardBounties {
     uint _issuerId,
     uint _approverId,
     address payable _approver)
-    public
+    external
     senderIsValid(_sender)
     validateBountyArrayIndex(_bountyId)
     onlyIssuer(_sender, _bountyId, _issuerId)
@@ -576,7 +621,7 @@ contract StandardBounties {
     uint _bountyId,
     uint _issuerId,
     uint _deadline)
-    public
+    external
     senderIsValid(_sender)
     validateBountyArrayIndex(_bountyId)
     validateIssuerArrayIndex(_bountyId, _issuerId)
@@ -626,6 +671,8 @@ contract StandardBounties {
     validateIssuerArrayIndex(_bountyId, _issuerId)
     onlyIssuer(_sender, _bountyId, _issuerId)
   {
+    require(_issuers.length > 0 || bounties[_bountyId].approvers.length > 0); // Ensures there's at least 1 issuer or approver, so funds don't get stuck
+
     bounties[_bountyId].issuers = _issuers;
 
     emit BountyIssuersUpdated(_bountyId, _sender, bounties[_bountyId].issuers);
@@ -670,6 +717,7 @@ contract StandardBounties {
     validateIssuerArrayIndex(_bountyId, _issuerId)
     onlyIssuer(_sender, _bountyId, _issuerId)
   {
+    require(bounties[_bountyId].issuers.length > 0 || _approvers.length > 0); // Ensures there's at least 1 issuer or approver, so funds don't get stuck
     bounties[_bountyId].approvers = _approvers;
 
     emit BountyApproversUpdated(_bountyId, _sender, bounties[_bountyId].approvers);
@@ -679,7 +727,7 @@ contract StandardBounties {
   /// @param _bountyId the index of the bounty
   /// @return Returns a tuple for the bounty
   function getBounty(uint _bountyId)
-    public
+    external
     view
     returns (Bounty memory)
   {
@@ -691,19 +739,23 @@ contract StandardBounties {
     internal
   {
     if (bounties[_bountyId].tokenVersion == 0){
+      require(_amount > 0); // Sending 0 tokens should throw
+
       bounties[_bountyId].balance -= _amount;
 
       _to.transfer(_amount);
     } else if (bounties[_bountyId].tokenVersion == 20) {
+      require(_amount > 0); // Sending 0 tokens should throw
+
       bounties[_bountyId].balance -= _amount;
 
       require(ERC20Token(bounties[_bountyId].token).transfer(_to, _amount));
     } else if (bounties[_bountyId].tokenVersion == 721) {
-      tokenBalances[_bountyId][_amount] = false; // Adds the 721 token to the balance of the bounty
+      tokenBalances[_bountyId][_amount] = false; // Removes the 721 token from the balance of the bounty
 
-      ERC721BasicToken(bounties[_bountyId].token).safeTransferFrom(address(this),
-                                                                   _to,
-                                                                   _amount);
+      ERC721BasicToken(bounties[_bountyId].token).transferFrom(address(this),
+                                                               _to,
+                                                               _amount);
     } else {
       revert();
     }

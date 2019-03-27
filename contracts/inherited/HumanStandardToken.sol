@@ -11,7 +11,7 @@ Machine-based, rapid creation of many tokens would not necessarily need these ex
 
 .*/
 
-import "./ERC20Token.sol";
+import "../inherited/ERC20Token.sol";
 
 pragma solidity 0.5.0;
 

@@ -23,7 +23,6 @@ contract BountiesMetaTxRelayer {
     uint _deadline,
     address _token,
     uint _tokenVersion,
-    uint _depositAmount,
     uint _nonce)
     public
     payable
@@ -37,7 +36,6 @@ contract BountiesMetaTxRelayer {
                                                   _deadline,
                                                   _token,
                                                   _tokenVersion,
-                                                  _depositAmount,
                                                   _nonce));
     address signer = getSigner(metaHash, signature);
 
@@ -47,15 +45,13 @@ contract BountiesMetaTxRelayer {
 
     //increase the nonce to prevent replay attacks
     replayNonce[signer]++;
-
     return bountiesContract.issueBounty(address(uint160(signer)),
                                          _issuers,
                                          _approvers,
                                          _data,
                                          _deadline,
                                          _token,
-                                         _tokenVersion,
-                                         _depositAmount);
+                                         _tokenVersion);
   }
 
   function metaContribute(
@@ -80,7 +76,11 @@ contract BountiesMetaTxRelayer {
     //increase the nonce to prevent replay attacks
     replayNonce[signer]++;
 
-    bountiesContract.contribute(address(uint160(signer)), _bountyId, _amount);
+    if (msg.value > 0){
+      bountiesContract.contribute.value(msg.value)(address(uint160(signer)), _bountyId, _amount);
+    } else {
+      bountiesContract.contribute(address(uint160(signer)), _bountyId, _amount);
+    }
   }
 
 
