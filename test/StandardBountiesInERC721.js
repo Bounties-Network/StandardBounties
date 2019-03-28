@@ -21,7 +21,7 @@ contract('StandardBounties', function(accounts) {
     let registry = await StandardBounties.new();
     let bountyToken = await ERC721BasicTokenMock.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     let total = await registry.numBounties();
 
@@ -37,7 +37,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1, {from: accounts[0]});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1, {from: accounts[0]});
 
     let total = await registry.numBounties();
 
@@ -57,7 +57,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.approve(registry.address, 1);
 
     try {
-      await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1, {value: 1});
+      await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1, {value: 1});
 
     } catch (error){
       return utils.ensureException(error);
@@ -74,7 +74,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.approve(registry.address, 1);
 
     try {
-      await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+      await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     } catch (error){
       return utils.ensureException(error);
@@ -89,7 +89,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     await bountyToken.mint(accounts[0], 2);
     await bountyToken.approve(registry.address, 2);
@@ -105,7 +105,7 @@ contract('StandardBounties', function(accounts) {
     let registry = await StandardBounties.new();
     let bountyToken = await ERC721BasicTokenMock.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
@@ -123,7 +123,7 @@ contract('StandardBounties', function(accounts) {
     let registry = await StandardBounties.new();
     let bountyToken = await ERC721BasicTokenMock.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
@@ -141,7 +141,7 @@ contract('StandardBounties', function(accounts) {
     let registry = await StandardBounties.new();
     let bountyToken = await ERC721BasicTokenMock.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
@@ -159,7 +159,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
@@ -175,7 +175,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
@@ -203,7 +203,7 @@ contract('StandardBounties', function(accounts) {
     let registry = await StandardBounties.new();
     let bountyToken = await ERC721BasicTokenMock.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
@@ -245,7 +245,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
@@ -270,7 +270,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
@@ -295,7 +295,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
@@ -322,7 +322,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
@@ -349,7 +349,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
@@ -370,7 +370,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
@@ -396,7 +396,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await registry.performAction(accounts[0], 0, "actionData");
 
@@ -406,7 +406,7 @@ contract('StandardBounties', function(accounts) {
     let registry = await StandardBounties.new();
     let bountyToken = await ERC721BasicTokenMock.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     try {
       await registry.performAction(accounts[0], 1, "actionData");
@@ -421,7 +421,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await registry.performAction(accounts[0], 0, "actionData").then((status) => {
       assert.strictEqual('ActionPerformed', status.logs[0].event, 'did not emit the ActionPerformed event');
@@ -433,7 +433,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
 
@@ -450,7 +450,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
 
 
@@ -470,7 +470,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 1, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 1, bountyToken.address, 721, 1);
 
     try {
       await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
@@ -487,7 +487,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     try {
       await registry.fulfillBounty(accounts[0], 0, [], "data");
@@ -502,7 +502,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data").then((status) => {
       assert.strictEqual('BountyFulfilled', status.logs[0].event, 'did not emit the BountyFulfilled event');
@@ -515,7 +515,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
 
@@ -536,7 +536,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
 
 
@@ -555,7 +555,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
 
 
@@ -574,7 +574,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
 
 
@@ -593,7 +593,7 @@ contract('StandardBounties', function(accounts) {
     let bountyToken = await ERC721BasicTokenMock.new();
 
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
 
 
 
@@ -615,7 +615,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 12);
     await bountyToken.approve(registry.address, 12);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     await registry.contribute(accounts[0], 0, 12);
 
@@ -635,7 +635,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 12);
     await bountyToken.approve(registry.address, 12);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     await registry.contribute(accounts[0], 0, 12);
 
@@ -657,7 +657,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 12);
     await bountyToken.approve(registry.address, 12);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     await registry.contribute(accounts[0], 0, 12);
 
@@ -682,7 +682,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 12);
     await bountyToken.approve(registry.address, 12);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     await registry.contribute(accounts[0], 0, 12);
 
@@ -707,7 +707,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 12);
     await bountyToken.approve(registry.address, 12);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     await registry.contribute(accounts[0], 0, 12);
 
@@ -732,7 +732,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 12);
     await bountyToken.approve(registry.address, 12);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     await registry.contribute(accounts[0], 0, 12);
 
@@ -757,7 +757,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 12);
     await bountyToken.approve(registry.address, 12);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     await registry.contribute(accounts[0], 0, 12);
 
@@ -781,7 +781,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 12);
     await bountyToken.approve(registry.address, 12);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     await registry.contribute(accounts[0], 0, 12);
 
@@ -805,7 +805,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 12);
     await bountyToken.approve(registry.address, 12);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     await registry.contribute(accounts[0], 0, 12);
 
@@ -827,7 +827,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 12);
     await bountyToken.approve(registry.address, 12);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     await registry.contribute(accounts[0], 0, 12);
 
@@ -842,7 +842,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 1);
     await bountyToken.approve(registry.address, 1);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 1);
 
     await registry.changeBounty(accounts[0], 0, 0, [accounts[5]], [accounts[6], accounts[7]], "data2", 2528821200);
 
@@ -862,7 +862,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     try {
@@ -881,7 +881,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeBounty(accounts[1], 0, 0, [accounts[5]], [accounts[6], accounts[7]], "data2", 2528821200, {from: accounts[1]});
@@ -899,7 +899,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     await registry.changeIssuer(accounts[0], 0, 0, 0, accounts[1]);
 
@@ -917,7 +917,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeIssuer(accounts[0], 1, 0, 0, accounts[1]);
@@ -934,7 +934,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeIssuer(accounts[1], 0, 0, 0, accounts[1], {from: accounts[1]});
@@ -951,7 +951,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeIssuer(accounts[0], 0, 1, 0, accounts[1], {from: accounts[0]});
@@ -968,7 +968,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeIssuer(accounts[0], 0, 0, 1, accounts[1], {from: accounts[0]});
@@ -985,11 +985,11 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     await registry.changeIssuer(accounts[0], 0, 0, 0, accounts[1]).then((status) => {
-      assert.strictEqual('BountyIssuerChanged', status.logs[0].event, 'did not emit the BountyIssuerChanged event');
+      assert.strictEqual('BountyIssuersUpdated', status.logs[0].event, 'did not emit the BountyIssuersUpdated event');
     });
   });
 
@@ -1000,7 +1000,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     await registry.changeApprover(accounts[0], 0, 0, 0, accounts[5]);
@@ -1018,7 +1018,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeApprover(accounts[0], 1, 0, 0, accounts[5]);
@@ -1035,7 +1035,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeApprover(accounts[1], 0, 0, 0, accounts[5], {from: accounts[1]});
@@ -1052,7 +1052,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeApprover(accounts[0], 0, 1, 0, accounts[5], {from: accounts[0]});
@@ -1069,7 +1069,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeApprover(accounts[0], 0, 0, 2, accounts[5], {from: accounts[0]});
@@ -1086,10 +1086,10 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     await registry.changeApprover(accounts[0], 0, 0, 0, accounts[5]).then((status) => {
-      assert.strictEqual('BountyApproverChanged', status.logs[0].event, 'did not emit the BountyApproverChanged event');
+      assert.strictEqual('BountyApproversUpdated', status.logs[0].event, 'did not emit the BountyApproversUpdated event');
     });
   });
 
@@ -1101,7 +1101,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     await registry.changeData(accounts[0], 0, 0, "data2").then((status) => {
@@ -1117,7 +1117,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeData(accounts[0], 1, 0, "data2");
@@ -1134,7 +1134,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeData(accounts[1], 0, 0, "data2", {from: accounts[1]});
@@ -1151,7 +1151,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeData(accounts[0], 0, 1, "data2", {from: accounts[0]});
@@ -1168,7 +1168,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     await registry.changeData(accounts[0], 0, 0, "data2").then((status) => {
       assert.strictEqual('BountyDataChanged', status.logs[0].event, 'did not emit the BountyDataChanged event');
@@ -1182,7 +1182,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     await registry.changeDeadline(accounts[0], 0, 0, 2628821098);
@@ -1200,7 +1200,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeDeadline(accounts[0], 1, 0, 2628821098);
@@ -1217,7 +1217,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeDeadline(accounts[1], 0, 0, 2628821098, {from: accounts[1]});
@@ -1234,7 +1234,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.changeDeadline(accounts[0], 0, 1, 2628821098, {from: accounts[0]});
@@ -1251,7 +1251,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     await registry.changeDeadline(accounts[0], 0, 0, 2628821098).then((status) => {
       assert.strictEqual('BountyDeadlineChanged', status.logs[0].event, 'did not emit the BountyDeadlineChanged event');
@@ -1265,7 +1265,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     await registry.addIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
@@ -1285,7 +1285,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     try {
       await registry.addIssuers(accounts[0], 1, 0, [accounts[5], accounts[6]]);
@@ -1303,7 +1303,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     try {
@@ -1322,7 +1322,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     try {
@@ -1341,11 +1341,11 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     await registry.addIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
-      assert.strictEqual('BountyIssuersAdded', status.logs[0].event, 'did not emit the BountyIssuersAdded event');
+      assert.strictEqual('BountyIssuersUpdated', status.logs[0].event, 'did not emit the BountyIssuersUpdated event');
     });
   });
 
@@ -1356,7 +1356,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     await registry.replaceIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
@@ -1377,7 +1377,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     try {
@@ -1396,7 +1396,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     try {
@@ -1415,7 +1415,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     try {
@@ -1434,11 +1434,11 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     await registry.replaceIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
-      assert.strictEqual('BountyIssuersReplaced', status.logs[0].event, 'did not emit the BountyIssuersReplaced event');
+      assert.strictEqual('BountyIssuersUpdated', status.logs[0].event, 'did not emit the BountyIssuersUpdated event');
     });
   });
 
@@ -1451,7 +1451,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
 
@@ -1472,7 +1472,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     try {
@@ -1491,7 +1491,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     try {
@@ -1510,7 +1510,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     try {
@@ -1529,11 +1529,11 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     await registry.addApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
-      assert.strictEqual('BountyApproversAdded', status.logs[0].event, 'did not emit the BountyApproversAdded event');
+      assert.strictEqual('BountyApproversUpdated', status.logs[0].event, 'did not emit the BountyApproversUpdated event');
     });
   });
 
@@ -1545,7 +1545,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
     await registry.replaceApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
 
@@ -1562,7 +1562,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     try {
@@ -1581,7 +1581,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
     try {
       await registry.replaceApprovers(accounts[1], 0, 0, [accounts[5], accounts[6]], {from: accounts[1]});
     } catch (error){
@@ -1598,7 +1598,7 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     try {
@@ -1617,11 +1617,11 @@ contract('StandardBounties', function(accounts) {
     await bountyToken.mint(accounts[0], 10);
     await bountyToken.approve(registry.address, 10);
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721, 10);
 
 
     await registry.replaceApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
-      assert.strictEqual('BountyApproversReplaced', status.logs[0].event, 'did not emit the BountyApproversReplaced event');
+      assert.strictEqual('BountyApproversUpdated', status.logs[0].event, 'did not emit the BountyApproversUpdated event');
     });
   });
 

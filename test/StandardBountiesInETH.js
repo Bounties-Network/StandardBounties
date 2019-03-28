@@ -18,7 +18,7 @@ contract('StandardBounties', function(accounts) {
 
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
     let total = await registry.numBounties();
 
@@ -30,7 +30,7 @@ contract('StandardBounties', function(accounts) {
 
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 1, {value: 1, from: accounts[0]});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 1, {value: 1, from: accounts[0]});
 
     let total = await registry.numBounties();
 
@@ -46,7 +46,7 @@ contract('StandardBounties', function(accounts) {
     let registry = await StandardBounties.new();
 
     try {
-      await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 1, {value: 10});
+      await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 1, {value: 10});
 
     } catch (error){
       return utils.ensureException(error);
@@ -59,7 +59,7 @@ contract('StandardBounties', function(accounts) {
     let registry = await StandardBounties.new();
 
     try {
-      await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 1});
+      await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 1});
 
     } catch (error){
       return utils.ensureException(error);
@@ -70,7 +70,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can contribute to a bounty in ETH", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 1, {value: 1});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 1, {value: 1});
 
     await registry.contribute(accounts[0], 0, 1, {value: 1});
 
@@ -83,7 +83,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't contribute to a bounty which is out of bounds", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
 
 
@@ -99,7 +99,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't contribute to a bounty and send less than the deposit amount", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
 
 
@@ -115,7 +115,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that contributing emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
     await registry.contribute(accounts[0], 0, 1, {value: 1}).then((status) => {
       assert.strictEqual('ContributionAdded', status.logs[0].event, 'did not emit the ContributionAdded event');
@@ -126,7 +126,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can refund a contribution in ETH", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
     await registry.contribute(accounts[0], 0, 1, {value: 1});
 
@@ -149,7 +149,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't refund a contribution to a bounty which is out of bounds", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
     await registry.contribute(accounts[0], 0, 1, {value: 1});
 
@@ -169,7 +169,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't refund a contribution which is out of bounds", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
 
     await registry.contribute(accounts[0], 0, 1, {value: 1});
@@ -190,7 +190,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't refund a contribution which isn't mine", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
 
     await registry.contribute(accounts[0], 0, 1, {from: accounts[0], value: 1});
@@ -211,7 +211,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't refund a contribution which has already been refunded", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
 
     await registry.contribute(accounts[0], 0, 1, {value: 1});
@@ -234,7 +234,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't refund a contribution before the deadline has elapsed", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
 
     await registry.contribute(accounts[0], 0, 1, {value: 1});
@@ -251,7 +251,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that refunding a contribution emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
 
 
@@ -274,7 +274,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can perform an action for a bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
     await registry.performAction(accounts[0], 0, "actionData");
 
@@ -283,7 +283,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't perform an action for an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
     try {
       await registry.performAction(accounts[0], 1, "actionData");
@@ -296,7 +296,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that performing an action emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
     await registry.performAction(accounts[0], 0, "actionData").then((status) => {
       assert.strictEqual('ActionPerformed', status.logs[0].event, 'did not emit the ActionPerformed event');
@@ -306,7 +306,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can fulfill a bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
 
@@ -321,7 +321,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't fulfill an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
 
 
@@ -337,7 +337,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't fulfill a bounty after the deadline has elapsed", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 1, "0x0000000000000000000000000000000000000000", 0, 1, {value: 1});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 1, "0x0000000000000000000000000000000000000000", 0, 1, {value: 1});
 
     try {
       await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
@@ -350,7 +350,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't fulfill a bounty with 0 fulfillers", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
     try {
       await registry.fulfillBounty(accounts[0], 0, [], "data");
@@ -363,7 +363,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that fulfilling a bounty emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data").then((status) => {
       assert.strictEqual('BountyFulfilled', status.logs[0].event, 'did not emit the BountyFulfilled event');
@@ -374,7 +374,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can update a fulfillment", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
 
@@ -393,7 +393,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't update a fulfillment for an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
 
 
@@ -410,7 +410,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't update an out of bounds fulfillment", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
 
 
@@ -427,7 +427,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't update a fulfillment which was submitted by someone else", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
 
 
@@ -444,7 +444,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that updating a fulfillment emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 0);
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
 
 
 
@@ -459,46 +459,46 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can accept a fulfillment as an issuer", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
-    await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
+    await registry.fulfillBounty(accounts[0], 0, [accounts[5], accounts[6]], "data");
 
-    var balanceBefore = await web3.eth.getBalance(accounts[1]);
-    var balanceBefore2 = await web3.eth.getBalance(accounts[2]);
+    var balanceBefore = await web3.eth.getBalance(accounts[5]);
+    var balanceBefore2 = await web3.eth.getBalance(accounts[6]);
 
     await registry.acceptFulfillment(accounts[0], 0, 0, 0,[5,5])
 
-    var balanceAfter = await web3.eth.getBalance(accounts[1]);
-    var balanceAfter2 = await web3.eth.getBalance(accounts[2]);
+    var balanceAfter = await web3.eth.getBalance(accounts[5]);
+    var balanceAfter2 = await web3.eth.getBalance(accounts[6]);
 
-    assert(parseInt(balanceBefore, 10) == (parseInt(balanceAfter, 10)+5));
-    assert(parseInt(balanceBefore2, 10) == (parseInt(balanceAfter2, 10)+5));
+    assert((parseInt(balanceBefore, 10) + 5) == parseInt(balanceAfter, 10), ("before: " + balanceBefore + " after: " + balanceAfter));
+    assert((parseInt(balanceBefore2, 10) + 5) == parseInt(balanceAfter2, 10), ("before2: " + balanceBefore2 + " after2: " + balanceAfter2));
 
   });
 
   it("[ETH] Verifies that I can accept a fulfillment paying different amounts to different fulfillers", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
 
-    var balanceBefore = await web3.eth.getBalance(accounts[1]);
-    var balanceBefore2 = await web3.eth.getBalance(accounts[2]);
+    var balanceBefore = await web3.eth.getBalance(accounts[5]);
+    var balanceBefore2 = await web3.eth.getBalance(accounts[6]);
 
     await registry.acceptFulfillment(accounts[0], 0, 0, 0,[2,8]);
 
-    var balanceAfter = await web3.eth.getBalance(accounts[1]);
-    var balanceAfter2 = await web3.eth.getBalance(accounts[2]);
+    var balanceAfter = await web3.eth.getBalance(accounts[5]);
+    var balanceAfter2 = await web3.eth.getBalance(accounts[6]);
 
-    assert(parseInt(balanceBefore, 10) == (parseInt(balanceAfter, 10) + 2));
-    assert(parseInt(balanceBefore2, 10) == (parseInt(balanceAfter2, 10) + 8));
+    assert((parseInt(balanceBefore, 10) + 2) == parseInt(balanceAfter, 10), ("before: " + balanceBefore + " after: " + balanceAfter));
+    assert((parseInt(balanceBefore2, 10) + 8) == parseInt(balanceAfter2, 10), ("before: " + balanceBefore2 + " after: " + balanceAfter2));
   });
 
   it("[ETH] Verifies that I can accept a fulfillment as an approver", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[5], accounts[6]], "data");
 
@@ -510,15 +510,15 @@ contract('StandardBounties', function(accounts) {
     var balanceAfter = await web3.eth.getBalance(accounts[5]);
     var balanceAfter2 = await web3.eth.getBalance(accounts[6]);
 
-    assert(parseInt(balanceBefore, 10) == (parseInt(balanceAfter, 10)+5));
-    assert(parseInt(balanceBefore2, 10) == (parseInt(balanceAfter2, 10)+5));
+    assert((parseInt(balanceBefore, 10) + 5) == parseInt(balanceAfter, 10));
+    assert((parseInt(balanceBefore2, 10) + 5) == parseInt(balanceAfter2, 10));
 
   });
 
   it("[ETH] Verifies that I can't accept a fulfillment on an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
@@ -534,7 +534,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't accept a fulfillment which is out of bounds", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
 
@@ -549,7 +549,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't accept a fulfillment if I'm not an approver", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
@@ -565,7 +565,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't accept a fulfillment by passing in the wrong number of token amounts corresponding to the number of fulfillers", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
@@ -581,7 +581,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't accept a fulfillment paying out more than the balance of my bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
@@ -597,7 +597,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that accepting a fulfillment emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
@@ -610,7 +610,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can fulfill and accept a bounty simultaneously", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     var balanceBefore = await web3.eth.getBalance(accounts[1]);
     var balanceBefore2 = await web3.eth.getBalance(accounts[2]);
@@ -628,7 +628,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can change all of a bounty's info", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.changeBounty(accounts[0], 0, 0, [accounts[5]], [accounts[6], accounts[7]], "data2", 2528821200);
@@ -645,7 +645,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't change an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     try {
@@ -660,7 +660,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't change a bounty if I'm not an issuer'", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     try {
@@ -674,7 +674,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can change the issuer of my bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.changeIssuer(accounts[0], 0, 0, 0, accounts[1]);
@@ -688,7 +688,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't change the issuer of an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeIssuer(accounts[0], 1, 0, 0, accounts[1]);
@@ -701,7 +701,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't change the issuer of a bounty if I didn't issue it", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeIssuer(accounts[1], 0, 0, 0, accounts[1], {from: accounts[1]});
@@ -714,7 +714,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't the issuer with an out of bounds issuer ID", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeIssuer(accounts[0], 0, 1, 0, accounts[1], {from: accounts[0]});
@@ -727,7 +727,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't the issuer changing an out of bounds issuer ID", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeIssuer(accounts[0], 0, 0, 1, accounts[1], {from: accounts[0]});
@@ -740,18 +740,18 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that changing a bounty's issuer emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.changeIssuer(accounts[0], 0, 0, 0, accounts[1]).then((status) => {
-      assert.strictEqual('BountyIssuerChanged', status.logs[0].event, 'did not emit the BountyIssuerChanged event');
+      assert.strictEqual('BountyIssuersUpdated', status.logs[0].event, 'did not emit the BountyIssuersUpdated event');
     });
   });
 
   it("[ETH] Verifies that I can change the approver of my bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.changeApprover(accounts[0], 0, 0, 0, accounts[5]);
@@ -765,7 +765,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't change the approver of an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeApprover(accounts[0], 1, 0, 0, accounts[5]);
@@ -778,7 +778,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't change the approver of a bounty if I didn't issue it", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeApprover(accounts[1], 0, 0, 0, accounts[5], {from: accounts[1]});
@@ -791,7 +791,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't the issuer with an out of bounds issuer ID", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeApprover(accounts[0], 0, 1, 0, accounts[5], {from: accounts[0]});
@@ -804,7 +804,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't the issuer changing an out of bounds approver ID", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeApprover(accounts[0], 0, 0, 2, accounts[5], {from: accounts[0]});
@@ -817,10 +817,10 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that changing a bounty's approver emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     await registry.changeApprover(accounts[0], 0, 0, 0, accounts[5]).then((status) => {
-      assert.strictEqual('BountyApproverChanged', status.logs[0].event, 'did not emit the BountyApproverChanged event');
+      assert.strictEqual('BountyApproversUpdated', status.logs[0].event, 'did not emit the BountyApproversUpdated event');
     });
   });
 
@@ -828,7 +828,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can change the data of my bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.changeData(accounts[0], 0, 0, "data2").then((status) => {
@@ -840,7 +840,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't change the data of an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeData(accounts[0], 1, 0, "data2");
@@ -853,7 +853,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't change the data of a bounty if I didn't issue it", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeData(accounts[1], 0, 0, "data2", {from: accounts[1]});
@@ -866,7 +866,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't change the data with an out of bounds issuer ID", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeData(accounts[0], 0, 1, "data2", {from: accounts[0]});
@@ -879,7 +879,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that changing a bounty's data emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     await registry.changeData(accounts[0], 0, 0, "data2").then((status) => {
       assert.strictEqual('BountyDataChanged', status.logs[0].event, 'did not emit the BountyDataChanged event');
@@ -889,7 +889,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can change the deadline of my bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.changeDeadline(accounts[0], 0, 0, 2628821098);
@@ -903,7 +903,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't change the deadline of an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeDeadline(accounts[0], 1, 0, 2628821098);
@@ -916,7 +916,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't change the deadline of a bounty if I didn't issue it", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeDeadline(accounts[1], 0, 0, 2628821098, {from: accounts[1]});
@@ -929,7 +929,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't change the deadline with an out of bounds issuer ID", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.changeDeadline(accounts[0], 0, 1, 2628821098, {from: accounts[0]});
@@ -942,7 +942,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that changing a bounty's deadline emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     await registry.changeDeadline(accounts[0], 0, 0, 2628821098).then((status) => {
       assert.strictEqual('BountyDeadlineChanged', status.logs[0].event, 'did not emit the BountyDeadlineChanged event');
@@ -952,7 +952,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can add issuers to my bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.addIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
@@ -968,7 +968,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't add issuers to an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.addIssuers(accounts[0], 1, 0, [accounts[5], accounts[6]]);
@@ -981,7 +981,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't add issuers to a bounty if I didn't issue it", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.addIssuers(accounts[1], 0, 0, [accounts[5], accounts[6]], {from: accounts[1]});
@@ -994,7 +994,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't add issuers with an out of bounds issuer ID", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.addIssuers(accounts[0], 0, 1, [accounts[5], accounts[6]], {from: accounts[0]});
@@ -1007,17 +1007,17 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that adding issuers to a bounty emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     await registry.addIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
-      assert.strictEqual('BountyIssuersAdded', status.logs[0].event, 'did not emit the BountyIssuersAdded event');
+      assert.strictEqual('BountyIssuersUpdated', status.logs[0].event, 'did not emit the BountyIssuersUpdated event');
     });
   });
 
   it("[ETH] Verifies that I can replace the issuers of my bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.replaceIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
@@ -1033,7 +1033,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't replace issuers for an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.replaceIssuers(accounts[0], 1, 0, [accounts[5], accounts[6]]);
@@ -1046,7 +1046,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't replace issuers for a bounty if I didn't issue it", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.replaceIssuers(accounts[1], 0, 0, [accounts[5], accounts[6]], {from: accounts[1]});
@@ -1059,7 +1059,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't replace issuers with an out of bounds issuer ID", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.replaceIssuers(accounts[0], 0, 1, [accounts[5], accounts[6]], {from: accounts[0]});
@@ -1072,10 +1072,10 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that replacing issuers of a bounty emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     await registry.replaceIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
-      assert.strictEqual('BountyIssuersReplaced', status.logs[0].event, 'did not emit the BountyIssuersReplaced event');
+      assert.strictEqual('BountyIssuersUpdated', status.logs[0].event, 'did not emit the BountyIssuersUpdated event');
     });
   });
 
@@ -1083,7 +1083,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can add approvers to my bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.addApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
@@ -1098,7 +1098,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't add approvers to an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.addApprovers(accounts[0], 1, 0, [accounts[5], accounts[6]]);
@@ -1111,7 +1111,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't add approvers to a bounty if I didn't issue it", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.addApprovers(accounts[1], 0, 0, [accounts[5], accounts[6]], {from: accounts[1]});
@@ -1124,7 +1124,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't add approvers with an out of bounds issuer ID", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.addApprovers(accounts[0], 0, 1, [accounts[5], accounts[6]], {from: accounts[0]});
@@ -1137,17 +1137,17 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that adding approvers to a bounty emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     await registry.addApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
-      assert.strictEqual('BountyApproversAdded', status.logs[0].event, 'did not emit the BountyApproversAdded event');
+      assert.strictEqual('BountyApproversUpdated', status.logs[0].event, 'did not emit the BountyApproversUpdated event');
     });
   });
 
   it("[ETH] Verifies that I can replace the approvers of my bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
 
     await registry.replaceApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
@@ -1163,7 +1163,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't replace approvers for an out of bounds bounty", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.replaceApprovers(accounts[0], 1, 0, [accounts[5], accounts[6]]);
@@ -1176,7 +1176,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't replace approvers for a bounty if I didn't issue it", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.replaceApprovers(accounts[1], 0, 0, [accounts[5], accounts[6]], {from: accounts[1]});
@@ -1189,7 +1189,7 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that I can't replace approvers with an out of bounds issuer ID", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     try {
       await registry.replaceApprovers(accounts[0], 0, 1, [accounts[5], accounts[6]], {from: accounts[0]});
@@ -1202,10 +1202,10 @@ contract('StandardBounties', function(accounts) {
   it("[ETH] Verifies that replacing approvers of a bounty emits an event", async () => {
     let registry = await StandardBounties.new();
 
-    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0, 10, {value: 10});
 
     await registry.replaceApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
-      assert.strictEqual('BountyApproversReplaced', status.logs[0].event, 'did not emit the BountyApproversReplaced event');
+      assert.strictEqual('BountyApproversUpdated', status.logs[0].event, 'did not emit the BountyApproversUpdated event');
     });
   });
 

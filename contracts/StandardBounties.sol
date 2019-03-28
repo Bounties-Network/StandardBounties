@@ -185,7 +185,6 @@ contract StandardBounties {
   /// @param _deadline the timestamp which will become the deadline of the bounty
   /// @param _token the address of the token which will be used for the bounty
   /// @param _tokenVersion the version of the token being used for the bounty (0 for ETH, 20 for ERC20, 721 for ERC721)
-
   function issueBounty(
     address payable _sender,
     address payable [] memory _issuers,
