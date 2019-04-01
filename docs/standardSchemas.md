@@ -15,13 +15,12 @@ Bounty issuance `data` Schema:
     description: // a string representing the description of the bounty, including all requirements
     fulfillmentAmount: // an integer amount that will be paid out to fufillers
 
+    // ------- add optional fields here -------
+    categories: // an array of strings, representing the categories of tasks which are being requested
     expectedRevisions: // an integer of how many times the spec is expected to be adjusted during fulfillment
     difficulty: // a string representing how difficult this bounty is (one of: easy, medium, hard)
     privateFulfillments: // boolean desrcibing whether fulfillments are only visible to the issuer
     fulfillersNeedApproval: // boolean that forces users to be approved before fulfilling the bounty
-
-    // ------- add optional fields here -------
-    categories: // an array of strings, representing the categories of tasks which are being requested
     ipfsFilename: // a string representing the name of the file
     ipfsHash: // the IPFS hash of the directory which can be used to access the file
     webReferenceURL: // the link to a relevant web reference (ie github issue)
@@ -34,6 +33,27 @@ Bounty issuance `data` Schema:
 }
 ```
 
+Bounty fulfillment `data` Schema:
+```
+{
+  payload: {
+    description: // A string representing the description of the fulfillment, and any necessary links to works
+    sourceFileName: // A string representing the name of the file being submitted
+    sourceFileHash: // A string representing the IPFS hash of the file being submitted
+    sourceDirectoryHash: // A string representing the IPFS hash of the directory which holds the file being submitted
+    fulfillers: [
+      // a list of personas for the individuals whose work is being submitted
+    ]
+
+    // ------- add optional fields here -------
+  },
+  meta: {
+    platform: // a string representing the original posting platform (ie 'gitcoin')
+    schemaVersion: // a string representing the version number (ie '0.1')
+    schemaName: // a string representing the name of the schema (ie 'standardSchema' or 'gitcoinSchema')
+  }
+}
+```
 ## version 0.1
 last changed: 19/01/22
 
