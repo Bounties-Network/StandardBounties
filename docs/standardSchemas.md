@@ -44,6 +44,9 @@ Bounty fulfillment `data` Schema:
     fulfillers: [
       // a list of personas for the individuals whose work is being submitted
     ]
+    payoutAmounts: [
+      // an array of floats which is equal in length to the fulfillers array, representing the % of tokens which should be paid to each of the fulfillers (ie [50, 50] would represent an equal split of a bounty by 2 fulfillers)
+    ]
 
     // ------- add optional fields here -------
   },
