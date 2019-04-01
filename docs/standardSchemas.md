@@ -5,6 +5,35 @@
 In an effort to manage the use of StandardBounties across several platforms, the schemas of the various `data` objects have been standardized.
 
 
+## version 1.0
+
+Bounty issuance `data` Schema:
+```
+{
+  payload: {
+    title: // a string representing the title of the bounty
+    description: // a string representing the description of the bounty, including all requirements
+    fulfillmentAmount: // an integer amount that will be paid out to fufillers
+
+    expectedRevisions: // an integer of how many times the spec is expected to be adjusted during fulfillment
+    difficulty: // a string representing how difficult this bounty is (one of: easy, medium, hard)
+    privateFulfillments: // boolean desrcibing whether fulfillments are only visible to the issuer
+    fulfillersNeedApproval: // boolean that forces users to be approved before fulfilling the bounty
+
+    // ------- add optional fields here -------
+    categories: // an array of strings, representing the categories of tasks which are being requested
+    ipfsFilename: // a string representing the name of the file
+    ipfsHash: // the IPFS hash of the directory which can be used to access the file
+    webReferenceURL: // the link to a relevant web reference (ie github issue)
+  },
+  meta: {
+    platform: // a string representing the original posting platform (ie 'gitcoin')
+    schemaVersion: // a string representing the version number (ie '0.1')
+    schemaName: // a string representing the name of the schema (ie 'standardSchema' or 'gitcoinSchema')
+  }
+}
+```
+
 ## version 0.1
 last changed: 19/01/22
 
