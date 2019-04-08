@@ -330,6 +330,118 @@ contract('StandardBounties', function(accounts) {
     });
   });
 
+  it("[ETH] Verifies that I can drain my bounty", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[3]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+
+    let bounty = await registry.bounties(0);
+
+    assert(parseInt(bounty.balance, 10) == 1);
+
+    await registry.drainBounty(accounts[3], 0, 0, [1], {from: accounts[3]});
+
+    let newBounty = await registry.bounties(0);
+
+    assert(parseInt(newBounty.balance, 10) == 0);
+  });
+
+  it("[ETH] Verifies that I can drain a bounty as a 2nd issuer", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[3], accounts[1]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+
+    let bounty = await registry.bounties(0);
+
+    assert(parseInt(bounty.balance, 10) == 1);
+
+    await registry.drainBounty(accounts[1], 0, 1, [1], {from: accounts[1]});
+
+    let newBounty = await registry.bounties(0);
+
+    assert(parseInt(newBounty.balance, 10) == 0);
+  });
+
+  it("[ETH] Verifies that I can't drain someone else's bounty", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[3]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+
+    try {
+      await registry.drainBounty(accounts[1], 0, 0, [1], {from: accounts[1]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't drain a bounty without passing in an array of correct length", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[3]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+
+    try {
+      await registry.drainBounty(accounts[3], 0, 0, [1, 1], {from: accounts[3]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't drain a bounty of more funds than its balance", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[3]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+
+    try {
+      await registry.drainBounty(accounts[3], 0, 0, [2], {from: accounts[3]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that draining a bounty emits an event", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[3]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+
+    await registry.drainBounty(accounts[3], 0, 0, [1], {from: accounts[3]}).then((status) => {
+      assert.strictEqual('BountyDrained', status.logs[0].event, 'did not emit the BountyDrained event');
+    });
+
+  });
+
   it("[ERC20] Verifies that I can perform an action for a bounty", async () => {
     let registry = await StandardBounties.new();
     let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
