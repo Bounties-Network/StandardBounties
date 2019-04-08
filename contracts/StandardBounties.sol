@@ -363,7 +363,7 @@ contract StandardBounties {
   /// @param _issuerId the index of the issuer who is making the call
   /// @param _amounts an array of amounts of tokens to be sent. The length of the array should be 1 if the bounty is in ETH or ERC20 tokens. If it's an ERC721 bounty, the array should be the list of tokenIDs.
   function drainBounty(
-    address _sender,
+    address payable _sender,
     uint _bountyId,
     uint _issuerId,
     uint [] memory _amounts)
@@ -798,7 +798,7 @@ contract StandardBounties {
   event BountyIssued(uint _bountyId, address payable _creator, address payable [] _issuers, address [] _approvers, string _data, uint _deadline, address _token, uint _tokenVersion);
   event ContributionAdded(uint _bountyId, uint _contributionId, address payable _contributor, uint _amount);
   event ContributionRefunded(uint _bountyId, uint _contributionId);
-  event BountyDrained(uint _bountyId, address payable _issuer, uint [] _amounts);
+  event BountyDrained(uint _bountyId, address _issuer, uint [] _amounts);
   event ActionPerformed(uint _bountyId, address _fulfiller, string _data);
   event BountyFulfilled(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data, address _submitter);
   event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data);
