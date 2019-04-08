@@ -42,7 +42,7 @@ contract StandardBounties {
 
   uint public numBounties; // An integer storing the total number of bounties in the contract
   mapping(uint => Bounty) public bounties; // A mapping of bountyIDs to bounties
-  mapping (uint => mapping (uint => bool)) public tokenBalances; // A mapping of bountyIds to tokenIds to booleans, storing whether a given bounty has a given token in its balance
+  mapping (uint => mapping (uint => bool)) public tokenBalances; // A mapping of bountyIds to tokenIds to booleans, storing whether a given bounty has a given ERC721 token in its balance
 
 
   address public owner; // The address of the individual who's allowed to set the metaTxRelayer address
@@ -357,6 +357,38 @@ contract StandardBounties {
     }
   }
 
+  /// @dev drainBounty(): Allows an issuer to drain the funds from the bounty
+  /// @param _sender the sender of the transaction issuing the bounty (should be the same as msg.sender unless the txn is called by the meta tx relayer)
+  /// @param _bountyId the index of the bounty
+  /// @param _issuerId the index of the issuer who is making the call
+  /// @param _amounts an array of amounts of tokens to be sent. The length of the array should be 1 if the bounty is in ETH or ERC20 tokens. If it's an ERC721 bounty, the array should be the list of tokenIDs.
+  function drainBounty(
+    address _sender,
+    uint _bountyId,
+    uint _issuerId,
+    uint [] memory _amounts)
+    public
+    senderIsValid(_sender)
+    onlyIssuer(_sender, _bountyId, _issuerId)
+    callNotStarted
+  {
+    callStarted = true;
+
+    if (bounties[_bountyId].tokenVersion == 0 || bounties[_bountyId].tokenVersion == 20){
+      require(_amounts.length == 1); // ensures there's only 1 amount of tokens to be returned
+      require(_amounts[0] <= bounties[_bountyId].balance); // ensures an issuer doesn't try to drain the bounty of more tokens than their balance permits
+      transferTokens(_bountyId, _sender, _amounts[0]); // Performs the draining of tokens to the issuer
+    } else {
+      for (uint i = 0; i < _amounts.length; i++){
+        require(tokenBalances[_bountyId][_amounts[i]]);// ensures an issuer doesn't try to drain the bounty of a token it doesn't have in its balance
+        transferTokens(_bountyId, _sender, _amounts[i]);
+      }
+    }
+
+    emit BountyDrained(_bountyId, _sender, _amounts);
+    callStarted = false;
+  }
+
   /// @dev performAction(): Allows users to perform any generalized action
   ///                       associated with a particular bounty, such as applying for it
   /// @param _sender the sender of the transaction issuing the bounty (should be the same as msg.sender unless the txn is called by the meta tx relayer)
@@ -458,11 +490,10 @@ contract StandardBounties {
     require(_tokenAmounts.length == fulfillment.fulfillers.length); // Each fulfiller should get paid some amount of tokens (this can be 0)
 
     for (uint256 i = 0; i < fulfillment.fulfillers.length; i++){
-      // for each fulfiller associated with the submission
-      require(bounties[_bountyId].balance >= _tokenAmounts[i] ||
-              tokenBalances[_bountyId][_tokenAmounts[i]]); // Checks that the bounty has a sufficient balance to make the payout
-
         if (_tokenAmounts[i] > 0) {
+          // for each fulfiller associated with the submission
+          require(bounties[_bountyId].balance >= _tokenAmounts[i] ||
+                  tokenBalances[_bountyId][_tokenAmounts[i]]); // Checks that the bounty has a sufficient balance to make the payout
           transferTokens(_bountyId, fulfillment.fulfillers[i], _tokenAmounts[i]);
         }
     }
@@ -767,6 +798,7 @@ contract StandardBounties {
   event BountyIssued(uint _bountyId, address payable _creator, address payable [] _issuers, address [] _approvers, string _data, uint _deadline, address _token, uint _tokenVersion);
   event ContributionAdded(uint _bountyId, uint _contributionId, address payable _contributor, uint _amount);
   event ContributionRefunded(uint _bountyId, uint _contributionId);
+  event BountyDrained(uint _bountyId, address payable _issuer, uint [] _amounts);
   event ActionPerformed(uint _bountyId, address _fulfiller, string _data);
   event BountyFulfilled(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data, address _submitter);
   event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data);
