@@ -268,6 +268,153 @@ contract('StandardBounties', function(accounts) {
     });
   });
 
+  it("[ETH] Verifies that I can refund all of my contributions", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
+
+
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    await registry.refundMyContributions(accounts[0], 0, [0, 1, 2]);
+    let bounty = await registry.bounties(0);
+
+    assert(parseInt(bounty.balance, 10) == 0);
+  });
+
+  it("[ETH] Verifies that I can't refund contributions if one of them isn't mine", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
+
+
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[1], 0, 1, {value: 1, from: accounts[1]});
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    try {
+      await registry.refundMyContributions(accounts[0], 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can refund a set of contributions as an issuer", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
+
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+
+    await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+    let bounty = await registry.bounties(0);
+
+    assert(parseInt(bounty.balance, 10) == 0);
+  });
+
+  it("[ETH] Verifies that I can't refund contributions if I'm not an issuer", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[2]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
+
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+
+    try {
+      await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't refund contributions for an invalid bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
+
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+
+    try {
+      await registry.refundContributions(accounts[0], 1, 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't refund contributions with an out of bounds contribution ID", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
+
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+
+    try {
+      await registry.refundContributions(accounts[0], 0, 0, [0, 1, 4]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that I can't refund contributions when one of them has been refunded already", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
+
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    await registry.refundContribution(accounts[0], 0, 0);
+
+    try {
+      await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ETH] Verifies that refunding several contributions emits an event", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
+
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+
+    await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]).then((status) => {
+      assert.strictEqual('ContributionsRefunded', status.logs[0].event, 'did not emit the ContributionsRefunded event');
+    });
+
+  });
+
+
   it("[ETH] Verifies that I can drain my bounty", async () => {
     let registry = await StandardBounties.new();
     await registry.issueBounty(accounts[0], [accounts[3]], [accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
@@ -1294,4 +1441,87 @@ contract('StandardBounties', function(accounts) {
     });
   });
 
+  it("[ETH] Verifies that I can't accept a fulfillment, and still try to refund everyone's contributions", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
+
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+
+    await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
+
+    await registry.acceptFulfillment(accounts[0], 0, 0, 0, [1,1]);
+
+    try {
+      await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+  it("[ETH] Verifies that I can accept a fulfillment, and still try to refund some contributions", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
+
+
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+
+
+    await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
+
+    await registry.acceptFulfillment(accounts[0], 0, 0, 0,[1,1]);
+
+    await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+  });
+
+  it("[ETH] Verifies that I can refund a contribution, and still drain the remaining funds", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
+
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    await registry.refundContribution(accounts[0], 0,0);
+
+    await registry.drainBounty(accounts[0], 0, 0, [4]);
+  });
+
+  it("[ETH] Verifies that I can't refund a contribution, and still drain all of the funds", async () => {
+    let registry = await StandardBounties.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, "0x0000000000000000000000000000000000000000", 0);
+
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+    await registry.contribute(accounts[0], 0, 1, {value: 1});
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    await registry.refundContribution(accounts[0], 0,0);
+
+    try {
+      await registry.drainBounty(accounts[0], 0, 0, [5]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+  });
 });

@@ -382,8 +382,216 @@ contract('StandardBounties', function(accounts) {
       assert.strictEqual('ContributionRefunded', status.logs[0].event, 'did not emit the ContributionRefunded event');
     });
   });
+  it("[ERC721] Verifies that I can refund all of my contributions", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await ERC721BasicTokenMock.new();
 
-  it("[ETH] Verifies that I can drain my bounty", async () => {
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
+
+    await bountyToken.mint(accounts[0], 1);
+    await bountyToken.approve(registry.address, 1);
+    await bountyToken.mint(accounts[0], 2);
+    await bountyToken.approve(registry.address, 2);
+    await bountyToken.mint(accounts[0], 3);
+    await bountyToken.approve(registry.address, 3);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 2);
+    await registry.contribute(accounts[0], 0, 3);
+
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    await registry.refundMyContributions(accounts[0], 0, [0, 1, 2]);
+    let bounty = await registry.bounties(0);
+
+    assert(parseInt(bounty.balance, 10) == 0);
+  });
+
+  it("[ERC721] Verifies that I can't refund contributions if one of them isn't mine", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await ERC721BasicTokenMock.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
+
+    await bountyToken.mint(accounts[0], 1);
+    await bountyToken.approve(registry.address, 1);
+    await bountyToken.mint(accounts[0], 2);
+    await bountyToken.approve(registry.address, 2);
+    await bountyToken.mint(accounts[1], 3);
+    await bountyToken.approve(registry.address, 3, {from: accounts[1]});
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 2);
+    await registry.contribute(accounts[1], 0, 3, {from: accounts[1]});
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    try {
+      await registry.refundMyContributions(accounts[0], 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC721] Verifies that I can refund a set of contributions as an issuer", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await ERC721BasicTokenMock.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
+
+    await bountyToken.mint(accounts[0], 1);
+    await bountyToken.approve(registry.address, 1);
+    await bountyToken.mint(accounts[0], 2);
+    await bountyToken.approve(registry.address, 2);
+    await bountyToken.mint(accounts[0], 3);
+    await bountyToken.approve(registry.address, 3);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 2);
+    await registry.contribute(accounts[0], 0, 3);
+
+    await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+    let bounty = await registry.bounties(0);
+
+    assert(parseInt(bounty.balance, 10) == 0);
+  });
+
+  it("[ERC721] Verifies that I can't refund contributions if I'm not an issuer", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await ERC721BasicTokenMock.new();
+
+    await registry.issueBounty(accounts[0], [accounts[2]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
+
+    await bountyToken.mint(accounts[0], 1);
+    await bountyToken.approve(registry.address, 1);
+    await bountyToken.mint(accounts[0], 2);
+    await bountyToken.approve(registry.address, 2);
+    await bountyToken.mint(accounts[0], 3);
+    await bountyToken.approve(registry.address, 3);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 2);
+    await registry.contribute(accounts[0], 0, 3);
+
+    try {
+      await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC721] Verifies that I can't refund contributions for an invalid bounty", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await ERC721BasicTokenMock.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
+
+    await bountyToken.mint(accounts[0], 1);
+    await bountyToken.approve(registry.address, 1);
+    await bountyToken.mint(accounts[0], 2);
+    await bountyToken.approve(registry.address, 2);
+    await bountyToken.mint(accounts[0], 3);
+    await bountyToken.approve(registry.address, 3);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 2);
+    await registry.contribute(accounts[0], 0, 3);
+
+    try {
+      await registry.refundContributions(accounts[0], 1, 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC721] Verifies that I can't refund contributions with an out of bounds contribution ID", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await ERC721BasicTokenMock.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
+
+    await bountyToken.mint(accounts[0], 1);
+    await bountyToken.approve(registry.address, 1);
+    await bountyToken.mint(accounts[0], 2);
+    await bountyToken.approve(registry.address, 2);
+    await bountyToken.mint(accounts[0], 3);
+    await bountyToken.approve(registry.address, 3);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 2);
+    await registry.contribute(accounts[0], 0, 3);
+
+    try {
+      await registry.refundContributions(accounts[0], 0, 0, [0, 1, 4]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC721] Verifies that I can't refund contributions when one of them has been refunded already", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await ERC721BasicTokenMock.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
+
+    await bountyToken.mint(accounts[0], 1);
+    await bountyToken.approve(registry.address, 1);
+    await bountyToken.mint(accounts[0], 2);
+    await bountyToken.approve(registry.address, 2);
+    await bountyToken.mint(accounts[0], 3);
+    await bountyToken.approve(registry.address, 3);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 2);
+    await registry.contribute(accounts[0], 0, 3);
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    await registry.refundContribution(accounts[0], 0, 0);
+
+    try {
+      await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC721] Verifies that refunding several contributions emits an event", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await ERC721BasicTokenMock.new();
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
+
+    await bountyToken.mint(accounts[0], 1);
+    await bountyToken.approve(registry.address, 1);
+    await bountyToken.mint(accounts[0], 2);
+    await bountyToken.approve(registry.address, 2);
+    await bountyToken.mint(accounts[0], 3);
+    await bountyToken.approve(registry.address, 3);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 2);
+    await registry.contribute(accounts[0], 0, 3);
+
+    await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]).then((status) => {
+      assert.strictEqual('ContributionsRefunded', status.logs[0].event, 'did not emit the ContributionsRefunded event');
+    });
+
+  });
+
+  it("[ERC721] Verifies that I can drain my bounty", async () => {
     let registry = await StandardBounties.new();
     let bountyToken = await ERC721BasicTokenMock.new();
 
@@ -405,7 +613,7 @@ contract('StandardBounties', function(accounts) {
     assert(!hasToken);
   });
 
-  it("[ETH] Verifies that I can drain my bounty with several 721 tokens", async () => {
+  it("[ERC721] Verifies that I can drain my bounty with several 721 tokens", async () => {
     let registry = await StandardBounties.new();
     let bountyToken = await ERC721BasicTokenMock.new();
 
@@ -452,7 +660,7 @@ contract('StandardBounties', function(accounts) {
     assert(!hasToken);
   });
 
-  it("[ETH] Verifies that I can drain a bounty as a 2nd issuer", async () => {
+  it("[ERC721] Verifies that I can drain a bounty as a 2nd issuer", async () => {
     let registry = await StandardBounties.new();
     let bountyToken = await ERC721BasicTokenMock.new();
 
@@ -466,7 +674,7 @@ contract('StandardBounties', function(accounts) {
     await registry.drainBounty(accounts[1], 0, 1, [1], {from: accounts[1]});
   });
 
-  it("[ETH] Verifies that I can't drain someone else's bounty", async () => {
+  it("[ERC721] Verifies that I can't drain someone else's bounty", async () => {
     let registry = await StandardBounties.new();
     let bountyToken = await ERC721BasicTokenMock.new();
 
@@ -485,7 +693,7 @@ contract('StandardBounties', function(accounts) {
     assert(false, "Should have thrown an error");
   });
 
-  it("[ETH] Verifies that I can't drain a bounty of tokens it doesn't have", async () => {
+  it("[ERC721] Verifies that I can't drain a bounty of tokens it doesn't have", async () => {
     let registry = await StandardBounties.new();
     let bountyToken = await ERC721BasicTokenMock.new();
 
@@ -505,7 +713,7 @@ contract('StandardBounties', function(accounts) {
     assert(false, "Should have thrown an error");
   });
 
-  it("[ETH] Verifies that draining a bounty emits an event", async () => {
+  it("[ERC721] Verifies that draining a bounty emits an event", async () => {
     let registry = await StandardBounties.new();
     let bountyToken = await ERC721BasicTokenMock.new();
 
@@ -1755,5 +1963,130 @@ contract('StandardBounties', function(accounts) {
       assert.strictEqual('BountyApproversUpdated', status.logs[0].event, 'did not emit the BountyApproversUpdated event');
     });
   });
+  it("[ERC721] Verifies that I can't accept a fulfillment, and still try to refund everyone's contributions", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await ERC721BasicTokenMock.new();
 
+    await bountyToken.mint(accounts[0], 1);
+    await bountyToken.approve(registry.address, 1);
+    await bountyToken.mint(accounts[0], 2);
+    await bountyToken.approve(registry.address, 2);
+    await bountyToken.mint(accounts[0], 3);
+    await bountyToken.approve(registry.address, 3);
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 2);
+    await registry.contribute(accounts[0], 0, 3);
+
+    await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
+
+    await registry.acceptFulfillment(accounts[0], 0, 0, 0, [1,2]);
+
+    try {
+      await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+  it("[ERC721] Verifies that I can accept a fulfillment, and still try to refund some contributions", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await ERC721BasicTokenMock.new();
+
+    await bountyToken.mint(accounts[0], 1);
+    await bountyToken.approve(registry.address, 1);
+    await bountyToken.mint(accounts[0], 2);
+    await bountyToken.approve(registry.address, 2);
+    await bountyToken.mint(accounts[0], 3);
+    await bountyToken.approve(registry.address, 3);
+    await bountyToken.mint(accounts[0], 4);
+    await bountyToken.approve(registry.address, 4);
+    await bountyToken.mint(accounts[0], 5);
+    await bountyToken.approve(registry.address, 5);
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 2);
+    await registry.contribute(accounts[0], 0, 3);
+    await registry.contribute(accounts[0], 0, 4);
+    await registry.contribute(accounts[0], 0, 5);
+
+
+    await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
+
+    await registry.acceptFulfillment(accounts[0], 0, 0, 0,[1,2]);
+
+    await registry.refundContributions(accounts[0], 0, 0, [2, 3, 4]);
+  });
+
+  it("[ERC721] Verifies that I can refund a contribution, and still drain the remaining funds", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await ERC721BasicTokenMock.new();
+
+    await bountyToken.mint(accounts[0], 1);
+    await bountyToken.approve(registry.address, 1);
+    await bountyToken.mint(accounts[0], 2);
+    await bountyToken.approve(registry.address, 2);
+    await bountyToken.mint(accounts[0], 3);
+    await bountyToken.approve(registry.address, 3);
+    await bountyToken.mint(accounts[0], 4);
+    await bountyToken.approve(registry.address, 4);
+    await bountyToken.mint(accounts[0], 5);
+    await bountyToken.approve(registry.address, 5);
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 2);
+    await registry.contribute(accounts[0], 0, 3);
+    await registry.contribute(accounts[0], 0, 4);
+    await registry.contribute(accounts[0], 0, 5);
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    await registry.refundContribution(accounts[0], 0,0);
+
+    await registry.drainBounty(accounts[0], 0, 0, [2, 3, 4, 5]);
+  });
+
+  it("[ERC721] Verifies that I can't refund a contribution, and still drain all of the funds", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await ERC721BasicTokenMock.new();
+
+    await bountyToken.mint(accounts[0], 1);
+    await bountyToken.approve(registry.address, 1);
+    await bountyToken.mint(accounts[0], 2);
+    await bountyToken.approve(registry.address, 2);
+    await bountyToken.mint(accounts[0], 3);
+    await bountyToken.approve(registry.address, 3);
+    await bountyToken.mint(accounts[0], 4);
+    await bountyToken.approve(registry.address, 4);
+    await bountyToken.mint(accounts[0], 5);
+    await bountyToken.approve(registry.address, 5);
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 721);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 2);
+    await registry.contribute(accounts[0], 0, 3);
+    await registry.contribute(accounts[0], 0, 4);
+    await registry.contribute(accounts[0], 0, 5);
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    await registry.refundContribution(accounts[0], 0,0);
+
+    try {
+      await registry.drainBounty(accounts[0], 0, 0, [1, 2, 3, 4, 5]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+  });
 });
