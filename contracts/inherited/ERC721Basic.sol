@@ -212,7 +212,7 @@ contract ERC721Basic is ERC165 {
   function isApprovedForAll(address _owner, address _operator)
     public view returns (bool);
 
-  function transferFrom(address _from, address _to, uint256 _tokenId) public returns(bool);
+  function transferFrom(address _from, address _to, uint256 _tokenId) public;
   function safeTransferFrom(address _from, address _to, uint256 _tokenId)
     public;
 
@@ -399,7 +399,6 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
   )
     public
     canTransfer(_tokenId)
-    returns(bool)
   {
     require(_from != address(0));
     require(_to != address(0));
@@ -409,7 +408,6 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     addTokenTo(_to, _tokenId);
 
     emit Transfer(_from, _to, _tokenId);
-    return true;
   }
 
   /**
