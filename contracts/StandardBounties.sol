@@ -194,7 +194,6 @@ contract StandardBounties {
     address _token,
     uint _tokenVersion)
     public
-    payable
     senderIsValid(_sender)
     returns (uint)
   {
