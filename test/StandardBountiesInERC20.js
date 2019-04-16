@@ -330,6 +330,290 @@ contract('StandardBounties', function(accounts) {
     });
   });
 
+  it("[ERC20] Verifies that I can refund all of my contributions", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    await registry.refundMyContributions(accounts[0], 0, [0, 1, 2]);
+    let bounty = await registry.bounties(0);
+
+    assert(parseInt(bounty.balance, 10) == 0);
+  });
+
+  it("[ERC20] Verifies that I can't refund contributions if one of them isn't mine", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+    await bountyToken.transfer(accounts[1], 100);
+    await bountyToken.approve(registry.address, 100, {from: accounts[1]});
+
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[1], 0, 1, {from: accounts[1]});
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    try {
+      await registry.refundMyContributions(accounts[0], 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC20] Verifies that I can refund a set of contributions as an issuer", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+
+    await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+    let bounty = await registry.bounties(0);
+
+    assert(parseInt(bounty.balance, 10) == 0);
+  });
+
+  it("[ERC20] Verifies that I can't refund contributions if I'm not an issuer", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[2]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+
+    try {
+      await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC20] Verifies that I can't refund contributions for an invalid bounty", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+
+    try {
+      await registry.refundContributions(accounts[0], 1, 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC20] Verifies that I can't refund contributions with an out of bounds contribution ID", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+
+    try {
+      await registry.refundContributions(accounts[0], 0, 0, [0, 1, 4]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC20] Verifies that I can't refund contributions when one of them has been refunded already", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    await registry.refundContribution(accounts[0], 0, 0);
+
+    try {
+      await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC20] Verifies that refunding several contributions emits an event", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+
+    await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]).then((status) => {
+      assert.strictEqual('ContributionsRefunded', status.logs[0].event, 'did not emit the ContributionsRefunded event');
+    });
+
+  });
+
+  it("[ERC20] Verifies that I can drain my bounty", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[3]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+
+    let bounty = await registry.bounties(0);
+
+    assert(parseInt(bounty.balance, 10) == 1);
+
+    await registry.drainBounty(accounts[3], 0, 0, [1], {from: accounts[3]});
+
+    let newBounty = await registry.bounties(0);
+
+    assert(parseInt(newBounty.balance, 10) == 0);
+  });
+
+  it("[ERC20] Verifies that I can drain a bounty as a 2nd issuer", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[3], accounts[1]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+
+    let bounty = await registry.bounties(0);
+
+    assert(parseInt(bounty.balance, 10) == 1);
+
+    await registry.drainBounty(accounts[1], 0, 1, [1], {from: accounts[1]});
+
+    let newBounty = await registry.bounties(0);
+
+    assert(parseInt(newBounty.balance, 10) == 0);
+  });
+
+  it("[ERC20] Verifies that I can't drain someone else's bounty", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[3]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+
+    try {
+      await registry.drainBounty(accounts[1], 0, 0, [1], {from: accounts[1]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC20] Verifies that I can't drain a bounty without passing in an array of correct length", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[3]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+
+    try {
+      await registry.drainBounty(accounts[3], 0, 0, [1, 1], {from: accounts[3]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC20] Verifies that I can't drain a bounty of more funds than its balance", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[3]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+
+    try {
+      await registry.drainBounty(accounts[3], 0, 0, [2], {from: accounts[3]});
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+
+  it("[ERC20] Verifies that draining a bounty emits an event", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await registry.issueBounty(accounts[0], [accounts[3]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.contribute(accounts[0], 0, 1);
+
+    await registry.drainBounty(accounts[3], 0, 0, [1], {from: accounts[3]}).then((status) => {
+      assert.strictEqual('BountyDrained', status.logs[0].event, 'did not emit the BountyDrained event');
+    });
+
+  });
+
   it("[ERC20] Verifies that I can perform an action for a bounty", async () => {
     let registry = await StandardBounties.new();
     let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
@@ -1471,5 +1755,98 @@ await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], acco
       assert.strictEqual('BountyApproversUpdated', status.logs[0].event, 'did not emit the BountyApproversUpdated event');
     });
   });
+  it("[ERC20] Verifies that I can't accept a fulfillment, and still try to refund everyone's contributions", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
 
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+
+    await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
+
+    await registry.acceptFulfillment(accounts[0], 0, 0, 0, [1,1]);
+
+    try {
+      await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+    assert(false, "Should have thrown an error");
+  });
+  it("[ERC20] Verifies that I can accept a fulfillment, and still try to refund some contributions", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+
+
+    await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
+
+    await registry.acceptFulfillment(accounts[0], 0, 0, 0,[1,1]);
+
+    await registry.refundContributions(accounts[0], 0, 0, [0, 1, 2]);
+  });
+
+  it("[ERC20] Verifies that I can refund a contribution, and still drain the remaining funds", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    await registry.refundContribution(accounts[0], 0,0);
+
+    await registry.drainBounty(accounts[0], 0, 0, [4]);
+  });
+
+  it("[ERC20] Verifies that I can't refund a contribution, and still drain all of the funds", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.issueBounty(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20);
+
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+    await registry.contribute(accounts[0], 0, 1);
+
+    var block = await web3.eth.getBlock('latest');
+
+    await registry.changeDeadline(accounts[0], 0, 0, parseInt(block.timestamp, 10) - 10);
+
+    await registry.refundContribution(accounts[0], 0,0);
+
+    try {
+      await registry.drainBounty(accounts[0], 0, 0, [5]);
+    } catch (error){
+      return utils.ensureException(error);
+    }
+  });
 });

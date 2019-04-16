@@ -108,7 +108,7 @@ contract BountiesMetaTxRelayer {
     bountiesContract.refundContribution(signer, _bountyId, _contributionId);
   }
 
-  function metaRefundContributions(
+  function metaRefundMyContributions(
     bytes memory _signature,
     uint _bountyId,
     uint [] memory _contributionIds,
@@ -116,7 +116,7 @@ contract BountiesMetaTxRelayer {
     public
     {
     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
-                                                  "metaRefundContributions",
+                                                  "metaRefundMyContributions",
                                                   _bountyId,
                                                   _contributionIds,
                                                   _nonce));
@@ -129,7 +129,59 @@ contract BountiesMetaTxRelayer {
     //increase the nonce to prevent replay attacks
     replayNonce[signer]++;
 
-    bountiesContract.refundContributions(signer, _bountyId, _contributionIds);
+    bountiesContract.refundMyContributions(signer, _bountyId, _contributionIds);
+  }
+
+  function metaRefundContributions(
+    bytes memory _signature,
+    uint _bountyId,
+    uint _issuerId,
+    uint [] memory _contributionIds,
+    uint _nonce)
+    public
+    {
+    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                  "metaRefundContributions",
+                                                  _bountyId,
+                                                  _issuerId,
+                                                  _contributionIds,
+                                                  _nonce));
+    address signer = getSigner(metaHash, _signature);
+
+    //make sure signer doesn't come back as 0x0
+    require(signer != address(0));
+    require(_nonce == replayNonce[signer]);
+
+    //increase the nonce to prevent replay attacks
+    replayNonce[signer]++;
+
+    bountiesContract.refundContributions(signer, _bountyId, _issuerId, _contributionIds);
+  }
+
+  function metaDrainBounty(
+    bytes memory _signature,
+    uint _bountyId,
+    uint _issuerId,
+    uint [] memory _amounts,
+    uint _nonce)
+    public
+    {
+    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                  "metaDrainBounty",
+                                                  _bountyId,
+                                                  _issuerId,
+                                                  _amounts,
+                                                  _nonce));
+    address payable signer = address(uint160(getSigner(metaHash, _signature)));
+
+    //make sure signer doesn't come back as 0x0
+    require(signer != address(0));
+    require(_nonce == replayNonce[signer]);
+
+    //increase the nonce to prevent replay attacks
+    replayNonce[signer]++;
+
+    bountiesContract.drainBounty(signer, _bountyId, _issuerId, _amounts);
   }
 
   function metaPerformAction(

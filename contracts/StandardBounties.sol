@@ -341,11 +341,11 @@ contract StandardBounties {
     callStarted = false;
   }
 
-  /// @dev refundContributions(): Allows users to refund their contributions in bulk
+  /// @dev refundMyContributions(): Allows users to refund their contributions in bulk
   /// @param _sender the sender of the transaction issuing the bounty (should be the same as msg.sender unless the txn is called by the meta tx relayer)
   /// @param _bountyId the index of the bounty
   /// @param _contributionIds the array of indexes of the contributions being refunded
-  function refundContributions(
+  function refundMyContributions(
     address _sender,
     uint _bountyId,
     uint [] memory _contributionIds)
@@ -357,18 +357,53 @@ contract StandardBounties {
     }
   }
 
+  /// @dev refundContributions(): Allows users to refund their contributions in bulk
+  /// @param _sender the sender of the transaction issuing the bounty (should be the same as msg.sender unless the txn is called by the meta tx relayer)
+  /// @param _bountyId the index of the bounty
+  /// @param _issuerId the index of the issuer who is making the call
+  /// @param _contributionIds the array of indexes of the contributions being refunded
+  function refundContributions(
+    address _sender,
+    uint _bountyId,
+    uint _issuerId,
+    uint [] memory _contributionIds)
+    public
+    senderIsValid(_sender)
+    validateBountyArrayIndex(_bountyId)
+    onlyIssuer(_sender, _bountyId, _issuerId)
+    callNotStarted
+  {
+    callStarted = true;
+
+    for (uint i = 0; i < _contributionIds.length; i++){
+      require(_contributionIds[i] <= bounties[_bountyId].contributions.length);
+
+      Contribution storage contribution =
+        bounties[_bountyId].contributions[_contributionIds[i]];
+
+      require(!contribution.refunded);
+
+      transferTokens(_bountyId, contribution.contributor, contribution.amount); // Performs the disbursal of tokens to the contributor
+    }
+    callStarted = false;
+
+    emit ContributionsRefunded(_bountyId, _sender, _contributionIds);
+
+  }
+
   /// @dev drainBounty(): Allows an issuer to drain the funds from the bounty
   /// @param _sender the sender of the transaction issuing the bounty (should be the same as msg.sender unless the txn is called by the meta tx relayer)
   /// @param _bountyId the index of the bounty
   /// @param _issuerId the index of the issuer who is making the call
   /// @param _amounts an array of amounts of tokens to be sent. The length of the array should be 1 if the bounty is in ETH or ERC20 tokens. If it's an ERC721 bounty, the array should be the list of tokenIDs.
   function drainBounty(
-    address _sender,
+    address payable _sender,
     uint _bountyId,
     uint _issuerId,
     uint [] memory _amounts)
     public
     senderIsValid(_sender)
+    validateBountyArrayIndex(_bountyId)
     onlyIssuer(_sender, _bountyId, _issuerId)
     callNotStarted
   {
@@ -492,8 +527,6 @@ contract StandardBounties {
     for (uint256 i = 0; i < fulfillment.fulfillers.length; i++){
         if (_tokenAmounts[i] > 0) {
           // for each fulfiller associated with the submission
-          require(bounties[_bountyId].balance >= _tokenAmounts[i] ||
-                  tokenBalances[_bountyId][_tokenAmounts[i]]); // Checks that the bounty has a sufficient balance to make the payout
           transferTokens(_bountyId, fulfillment.fulfillers[i], _tokenAmounts[i]);
         }
     }
@@ -770,17 +803,21 @@ contract StandardBounties {
   {
     if (bounties[_bountyId].tokenVersion == 0){
       require(_amount > 0); // Sending 0 tokens should throw
+      require(bounties[_bountyId].balance >= _amount);
 
       bounties[_bountyId].balance -= _amount;
 
       _to.transfer(_amount);
     } else if (bounties[_bountyId].tokenVersion == 20) {
       require(_amount > 0); // Sending 0 tokens should throw
+      require(bounties[_bountyId].balance >= _amount);
 
       bounties[_bountyId].balance -= _amount;
 
       require(ERC20Token(bounties[_bountyId].token).transfer(_to, _amount));
     } else if (bounties[_bountyId].tokenVersion == 721) {
+      require(tokenBalances[_bountyId][_amount]);
+
       tokenBalances[_bountyId][_amount] = false; // Removes the 721 token from the balance of the bounty
 
       ERC721BasicToken(bounties[_bountyId].token).transferFrom(address(this),
@@ -798,7 +835,8 @@ contract StandardBounties {
   event BountyIssued(uint _bountyId, address payable _creator, address payable [] _issuers, address [] _approvers, string _data, uint _deadline, address _token, uint _tokenVersion);
   event ContributionAdded(uint _bountyId, uint _contributionId, address payable _contributor, uint _amount);
   event ContributionRefunded(uint _bountyId, uint _contributionId);
-  event BountyDrained(uint _bountyId, address payable _issuer, uint [] _amounts);
+  event ContributionsRefunded(uint _bountyId, address _issuer, uint [] _contributionIds);
+  event BountyDrained(uint _bountyId, address _issuer, uint [] _amounts);
   event ActionPerformed(uint _bountyId, address _fulfiller, string _data);
   event BountyFulfilled(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data, address _submitter);
   event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data);
