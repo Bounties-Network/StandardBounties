@@ -638,7 +638,7 @@ contract StandardBounties {
     validateIssuerArrayIndex(_bountyId, _issuerId)
     onlyIssuer(_sender, _bountyId, _issuerId)
   {
-    emit BountyDataChanged(_bountyId, msg.sender, _data); // The new _data is emitted within an event rather than being stored on-chain for minimized gas costs
+    emit BountyDataChanged(_bountyId, _sender, _data); // The new _data is emitted within an event rather than being stored on-chain for minimized gas costs
   }
 
   /// @dev changeDeadline(): Allows any of the issuers to change the deadline the bounty
