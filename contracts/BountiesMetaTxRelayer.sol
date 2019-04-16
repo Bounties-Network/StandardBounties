@@ -25,7 +25,6 @@ contract BountiesMetaTxRelayer {
     uint _tokenVersion,
     uint _nonce)
     public
-    payable
     returns (uint)
     {
     bytes32 metaHash = keccak256(abi.encodePacked(address(this),
@@ -52,6 +51,61 @@ contract BountiesMetaTxRelayer {
                                          _deadline,
                                          _token,
                                          _tokenVersion);
+  }
+
+  function metaIssueAndContribute(
+    bytes memory signature,
+    address payable [] memory _issuers,
+    address [] memory _approvers,
+    string memory _data,
+    uint _deadline,
+    address _token,
+    uint _tokenVersion,
+    uint _depositAmount,
+    uint _nonce)
+    public
+    payable
+    returns (uint)
+    {
+    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+                                                  "metaIssueAndContribute",
+                                                  _issuers,
+                                                  _approvers,
+                                                  _data,
+                                                  _deadline,
+                                                  _token,
+                                                  _tokenVersion,
+                                                  _depositAmount,
+                                                  _nonce));
+    address signer = getSigner(metaHash, signature);
+
+    //make sure signer doesn't come back as 0x0
+    require(signer != address(0));
+    require(_nonce == replayNonce[signer]);
+
+    //increase the nonce to prevent replay attacks
+    replayNonce[signer]++;
+
+    if (msg.value > 0){
+      return bountiesContract.issueAndContribute.value(msg.value)(address(uint160(signer)),
+                                                 _issuers,
+                                                 _approvers,
+                                                 _data,
+                                                 _deadline,
+                                                 _token,
+                                                 _tokenVersion,
+                                                 _depositAmount);
+    } else {
+      return bountiesContract.issueAndContribute(address(uint160(signer)),
+                                                 _issuers,
+                                                 _approvers,
+                                                 _data,
+                                                 _deadline,
+                                                 _token,
+                                                 _tokenVersion,
+                                                 _depositAmount);
+    }
+
   }
 
   function metaContribute(
