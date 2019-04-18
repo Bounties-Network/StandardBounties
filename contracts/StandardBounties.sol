@@ -4,10 +4,13 @@ pragma experimental ABIEncoderV2;
 import "./inherited/ERC20Token.sol";
 import "./inherited/ERC721Basic.sol";
 
+
 /// @title StandardBounties
 /// @dev A contract for issuing bounties on Ethereum paying in ETH, ERC20, or ERC721 tokens
 /// @author Mark Beylin <mark.beylin@consensys.net>, Gonçalo Sá <goncalo.sa@consensys.net>, Kevin Owocki <kevin.owocki@consensys.net>, Ricardo Guilherme Schmidt (@3esmit), Matt Garnett <matt.garnett@consensys.net>, Craig Williams <craig.williams@consensys.net>
 contract StandardBounties {
+
+  using SafeMath for uint256;
 
   /*
    * Structs
@@ -56,7 +59,9 @@ contract StandardBounties {
 
   modifier callNotStarted(){
     require(!callStarted);
+    callStarted = true;
     _;
+    callStarted = false;
   }
 
   modifier validateBountyArrayIndex(
@@ -212,7 +217,7 @@ contract StandardBounties {
       newBounty.token = _token;
     }
 
-    numBounties++; // Increments the number of bounties, since a new one has just been added
+    numBounties = numBounties.add(1); // Increments the number of bounties, since a new one has just been added
 
     emit BountyIssued(bountyId,
                       _sender,
@@ -270,19 +275,17 @@ contract StandardBounties {
   {
     require(_amount > 0); // Contributions of 0 tokens or token ID 0 should fail
 
-    callStarted = true;
-
     bounties[_bountyId].contributions.push(
       Contribution(_sender, _amount, false)); // Adds the contribution to the bounty
 
     if (bounties[_bountyId].tokenVersion == 0){
 
-      bounties[_bountyId].balance += _amount; // Increments the balance of the bounty
+      bounties[_bountyId].balance = bounties[_bountyId].balance.add(_amount); // Increments the balance of the bounty
 
       require(msg.value == _amount);
     } else if (bounties[_bountyId].tokenVersion == 20) {
 
-      bounties[_bountyId].balance += _amount; // Increments the balance of the bounty
+      bounties[_bountyId].balance = bounties[_bountyId].balance.add(_amount); // Increments the balance of the bounty
 
       require(msg.value == 0); // Ensures users don't accidentally send ETH alongside a token contribution, locking up funds
       require(ERC20Token(bounties[_bountyId].token).transferFrom(_sender,
@@ -304,7 +307,6 @@ contract StandardBounties {
                            bounties[_bountyId].contributions.length - 1, // The new contributionId
                            _sender,
                            _amount);
-    callStarted = false;
   }
 
   /// @dev refundContribution(): Allows users to refund the contributions they've
@@ -326,7 +328,6 @@ contract StandardBounties {
     hasNotRefunded(_bountyId, _contributionId)
     callNotStarted
   {
-    callStarted = true;
     require(now > bounties[_bountyId].deadline); // Refunds may only be processed after the deadline has elapsed
 
     Contribution storage contribution =
@@ -337,7 +338,6 @@ contract StandardBounties {
     transferTokens(_bountyId, contribution.contributor, contribution.amount); // Performs the disbursal of tokens to the contributor
 
     emit ContributionRefunded(_bountyId, _contributionId);
-    callStarted = false;
   }
 
   /// @dev refundMyContributions(): Allows users to refund their contributions in bulk
@@ -372,8 +372,6 @@ contract StandardBounties {
     onlyIssuer(_sender, _bountyId, _issuerId)
     callNotStarted
   {
-    callStarted = true;
-
     for (uint i = 0; i < _contributionIds.length; i++){
       require(_contributionIds[i] <= bounties[_bountyId].contributions.length);
 
@@ -384,10 +382,8 @@ contract StandardBounties {
 
       transferTokens(_bountyId, contribution.contributor, contribution.amount); // Performs the disbursal of tokens to the contributor
     }
-    callStarted = false;
 
     emit ContributionsRefunded(_bountyId, _sender, _contributionIds);
-
   }
 
   /// @dev drainBounty(): Allows an issuer to drain the funds from the bounty
@@ -406,8 +402,6 @@ contract StandardBounties {
     onlyIssuer(_sender, _bountyId, _issuerId)
     callNotStarted
   {
-    callStarted = true;
-
     if (bounties[_bountyId].tokenVersion == 0 || bounties[_bountyId].tokenVersion == 20){
       require(_amounts.length == 1); // ensures there's only 1 amount of tokens to be returned
       require(_amounts[0] <= bounties[_bountyId].balance); // ensures an issuer doesn't try to drain the bounty of more tokens than their balance permits
@@ -420,7 +414,6 @@ contract StandardBounties {
     }
 
     emit BountyDrained(_bountyId, _sender, _amounts);
-    callStarted = false;
   }
 
   /// @dev performAction(): Allows users to perform any generalized action
@@ -513,8 +506,6 @@ contract StandardBounties {
     isApprover(_sender, _bountyId, _approverId)
     callNotStarted
   {
-    callStarted = true;
-
     // now that the bounty has paid out at least once, refunds are no longer possible
     bounties[_bountyId].hasPaidOut = true;
 
@@ -533,7 +524,6 @@ contract StandardBounties {
                              _fulfillmentId,
                              _sender,
                              _tokenAmounts);
-    callStarted = false;
   }
 
   /// @dev fulfillAndAccept(): Allows any of the approvers to fulfill and accept a submission simultaneously
@@ -804,14 +794,14 @@ contract StandardBounties {
       require(_amount > 0); // Sending 0 tokens should throw
       require(bounties[_bountyId].balance >= _amount);
 
-      bounties[_bountyId].balance -= _amount;
+      bounties[_bountyId].balance = bounties[_bountyId].balance.sub(_amount);
 
       _to.transfer(_amount);
     } else if (bounties[_bountyId].tokenVersion == 20) {
       require(_amount > 0); // Sending 0 tokens should throw
       require(bounties[_bountyId].balance >= _amount);
 
-      bounties[_bountyId].balance -= _amount;
+      bounties[_bountyId].balance = bounties[_bountyId].balance.sub(_amount);
 
       require(ERC20Token(bounties[_bountyId].token).transfer(_to, _amount));
     } else if (bounties[_bountyId].tokenVersion == 721) {
