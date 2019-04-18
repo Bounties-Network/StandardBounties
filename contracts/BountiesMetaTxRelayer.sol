@@ -7,7 +7,7 @@ contract BountiesMetaTxRelayer {
 
   // This contract serves as a relayer for meta txns being sent to the Bounties contract
 
-  StandardBounties bountiesContract;
+  StandardBounties public bountiesContract;
   mapping(address => uint) public replayNonce;
 
 
