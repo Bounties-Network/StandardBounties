@@ -32,8 +32,7 @@
     "ethjs-provider-http": "^0.1.6",
     "ethjs-rpc": "^0.2.0",
     "solc": "^0.5.0",
-    "truffle": "^4.1.15",
-    "cryptiles": ">=4.1.2"
+    "truffle": "^4.1.15"
   },
   "devDependencies": {
     "eslint-plugin-import": "2.7.0",
@@ -42,6 +41,8 @@
     "eslint-plugin-standard": "3.0.1",
     "eth-gas-reporter": "^0.1.12",
     "solidity-coverage": "^0.5.11",
-    "truffle-hdwallet-provider": "0.0.3"
+    "truffle-hdwallet-provider": "0.0.3",
+    "cryptiles": ">=4.1.2",
+    "sshpk": ">=1.13.2"
   }
 }
