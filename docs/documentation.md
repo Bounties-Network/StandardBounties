@@ -357,7 +357,7 @@ Returns all of the information describing a given fulfillment for a given bounty
 ```
 function getFulfillment(uint _bountyId, uint _fulfillmentId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
     returns (bool, address, string)
@@ -373,7 +373,7 @@ Returns a tuple of the variables describing the bounty, except for the arbiter, 
 ```
 function getBounty(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (address, uint, uint, bool, uint, uint)
 {
@@ -391,7 +391,7 @@ Returns an address of the arbiter for the given bounty.
 ```
 function getBountyArbiter(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (address)
 {
@@ -404,7 +404,7 @@ Returns a string of the data for the given bounty.
 ```
 function getBountyData(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (string)
 {
@@ -417,7 +417,7 @@ Returns an address of the token for the given bounty.
 ```
 function getBountyToken(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (address)
 {
@@ -430,7 +430,7 @@ Returns the number of bounties which exist on the registry
 ```
 function getNumBounties()
     public
-    constant
+    pure
     returns (uint)
 {
     return bounties.length;
@@ -442,7 +442,7 @@ Returns the number of fulfillments which have been submitted for a given bounty
 ```
 function getNumFulfillments(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (uint)
 {
