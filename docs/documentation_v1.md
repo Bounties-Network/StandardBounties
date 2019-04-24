@@ -9,6 +9,8 @@ A bounty is a simple mechanism for individuals or groups to pay out for the comp
 
 ## Contract Details
 
+Any application can take advantage of the Bounties Network registry, which is currently deployed on the Main Ethereum Network at `0x2af47a65da8cd66729b4209c22017d6a5c2d2400`, and on the Rinkeby network at `0xf209d2b723b6417cbf04c07e733bee776105a073`. 
+
 ### Storage
 
 `address issuer`

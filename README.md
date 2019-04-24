@@ -2,79 +2,59 @@
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bounties-network/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [ ![Codeship Status for ConsenSys/StandardBounties](https://app.codeship.com/projects/1e2726c0-ac83-0135-5579-52b4614bface/status?branch=master)](https://app.codeship.com/projects/257018)
 
-`Version 1.1.0`
+`Version 2.0`
+
+To read about Version 1.0, please see [the documentation](./docs/documentation_v1.md).
+
+A generalized set of contracts to issue bounties for any task, paying in any ERC20, ERC721, or ETH tokens.
 
 1. [Rationale](#1-rationale)
 2. [Implementation](#2-implementation)
 3. [Development](#3-development)
 4. [Documentation](#4-documentation)
 
-A set of standard contracts to be used as interfaces for any kind of bounty, either qualitative or quantitative in nature.
-
 ## 1. Rationale
 
-Ethereum smart contracts can trivially facilitate transactions of resources (or tokens) between individuals or groups, but service transactions are more complex. Requesting individuals (issuers) must first approve the work they're receiving before paying out funds, meaning bounty hunters must have trust that the issuer will pay them in the spirit of the original contract.
-
-The _StandardBounties.sol_ contract facilitates transactions on qualitative data (often representing artifacts of completion of some service), allowing bounty issuers to systematically approve the work they receive.
+Bounties are the simplest form of an incentive mechanism: giving people tokens for completing a task. The Ethereum blockchain provides a number of benefits to support these incentive mechanisms:
+- The ability to inexpensively transact with individuals from across the world
+- The ability to lock up funds in an escrow contract (a bounty) which disburses funds when a proof of task completion or deliverable is accepted
+- The ability to host these bounties in an open and interoperable manner, so that many different types of applications can be used to create, explore, and complete bounties from a shared liquidity pool (that no one controls)
+In this way, StandardBounties enables teams to create bounties through one application (like their DAO), and instantly have the bounty be listed on several bounty marketplaces at once, maximizing the bounty's reach and making the markets more efficient.
 
 
 ## 2. Implementation
+There are several key types of users within a bounty:
+- `Bounty Issuers` are a list of addresses who have the power to drain the bounty and edit the details associated with the bounty.
+- `Bounty Approvers` are a list of addresses who have the power to accept submissions which are made to the bounty. (*Note: Issuers are not assumed to also be approvers, but may add themselves as such if desired*)
+- `Bounty Contributors` are any address which has made a contribution to a given bounty
+- `Bounty Fulfillers` are any addresses which are included as contributors to any submission made to a given bounty
+- `Bounty Submitters` are any addresses which submit fulfillments, either on their own behalf or for other people
 
-A bounty can be used to pay amounts of ETH or a given token, based on the successful completion of the given task. The contract aims to reduce the necessary trust in the issuer by forcing them to deposit sufficient Ether (or tokens) to pay out the bounty at least once.
+Together, these actors coordinate to deploy capital and shape human behavior with the power of incentives.
 
-- A bounty begins by being issued, either through the `issueBounty()` function (which issues the bounty into draft stage), or `issueAndActivateBounty()`, which issues the bounty into the active stage
+There are several core actions in the lifecycle of a bounty, which can be performed by certain users:
+- *Anyone* may `issue` a bounty, specifying the details of the bounty and anchoring the associated IPFS hash on-chain within the StandardBounties smart contract
+- *Anyone* may `contribute` to a bounty, specifying the amount of tokens they'd like to add to the port.
+- *Anyone* may `fulfill` a bounty, submitting a list of contributors and an IPFS hash of the details and deliverables.
+- *Any of the Bounty's Approvers* may `accept` a fulfillment, submitting the amount of tokens they'd like each contributor to receive.
 
-- In the `Draft` state, all bounty details can still be mutated.
+These actions make up the core life cycle of a bounty, supporting funds flowing into various bounties, and subsequently flowing out as tasks are completed.
 
-  In this state, the various functions which can be called are:
-    - `contribute()` [**ANYONE**]: contributes ETH (or tokens) to the bounty
-    - `activateBounty()` [**ONLY ISSUER**]: This will activate the bounty
-    - `killBounty()` [**ONLY ISSUER**]: This will kill the bounty
+There are several additional actions which various users may perform:
+- *Any Contributor* may refund their contributions to a bounty, so long as the deadline of the bounty has elapsed and no submissions were accepted.
+- *Any Issuer* may refund the contributions of other users if they wish (even if the deadline hasn't elapsed or the bounty has paid out a subset of funds)
+- *Any Issuer* may drain the bounty of a subset of the funds in the bounty
+- *Anyone* may perform a generalized `action`, submitting the IPFS hash which stores the details of their action (ie commenting, submitting their intention to complete the bounty, etc)
+- *Any Submitter* can update their submission, making changes to the submission data or the list of Contributors
+- *Any Approver* may simultaneously submit an off-chain fulfillment and accept it, immutably recording the exchange while saving the need to preemptively submit the fulfillments on-chain
+- *Any Issuer* may change any of the details of the bounty, *except for the token contract associated with the bounty which may not be changed*.
 
-  As well as several functions to alter the bounty details:
-    - `changeBountyDeadline()` [**ONLY ISSUER**]
-    - `changeBountyData()` [**ONLY ISSUER**]
-    - `changeBountyFulfillmentAmount()` [**ONLY ISSUER**]
-    - `changeBountyArbiter()` [**ONLY ISSUER**]
-    - `extendDeadline()` [**ONLY ISSUER**]
-    - `transferIssuer()` [**ONLY ISSUER**]
-    - `increasePayout()` [**ONLY ISSUER**]
-
-- A bounty transitions to the `Active` state when the issuer calls `activateBounty()`, or if it was initially issued and activated.
-
-  This is only possible if
-  - the bounty hasn't expired (isn't past its deadline)
-  - the bounty has sufficient funds to pay out each milestone at least once
-
-  Once a bounty is `Active`, bounty hunters can submit fulfillments for the various milestones, and the bounty issuer can approve fulfillments to pay out the rewards.
-
-  In this state, the various functions which can be called are:
-    - `fulfillBounty()` [**ANYONE BUT ISSUER OR ARBITER**]:
-    - `updateFulfillment()` [**ONLY FULFILLER**]
-    - `acceptFulfillment()` [**ONLY ISSUER OR ARBITER**]:
-    - `increasePayout()` [**ONLY ISSUER**]:
-    - `transferIssuer()` [**ONLY ISSUER**]
-    - `extendDeadline()` [**ONLY ISSUER**]
-    - `killBounty()` [**ONLY ISSUER**]:
-
-- A bounty transitions to the `Dead` state when the issuer calls `killBounty()`, which drains the bounty of its remaining balance.
-
-  In this state, the only functions which can be called are:
-  - `extendDeadline()` [**ONLY ISSUER**]
-  - `contribute()` [**ANYONE**]
-  - `activateBounty()` [**ONLY ISSUER**]
-
+Alongside the ability to perform any of these actions natively within the StandardBounties contract, we've also deployed a MetaTransactionRelayer contract which decodes signed messages for users and performs actions on their behalf, so that they aren't required to pay gas fees.
 
 ## 3. Development
 
-Any application can take advantage of the bounties network registry, which is currently deployed on the Main Ethereum Network at `0x2af47a65da8cd66729b4209c22017d6a5c2d2400`, and on the Rinkeby network at `0xf209d2b723b6417cbf04c07e733bee776105a073`. The `BountiesNetwork.eth` name will also always resolve to the most up-to-date registry version for the StandardBounties contract.
-
-#### Data Schema
-
-For details on the data schema used for all JSON objects which are uploaded to IPFS, see [the schema](./docs/standardSchemas.md)
-
-**If you're building on the StandardBounties and would like to add additional data fields, please submit a pull request on this repo.**
+Any application can take advantage of the Bounties Network registry, which is currently deployed on the Main Ethereum Network at `0x2af47a65da8cd66729b4209c22017d6a5c2d2400`, and on the Rinkeby network at `0xf209d2b723b6417cbf04c07e733bee776105a073`. The `BountiesNetwork.eth` name will also always resolve to the most up-to-date registry version for the StandardBounties contract.
 
 ## 4. Documentation
 
-For thorough documentation of all functions, see [the documentation](./docs/documentation.md)
+For thorough documentation of all functionality, see [the documentation](./docs/documentation_v2.md)
