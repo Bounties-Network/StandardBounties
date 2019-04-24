@@ -14,21 +14,21 @@ Together, these actors coordinate to deploy capital and shape human behavior wit
 
 ## Actions They Can Perform
 There are several core actions in the lifecycle of a bounty, which can be performed by certain users:
-- *Anyone* may `issue` a bounty, specifying the details of the bounty and anchoring the associated IPFS hash on-chain within the StandardBounties smart contract
-- *Anyone* may `contribute` to a bounty, specifying the amount of tokens they'd like to add to the port.
-- *Anyone* may `fulfill` a bounty, submitting a list of contributors and an IPFS hash of the details and deliverables.
-- *Any of the Bounty's Approvers* may `accept` a fulfillment, submitting the amount of tokens they'd like each contributor to receive.
+- **Anyone** may `issue` a bounty, specifying the details of the bounty and anchoring the associated IPFS hash on-chain within the StandardBounties smart contract
+- **Anyone** may `contribute` to a bounty, specifying the amount of tokens they'd like to add to the port.
+- **Anyone** may `fulfill` a bounty, submitting a list of contributors and an IPFS hash of the details and deliverables.
+- **Any of the Bounty's Approvers** may `accept` a fulfillment, submitting the amount of tokens they'd like each contributor to receive.
 
 These actions make up the core life cycle of a bounty, supporting funds flowing into various bounties, and subsequently flowing out as tasks are completed.
 
 There are several additional actions which various users may perform:
-- *Any Contributor* may refund their contributions to a bounty, so long as the deadline of the bounty has elapsed and no submissions were accepted.
-- *Any Issuer* may refund the contributions of other users if they wish (even if the deadline hasn't elapsed or the bounty has paid out a subset of funds)
-- *Any Issuer* may drain the bounty of a subset of the funds in the bounty
-- *Anyone* may perform a generalized `action`, submitting the IPFS hash which stores the details of their action (ie commenting, submitting their intention to complete the bounty, etc)
-- *Any Submitter* can update their submission, making changes to the submission data or the list of Contributors
-- *Any Approver* may simultaneously submit an off-chain fulfillment and accept it, immutably recording the exchange while saving the need to preemptively submit the fulfillments on-chain
-- *Any Issuer* may change any of the details of the bounty, *except for the token contract associated with the bounty which may not be changed*.
+- **Any Contributor** may refund their contributions to a bounty, so long as the deadline of the bounty has elapsed and no submissions were accepted.
+- **Any Issuer** may refund the contributions of other users if they wish (even if the deadline hasn't elapsed or the bounty has paid out a subset of funds)
+- **Any Issuer** may drain the bounty of a subset of the funds in the bounty
+- **Anyone** may perform a generalized `action`, submitting the IPFS hash which stores the details of their action (ie commenting, submitting their intention to complete the bounty, etc)
+- **Any Submitter** can update their submission, making changes to the submission data or the list of Contributors
+- **Any Approver** may simultaneously submit an off-chain fulfillment and accept it, immutably recording the exchange while saving the need to preemptively submit the fulfillments on-chain
+- **Any Issuer** may change any of the details of the bounty, **except for the token contract associated with the bounty which may not be changed**.
 
 ## Tokens
 Each bounty is associated with only one token, whether that's ETH, an ERC20 token, or an ERC721 token. This is specified when the bounty is issued, submitting either 0, 20, or 721 as the `tokenVersion` for those tokens, respectively. The token associated with a bounty may not be changed once it is initialized.
@@ -37,7 +37,7 @@ When contributing funds to a bounty:
 - if the bounty pays in ETH, the `msg.value` associated with the call of the `contribute` function should equal the amount of Wei that's specified as the contribution amount
 - if the bounty pays in an ERC20 or ERC721 token, the user must first call the token's `approve` function submitting the address of the StandardBounties contract, so that the contract may pull in the tokens and include them within the balance of the bounty when the `contribute` call is made
 
-*Please note that you may not contribute 0 tokens to a bounty, nor may you contribute an ERC721 token whose ID is 0*.
+**Please note that you may not contribute 0 tokens to a bounty, nor may you contribute an ERC721 token whose ID is 0**.
 
 ## General Details
 
@@ -73,12 +73,17 @@ There are 3 main structs used to store details within Standardbounties: a  `Boun
   bool hasPaidOut; // A boolean storing whether or not the bounty has paid out at least once, meaning refunds are no longer allowed
   Fulfillment [] fulfillments; // An array of Fulfillments which store the various submissions which have been made to the bounty
   Contribution [] contributions; // An array of Contributions which store the contributions which have been made to the bounty
-}```
+}
+```
+
 - A `Fulfillment`:
-```struct Fulfillment {
+```
+struct Fulfillment {
   address payable [] fulfillers; // An array of addresses who should receive payouts for a given submission
   address submitter; // The address of the individual who submitted the fulfillment, who is able to update the submission as needed
-}```
+}
+```
+
 - A `Contribution`:
 ```
 struct Contribution {
