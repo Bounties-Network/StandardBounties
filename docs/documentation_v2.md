@@ -53,7 +53,41 @@ The JSON objects which store the data associated with  `bounties`, `fulfillments
 
 ## Contract Details
 
-Any application can take advantage of the Bounties Network registry, which is currently deployed on the Main Ethereum Network at `0x2af47a65da8cd66729b4209c22017d6a5c2d2400`, and on the Rinkeby network at `0xf209d2b723b6417cbf04c07e733bee776105a073`.
+Any application can take advantage of the Bounties Network registry, which is currently deployed on both the Main Ethereum Network and the Rinkeby Testnet.
+
+- On Mainnet, the StandardBounties contract is deployed at `0xe7f69ea2a79521136ee0bf3c50f6b5f1ea0ab0cd`, and the BountiesMetaTxRelayer is deployed at `0x4e51315da4bb947420d8ca3cf2a59ca92ccaa2ad`
+
+- On Rinkeby, the StandardBounties contract is deployed at `0xa53aadb09bd0612ee810ab8b4605c9ee45892169`, and the BountiesMetaTxRelayer is deployed at `0x2b75c32cb715eb2fc559595a4501720ad100e2d9`
+
+### Structs
+
+There are 3 main structs used to store details within Standardbounties: a  `Bounty`, a `Fulfillment`, and a `Contribution`.
+- A  `Bounty`:
+```struct Bounty {
+  address payable [] issuers; // An array of individuals who have complete control over the bounty, and can edit any of its parameters
+  address [] approvers; // An array of individuals who are allowed to accept the fulfillments for a particular bounty
+  uint deadline; // The Unix timestamp before which all submissions must be made, and after which refunds may be processed
+  address token; // The address of the token associated with the bounty (should be disregarded if the tokenVersion is 0)
+  uint tokenVersion; // The version of the token being used for the bounty (0 for ETH, 20 for ERC20, 721 for ERC721)
+  uint balance; // The number of tokens which the bounty is able to pay out or refund
+  bool hasPaidOut; // A boolean storing whether or not the bounty has paid out at least once, meaning refunds are no longer allowed
+  Fulfillment [] fulfillments; // An array of Fulfillments which store the various submissions which have been made to the bounty
+  Contribution [] contributions; // An array of Contributions which store the contributions which have been made to the bounty
+}```
+- A `Fulfillment`:
+```struct Fulfillment {
+  address payable [] fulfillers; // An array of addresses who should receive payouts for a given submission
+  address submitter; // The address of the individual who submitted the fulfillment, who is able to update the submission as needed
+}```
+- A `Contribution`:
+```
+struct Contribution {
+  address payable contributor; // The address of the individual who contributed
+  uint amount; // The amount of tokens the user contributed
+  bool refunded; // A boolean storing whether or not the contribution has been refunded yet
+}
+```
+
 
 ### Storage
 
