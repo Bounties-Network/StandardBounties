@@ -53,7 +53,11 @@ Alongside the ability to perform any of these actions natively within the Standa
 
 ## 3. Development
 
-Any application can take advantage of the Bounties Network registry, which is currently deployed on the Main Ethereum Network at `0x2af47a65da8cd66729b4209c22017d6a5c2d2400`, and on the Rinkeby network at `0xf209d2b723b6417cbf04c07e733bee776105a073`. The `BountiesNetwork.eth` name will also always resolve to the most up-to-date registry version for the StandardBounties contract.
+Any application can take advantage of the Bounties Network registry, which is currently deployed on both the Main Ethereum Network and the Rinkeby Testnet.
+
+- On Mainnet, the StandardBounties contract is deployed at `0xe7f69ea2a79521136ee0bf3c50f6b5f1ea0ab0cd`, and the BountiesMetaTxRelayer is deployed at `0x4e51315da4bb947420d8ca3cf2a59ca92ccaa2ad`
+
+- On Rinkeby, the StandardBounties contract is deployed at `0xa53aadb09bd0612ee810ab8b4605c9ee45892169`, and the BountiesMetaTxRelayer is deployed at `0x2b75c32cb715eb2fc559595a4501720ad100e2d9`
 
 ## 4. Documentation
 
