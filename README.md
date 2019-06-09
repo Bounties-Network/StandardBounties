@@ -4,7 +4,7 @@
 
 `Version 2.0`
 
-To read about Version 1.0, please see [the documentation](./docs/documentation_v1.md).
+To read about `Version 1.0`, please see [the documentation](./docs/documentation_v1.md).
 
 A generalized set of contracts to issue bounties for any task, paying in any ERC20, ERC721, or ETH tokens.
 
