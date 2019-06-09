@@ -1,6 +1,6 @@
 .DS_Store
 secrets.json
-/node_modules/
+node_modules/
 coverage.json
-/coverage/
+coverage/
 build/
