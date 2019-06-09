@@ -9,6 +9,8 @@ A bounty is a simple mechanism for individuals or groups to pay out for the comp
 
 ## Contract Details
 
+Any application can take advantage of the Bounties Network registry, which is currently deployed on the Main Ethereum Network at `0x2af47a65da8cd66729b4209c22017d6a5c2d2400`, and on the Rinkeby network at `0xf209d2b723b6417cbf04c07e733bee776105a073`. 
+
 ### Storage
 
 `address issuer`
@@ -357,7 +359,7 @@ Returns all of the information describing a given fulfillment for a given bounty
 ```
 function getFulfillment(uint _bountyId, uint _fulfillmentId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
     returns (bool, address, string)
@@ -373,7 +375,7 @@ Returns a tuple of the variables describing the bounty, except for the arbiter, 
 ```
 function getBounty(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (address, uint, uint, bool, uint, uint)
 {
@@ -391,7 +393,7 @@ Returns an address of the arbiter for the given bounty.
 ```
 function getBountyArbiter(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (address)
 {
@@ -404,7 +406,7 @@ Returns a string of the data for the given bounty.
 ```
 function getBountyData(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (string)
 {
@@ -417,7 +419,7 @@ Returns an address of the token for the given bounty.
 ```
 function getBountyToken(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (address)
 {
@@ -430,7 +432,7 @@ Returns the number of bounties which exist on the registry
 ```
 function getNumBounties()
     public
-    constant
+    pure
     returns (uint)
 {
     return bounties.length;
@@ -442,7 +444,7 @@ Returns the number of fulfillments which have been submitted for a given bounty
 ```
 function getNumFulfillments(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (uint)
 {
