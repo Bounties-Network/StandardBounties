@@ -16,7 +16,8 @@ if (fs.existsSync('secrets.json')) {
 module.exports = {
   networks: {
     live: {
-      network_id: 1 // Ethereum public network
+      network_id: 1, // Ethereum public network,
+      gas: 4600000
       // optional config values
       // host - defaults to "localhost"
       // port - defaults to 8545
@@ -26,10 +27,21 @@ module.exports = {
     },
     ropsten: {
       provider: new HDWalletProvider(mnemonic, 'https://ropsten.infura.io'),
-      network_id: '3'
+      network_id: '3',
+      gas: 4600000
     },
     testrpc: {
-      network_id: 'default'
+      network_id: 'default',
+      gas: 4000000000
     }
+  },
+  mocha: {
+
+    reporter: 'eth-gas-reporter',
+    reporterOptions: {
+      currency: 'USD',
+      gasPrice: 6
+    }
+
   }
 }
