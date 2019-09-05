@@ -380,6 +380,8 @@ contract StandardBounties {
 
       require(!contribution.refunded);
 
+      contribution.refunded = true;
+
       transferTokens(_bountyId, contribution.contributor, contribution.amount); // Performs the disbursal of tokens to the contributor
     }
 
