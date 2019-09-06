@@ -250,6 +250,8 @@ contract StandardBounties {
     uint bountyId = issueBounty(_sender, _issuers, _approvers, _data, _deadline, _token, _tokenVersion);
 
     contribute(_sender, bountyId, _depositAmount);
+
+    return (bountyId);
   }
 
 
