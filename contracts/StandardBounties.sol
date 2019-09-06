@@ -375,7 +375,7 @@ contract StandardBounties {
     callNotStarted
   {
     for (uint i = 0; i < _contributionIds.length; i++){
-      require(_contributionIds[i] <= bounties[_bountyId].contributions.length);
+      require(_contributionIds[i] < bounties[_bountyId].contributions.length);
 
       Contribution storage contribution =
         bounties[_bountyId].contributions[_contributionIds[i]];
