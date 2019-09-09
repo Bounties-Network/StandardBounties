@@ -1,6 +1,6 @@
 # StandardBounties Complete Documentation
 
-`Version 2.0.0`
+`Version 2.1`
 
 ## Actors
 There are several key types of users within a bounty:
@@ -58,3 +58,7 @@ Any application can take advantage of the Bounties Network registry, which is cu
 - On Mainnet, the StandardBounties contract is deployed at `0xe7f69ea2a79521136ee0bf3c50f6b5f1ea0ab0cd`, and the BountiesMetaTxRelayer is deployed at `0x4e51315da4bb947420d8ca3cf2a59ca92ccaa2ad`
 
 - On Rinkeby, the StandardBounties contract is deployed at `0xa53aadb09bd0612ee810ab8b4605c9ee45892169`, and the BountiesMetaTxRelayer is deployed at `0x2b75c32cb715eb2fc559595a4501720ad100e2d9`
+
+## Version Notes
+
+Version 2.1 is functionally identical to 2.0, but adds a number of bug fixes which were overlooked during our initial development and auditing cycle.

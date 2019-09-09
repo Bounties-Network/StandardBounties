@@ -1,6 +1,6 @@
 {
   "name": "StandardBounties",
-  "version": "2.0",
+  "version": "2.1",
   "description": "Bounties on any task, paid in any token on Ethereum",
   "main": "truffle.js",
   "directories": {
