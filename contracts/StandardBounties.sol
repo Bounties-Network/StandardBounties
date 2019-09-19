@@ -391,6 +391,7 @@ contract StandardBounties {
   }
 
   /// @dev drainBounty(): Allows an issuer to drain the funds from the bounty
+  /// @notice when using this function, if an issuer doesn't drain the entire balance, some users may be able to refund their contributions, while others may not (which is unfair to them). Please use it wisely, only when necessary
   /// @param _sender the sender of the transaction issuing the bounty (should be the same as msg.sender unless the txn is called by the meta tx relayer)
   /// @param _bountyId the index of the bounty
   /// @param _issuerId the index of the issuer who is making the call
