@@ -670,7 +670,7 @@ contract BountiesMetaTxRelayer {
       return address(0);
     } else {
       return ecrecover(keccak256(
-        abi.encode("\x19Ethereum Signed Message:\n32", _hash)
+        abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
       ), v, r, s);
     }
   }
