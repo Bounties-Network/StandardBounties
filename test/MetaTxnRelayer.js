@@ -78,6 +78,44 @@ contract('BountiesMetaTxRelayer', function(accounts) {
     assert(false, "Should have thrown an error");
   });
 
+  it("[ETH] Verifies that I can issue a bounty using a meta txn from a different account", async () => {
+
+    let registry = await StandardBounties.new();
+
+    let relayer = await BountiesMetaTxRelayer.new(registry.address);
+
+    assert(registry.owner === accounts[0]);
+
+    registry.setMetaTxRelayer(relayer.address);
+
+    const latestNonce = yield relayer.methods.replayNonce(accounts[0]).call();
+
+    const nonce = web3.utils.hexToNumber(latestNonce);
+
+    const params = [
+           ['address[]', 'address[]', 'string', 'uint', 'address', 'uint', 'uint', 'uint'],
+           [
+             web3.utils.toChecksumAddress(relayer._address),
+             'metaIssueBounty',
+             [accounts[3]],
+             [accounts[3]],
+             "data",
+             2528821098,
+             '0x0000000000000000000000000000000000000000',
+             0,
+             nonce
+           ]
+         ];
+
+    let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
+
+    let signature = yield web3.eth.personal.sign(paramsHash, sender, '');
+
+    await relayer.metaIssueBounty( signature, [accounts[3]], [accounts[3]], "data", 2528821098, '0x0000000000000000000000000000000000000000', 0, nonce, {from: accounts[2]});
+
+  });
+
+
 /*
   it("[ETH] Verifies that I can issue a bounty paying in ETH without locking up funds", async () => {
 
