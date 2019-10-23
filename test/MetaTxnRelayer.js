@@ -125,6 +125,7 @@ contract("BountiesMetaTxRelayer", function(accounts) {
 
       const bounty = await registry.getBounty(0);
       assert(bounty != null, 'No bounty was created via the meta tx relayer')
+      assert(bounty.issuers[0] == accounts[3], 'Bounty issuer not the same account who signed the meta tx')
     }
     catch (error) {
       console.error(error)
