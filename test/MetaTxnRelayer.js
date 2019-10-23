@@ -111,7 +111,7 @@ contract('BountiesMetaTxRelayer', function(accounts) {
 
     let signature = yield web3.eth.personal.sign(paramsHash, sender, '');
 
-    await relayer.metaIssueBounty( signature, [accounts[3]], [accounts[3]], "data", 2528821098, '0x0000000000000000000000000000000000000000', 0, nonce, {from: accounts[2]});
+    await relayer.metaIssueBounty(signature, [accounts[3]], [accounts[3]], "data", 2528821098, '0x0000000000000000000000000000000000000000', 0, nonce, {from: accounts[2]});
 
   });
 
