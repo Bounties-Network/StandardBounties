@@ -10,17 +10,19 @@ const BN = require('bignumber.js');
 contract('BountiesMetaTxRelayer', function(accounts) {
 
 
-  it("[ETH] Verifies that the Meta Txn Relayer deployment works", async () => {
+  it.only("[ETH] Verifies that the Meta Txn Relayer deployment works", async () => {
 
     let registry = await StandardBounties.new();
 
     let relayer = await BountiesMetaTxRelayer.new(registry.address);
 
-    assert(registry.owner === accounts[0], 'Registry owner is specified account');
+    const registryOwner = await registry.owner.call()
+    assert(registryOwner === accounts[0], 'Registry owner is specified account');
 
     registry.setMetaTxRelayer(relayer.address);
+    const registryRelayerAddress = await registry.metaTxRelayer.call()
 
-    assert(registry.metaTxRelayer === relayer.address, 'Relayer addresss gets set correctly');
+    assert(registryRelayerAddress === relayer.address, 'Relayer addresss gets set correctly');
   });
 
   it("[ETH] Verifies that only the owner of the registry can set the meta txn relayer", async () => {
@@ -29,7 +31,9 @@ contract('BountiesMetaTxRelayer', function(accounts) {
 
     let relayer = await BountiesMetaTxRelayer.new(registry.address);
 
-    assert(registry.owner === accounts[0]);
+    const registryOwner = await register.owner.call()
+
+    assert(registryOwner === accounts[0]);
 
     try {
       registry.setMetaTxRelayer(relayer.address, {from: accounts[1]});
