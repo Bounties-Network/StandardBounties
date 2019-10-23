@@ -2,121 +2,138 @@ const StandardBounties = artifacts.require("../contracts/StandardBounties");
 const HumanStandardToken = artifacts.require("../contracts/inherited/HumanStandardToken");
 const BountiesMetaTxRelayer = artifacts.require("../contracts/BountiesMetaTxRelayer");
 
+const utils = require("./helpers/Utils");
 
-const utils = require('./helpers/Utils');
+const BN = require("bignumber.js");
 
-const BN = require('bignumber.js');
-
-contract('BountiesMetaTxRelayer', function(accounts) {
-
-
+contract("BountiesMetaTxRelayer", function(accounts) {
   it("[ETH] Verifies that the Meta Txn Relayer deployment works", async () => {
-
     let registry = await StandardBounties.new();
 
     let relayer = await BountiesMetaTxRelayer.new(registry.address);
 
-    assert(registry.owner === accounts[0]);
+    const registryOwner = await registry.owner.call();
+    assert(registryOwner === accounts[0], "Registry owner is not specified account");
 
-    registry.setMetaTxRelayer(relayer.address);
+    await registry.setMetaTxRelayer(relayer.address);
+    const registryRelayerAddress = await registry.metaTxRelayer.call();
 
-    assert(registry.metaTxRelayer === relayer.address);
+    assert(registryRelayerAddress === relayer.address, "Relayer addresss does not get set correctly");
   });
 
   it("[ETH] Verifies that only the owner of the registry can set the meta txn relayer", async () => {
-
     let registry = await StandardBounties.new();
 
     let relayer = await BountiesMetaTxRelayer.new(registry.address);
 
-    assert(registry.owner === accounts[0]);
+    const registryOwner = await registry.owner.call();
+
+    assert(registryOwner === accounts[0]);
 
     try {
-      registry.setMetaTxRelayer(relayer.address, {from: accounts[1]});
-
-    } catch (error){
+      await registry.setMetaTxRelayer(relayer.address, { from: accounts[1] });
+    } catch (error) {
       return utils.ensureException(error);
     }
-    assert(false, "Should have thrown an error");
+    assert(false, "Error thrown because only the owner of the registry should be able to set the meta txn relayer");
   });
 
-  it("[ETH] Verifies that the owner of the registry can't change the relayer", async () => {
-
+  it("[ETH] Verifies that the owner of the registry can't change the relayer more than once", async () => {
     let registry = await StandardBounties.new();
 
     let relayer = await BountiesMetaTxRelayer.new(registry.address);
 
-    assert(registry.owner === accounts[0]);
+    const registryOwner = await registry.owner.call();
 
-    registry.setMetaTxRelayer(relayer.address);
+    assert(registryOwner === accounts[0]);
+
+    await registry.setMetaTxRelayer(relayer.address);
 
     try {
-      registry.setMetaTxRelayer(relayer.address);
-
-    } catch (error){
+      await registry.setMetaTxRelayer(relayer.address);
+    } catch (error) {
       return utils.ensureException(error);
     }
-    assert(false, "Should have thrown an error");
+    assert(false, "Error thrown because the owner of the registry was able to set the relayer more than once");
   });
 
   it("[ETH] Verifies that a non-owner of the registry can't change the relayer", async () => {
-
     let registry = await StandardBounties.new();
 
     let relayer = await BountiesMetaTxRelayer.new(registry.address);
 
-    assert(registry.owner === accounts[0]);
+    const registryOwner = await registry.owner.call();
 
-    registry.setMetaTxRelayer(relayer.address);
+    assert(registryOwner === accounts[0]);
+
+    await registry.setMetaTxRelayer(relayer.address);
 
     try {
-      registry.setMetaTxRelayer(relayer.address, {from: accounts[1]});
-
-    } catch (error){
+      await registry.setMetaTxRelayer(relayer.address, { from: accounts[1] });
+    } catch (error) {
       return utils.ensureException(error);
     }
-    assert(false, "Should have thrown an error");
+    assert(false, "Error thrown because a non-owner of the registry was able to set the relayer");
   });
 
   it("[ETH] Verifies that I can issue a bounty using a meta txn from a different account", async () => {
-
     let registry = await StandardBounties.new();
 
     let relayer = await BountiesMetaTxRelayer.new(registry.address);
 
-    assert(registry.owner === accounts[0]);
+    const registryOwner = await registry.owner.call();
 
-    registry.setMetaTxRelayer(relayer.address);
+    assert(registryOwner === accounts[0]);
 
-    const latestNonce = yield relayer.methods.replayNonce(accounts[0]).call();
+    await registry.setMetaTxRelayer(relayer.address);
+
+    const latestNonce = await relayer.replayNonce.call(accounts[0]);
 
     const nonce = web3.utils.hexToNumber(latestNonce);
 
     const params = [
-           ['address[]', 'address[]', 'string', 'uint', 'address', 'uint', 'uint', 'uint'],
-           [
-             web3.utils.toChecksumAddress(relayer._address),
-             'metaIssueBounty',
-             [accounts[3]],
-             [accounts[3]],
-             "data",
-             2528821098,
-             '0x0000000000000000000000000000000000000000',
-             0,
-             nonce
-           ]
-         ];
+      ["address", "string", "address[]", "address[]", "string", "uint", "address", "uint", "uint"],
+      [
+        web3.utils.toChecksumAddress(relayer.address),
+        "metaIssueBounty",
+        [accounts[3]],
+        [accounts[3]],
+        "data",
+        2528821098,
+        "0x0000000000000000000000000000000000000000",
+        0,
+        nonce
+      ]
+    ];
 
     let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
 
-    let signature = yield web3.eth.personal.sign(paramsHash, sender, '');
+    let signature = await web3.eth.sign(paramsHash, accounts[3]);
 
-    await relayer.metaIssueBounty( signature, [accounts[3]], [accounts[3]], "data", 2528821098, '0x0000000000000000000000000000000000000000', 0, nonce, {from: accounts[2]});
+    try {
+      await relayer.metaIssueBounty(
+        signature,
+        [accounts[3]],
+        [accounts[3]],
+        "data",
+        2528821098,
+        "0x0000000000000000000000000000000000000000",
+        0,
+        nonce,
+        { from: accounts[2] }
+      );
 
+      const bounty = await registry.getBounty(0);
+      assert(bounty != null, 'No bounty was created via the meta tx relayer')
+      assert(bounty.issuers[0] == accounts[3], 'Bounty issuer not the same account who signed the meta tx')
+    }
+    catch (error) {
+      console.error(error)
+      throw error
+    }
   });
 
-
-/*
+  /*
   it("[ETH] Verifies that I can issue a bounty paying in ETH without locking up funds", async () => {
 
     let registry = await StandardBounties.new();

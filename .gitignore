@@ -4,3 +4,5 @@ node_modules/
 coverage.json
 coverage/
 build/
+package-lock.json
+yarn-error.log
