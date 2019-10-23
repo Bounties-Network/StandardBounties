@@ -16,11 +16,11 @@ contract('BountiesMetaTxRelayer', function(accounts) {
 
     let relayer = await BountiesMetaTxRelayer.new(registry.address);
 
-    assert(registry.owner === accounts[0]);
+    assert(registry.owner === accounts[0], 'Registry owner is specified account');
 
     registry.setMetaTxRelayer(relayer.address);
 
-    assert(registry.metaTxRelayer === relayer.address);
+    assert(registry.metaTxRelayer === relayer.address, 'Relayer addresss gets set correctly');
   });
 
   it("[ETH] Verifies that only the owner of the registry can set the meta txn relayer", async () => {
@@ -88,7 +88,7 @@ contract('BountiesMetaTxRelayer', function(accounts) {
 
     registry.setMetaTxRelayer(relayer.address);
 
-    const latestNonce = yield relayer.methods.replayNonce(accounts[0]).call();
+    const latestNonce = await relayer.methods.replayNonce(accounts[0]).call();
 
     const nonce = web3.utils.hexToNumber(latestNonce);
 
@@ -109,7 +109,7 @@ contract('BountiesMetaTxRelayer', function(accounts) {
 
     let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
 
-    let signature = yield web3.eth.personal.sign(paramsHash, sender, '');
+    let signature = await web3.eth.personal.sign(paramsHash, sender, '');
 
     await relayer.metaIssueBounty(signature, [accounts[3]], [accounts[3]], "data", 2528821098, '0x0000000000000000000000000000000000000000', 0, nonce, {from: accounts[2]});
 
