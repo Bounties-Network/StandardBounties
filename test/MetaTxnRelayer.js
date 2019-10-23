@@ -107,6 +107,7 @@ contract("BountiesMetaTxRelayer", function(accounts) {
     ];
 
     let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
+    paramsHash = web3.utils.soliditySha3("\x19Ethereum Signed Message:\n32", paramsHash);
 
     let signature = await web3.eth.sign(paramsHash, accounts[3]);
 
@@ -160,6 +161,7 @@ contract("BountiesMetaTxRelayer", function(accounts) {
     ];
 
     let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
+    paramsHash = web3.utils.soliditySha3("\x19Ethereum Signed Message:\n32", paramsHash);
 
     let signature = await web3.eth.sign(paramsHash, accounts[3]);
 
@@ -214,6 +216,7 @@ contract("BountiesMetaTxRelayer", function(accounts) {
     ];
 
     let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
+    paramsHash = web3.utils.soliditySha3("\x19Ethereum Signed Message:\n32", paramsHash);
 
     let signature = await web3.eth.sign(paramsHash, accounts[3]);
 
@@ -264,6 +267,7 @@ contract("BountiesMetaTxRelayer", function(accounts) {
     ];
 
     let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
+    paramsHash = web3.utils.soliditySha3("\x19Ethereum Signed Message:\n32", paramsHash);
 
     let signature = await web3.eth.sign(paramsHash, accounts[3]);
 
@@ -304,6 +308,7 @@ contract("BountiesMetaTxRelayer", function(accounts) {
     ];
 
     paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
+    paramsHash = web3.utils.soliditySha3("\x19Ethereum Signed Message:\n32", paramsHash);
 
     signature = await web3.eth.sign(paramsHash, accounts[3]);
 
@@ -353,6 +358,7 @@ contract("BountiesMetaTxRelayer", function(accounts) {
     ];
 
     let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
+    paramsHash = web3.utils.soliditySha3("\x19Ethereum Signed Message:\n32", paramsHash);
 
     let signature = await web3.eth.sign(paramsHash, accounts[3]);
 
@@ -393,6 +399,7 @@ contract("BountiesMetaTxRelayer", function(accounts) {
     ];
 
     paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
+    paramsHash = web3.utils.soliditySha3("\x19Ethereum Signed Message:\n32", paramsHash);
 
     signature = await web3.eth.sign(paramsHash, accounts[3]);
 
@@ -443,6 +450,8 @@ contract("BountiesMetaTxRelayer", function(accounts) {
     ];
 
     let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
+
+    paramsHash = web3.utils.soliditySha3("\x19Ethereum Signed Message:\n32", paramsHash);
 
     let signature = await web3.eth.sign(paramsHash, accounts[3]);
 
