@@ -412,4 +412,55 @@ contract("BountiesMetaTxRelayer", function(accounts) {
     assert(false, "Error thrown because an incorrect nonce was used and didn't throw");
 
   });
+  it("[ETH][META] Verifies that I can't take advantage of the encodePacked function for issuing a bounty", async () => {
+    let registry = await StandardBounties.new();
+
+    let relayer = await BountiesMetaTxRelayer.new(registry.address);
+
+    const registryOwner = await registry.owner.call();
+
+    assert(registryOwner === accounts[0]);
+
+    await registry.setMetaTxRelayer(relayer.address);
+
+    const latestNonce = await relayer.replayNonce.call(accounts[0]);
+
+    const nonce = web3.utils.hexToNumber(latestNonce);
+
+    const params = [
+      ["address", "string", "address[]", "address[]", "string", "uint", "address", "uint", "uint"],
+      [
+        web3.utils.toChecksumAddress(relayer.address),
+        "metaIssueBounty",
+        [accounts[3], accounts[4]],
+        [accounts[3]],
+        "data",
+        2528821098,
+        "0x0000000000000000000000000000000000000000",
+        0,
+        nonce
+      ]
+    ];
+
+    let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
+
+    let signature = await web3.eth.sign(paramsHash, accounts[3]);
+
+    try {
+      await relayer.metaIssueBounty(
+        signature,
+        [accounts[3]],
+        [accounts[4], accounts[3]],
+        "data",
+        2528821098,
+        "0x0000000000000000000000000000000000000000",
+        0,
+        nonce,
+        { from: accounts[2] }
+      );
+    } catch (error) {
+      return utils.ensureException(error);
+    }
+    assert(false, "Error thrown because I am able to use one param as another to take advantage of encodePacked");
+  });
 });
