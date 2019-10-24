@@ -671,9 +671,8 @@ contract BountiesMetaTxRelayer {
     if (v != 27 && v != 28) {
       return address(0);
     } else {
-      return ecrecover(keccak256(
-        abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
-      ), v, r, s);
+        bytes32 _ethSignedMessage = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash));
+        return ecrecover(_ethSignedMessage, v, r, s );
     }
   }
 }
