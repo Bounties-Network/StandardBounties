@@ -88,7 +88,7 @@ contract BountiesMetaTxRelayer {
     //increase the nonce to prevent replay attacks
     replayNonce[signer]++;
 
-    if (msg.value > 0) {
+    if (msg.value > 0){
       return bountiesContract.issueAndContribute.value(msg.value)(address(uint160(signer)),
                                                  _issuers,
                                                  _approvers,
@@ -132,7 +132,7 @@ contract BountiesMetaTxRelayer {
     //increase the nonce to prevent replay attacks
     replayNonce[signer]++;
 
-    if (msg.value > 0) {
+    if (msg.value > 0){
       bountiesContract.contribute.value(msg.value)(address(uint160(signer)), _bountyId, _amount);
     } else {
       bountiesContract.contribute(address(uint160(signer)), _bountyId, _amount);
@@ -657,7 +657,7 @@ contract BountiesMetaTxRelayer {
     bytes32 r;
     bytes32 s;
     uint8 v;
-    if (_signature.length != 65) {
+    if (_signature.length != 65){
       return address(0);
     }
     assembly {
@@ -665,10 +665,10 @@ contract BountiesMetaTxRelayer {
       s := mload(add(_signature, 64))
       v := byte(0, mload(add(_signature, 96)))
     }
-    if (v < 27) {
+    if (v < 27){
       v += 27;
     }
-    if (v != 27 && v != 28) {
+    if (v != 27 && v != 28){
       return address(0);
     } else {
         bytes32 _ethSignedMessage = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash));

@@ -57,7 +57,7 @@ contract StandardBounties {
    * Modifiers
    */
 
-  modifier callNotStarted() {
+  modifier callNotStarted(){
     require(!callStarted);
     callStarted = true;
     _;
@@ -213,7 +213,7 @@ contract StandardBounties {
     newBounty.deadline = _deadline;
     newBounty.tokenVersion = _tokenVersion;
 
-    if (_tokenVersion != 0) {
+    if (_tokenVersion != 0){
       newBounty.token = _token;
     }
 
@@ -280,12 +280,12 @@ contract StandardBounties {
     bounties[_bountyId].contributions.push(
       Contribution(_sender, _amount, false)); // Adds the contribution to the bounty
 
-    if (bounties[_bountyId].tokenVersion == 0) {
+    if (bounties[_bountyId].tokenVersion == 0){
 
       bounties[_bountyId].balance = bounties[_bountyId].balance.add(_amount); // Increments the balance of the bounty
 
       require(msg.value == _amount);
-    } else if (bounties[_bountyId].tokenVersion == 20) {
+    } else if (bounties[_bountyId].tokenVersion == 20){
 
       bounties[_bountyId].balance = bounties[_bountyId].balance.add(_amount); // Increments the balance of the bounty
 
@@ -293,7 +293,7 @@ contract StandardBounties {
       require(ERC20Token(bounties[_bountyId].token).transferFrom(_sender,
                                                                  address(this),
                                                                  _amount));
-    } else if (bounties[_bountyId].tokenVersion == 721) {
+    } else if (bounties[_bountyId].tokenVersion == 721){
       tokenBalances[_bountyId][_amount] = true; // Adds the 721 token to the balance of the bounty
 
 
@@ -352,7 +352,7 @@ contract StandardBounties {
     public
     senderIsValid(_sender)
   {
-    for (uint i = 0; i < _contributionIds.length; i++) {
+    for (uint i = 0; i < _contributionIds.length; i++){
         refundContribution(_sender, _bountyId, _contributionIds[i]);
     }
   }
@@ -373,7 +373,7 @@ contract StandardBounties {
     onlyIssuer(_sender, _bountyId, _issuerId)
     callNotStarted
   {
-    for (uint i = 0; i < _contributionIds.length; i++) {
+    for (uint i = 0; i < _contributionIds.length; i++){
       require(_contributionIds[i] < bounties[_bountyId].contributions.length);
 
       Contribution storage contribution = bounties[_bountyId].contributions[_contributionIds[i]];
@@ -405,12 +405,12 @@ contract StandardBounties {
     onlyIssuer(_sender, _bountyId, _issuerId)
     callNotStarted
   {
-    if (bounties[_bountyId].tokenVersion == 0 || bounties[_bountyId].tokenVersion == 20) {
+    if (bounties[_bountyId].tokenVersion == 0 || bounties[_bountyId].tokenVersion == 20){
       require(_amounts.length == 1); // ensures there's only 1 amount of tokens to be returned
       require(_amounts[0] <= bounties[_bountyId].balance); // ensures an issuer doesn't try to drain the bounty of more tokens than their balance permits
       transferTokens(_bountyId, _sender, _amounts[0]); // Performs the draining of tokens to the issuer
     } else {
-      for (uint i = 0; i < _amounts.length; i++) {
+      for (uint i = 0; i < _amounts.length; i++){
         require(tokenBalances[_bountyId][_amounts[i]]);// ensures an issuer doesn't try to drain the bounty of a token it doesn't have in its balance
         transferTokens(_bountyId, _sender, _amounts[i]);
       }
@@ -516,8 +516,8 @@ contract StandardBounties {
 
     require(_tokenAmounts.length == fulfillment.fulfillers.length); // Each fulfiller should get paid some amount of tokens (this can be 0)
 
-    for (uint256 i = 0; i < fulfillment.fulfillers.length; i++) {
-        if (_tokenAmounts[i] > 0) {
+    for (uint256 i = 0; i < fulfillment.fulfillers.length; i++){
+        if (_tokenAmounts[i] > 0){
           // for each fulfiller associated with the submission
           transferTokens(_bountyId, fulfillment.fulfillers[i], _tokenAmounts[i]);
         }
@@ -702,7 +702,7 @@ contract StandardBounties {
     validateIssuerArrayIndex(_bountyId, _issuerId)
     onlyIssuer(_sender, _bountyId, _issuerId)
   {
-    for (uint i = 0; i < _issuers.length; i++) {
+    for (uint i = 0; i < _issuers.length; i++){
       bounties[_bountyId].issuers.push(_issuers[i]);
     }
 
@@ -748,7 +748,7 @@ contract StandardBounties {
     validateIssuerArrayIndex(_bountyId, _issuerId)
     onlyIssuer(_sender, _bountyId, _issuerId)
   {
-    for (uint i = 0; i < _approvers.length; i++) {
+    for (uint i = 0; i < _approvers.length; i++){
       bounties[_bountyId].approvers.push(_approvers[i]);
     }
 
@@ -792,21 +792,21 @@ contract StandardBounties {
   function transferTokens(uint _bountyId, address payable _to, uint _amount)
     internal
   {
-    if (bounties[_bountyId].tokenVersion == 0) {
+    if (bounties[_bountyId].tokenVersion == 0){
       require(_amount > 0); // Sending 0 tokens should throw
       require(bounties[_bountyId].balance >= _amount);
 
       bounties[_bountyId].balance = bounties[_bountyId].balance.sub(_amount);
 
       _to.transfer(_amount);
-    } else if (bounties[_bountyId].tokenVersion == 20) {
+    } else if (bounties[_bountyId].tokenVersion == 20){
       require(_amount > 0); // Sending 0 tokens should throw
       require(bounties[_bountyId].balance >= _amount);
 
       bounties[_bountyId].balance = bounties[_bountyId].balance.sub(_amount);
 
       require(ERC20Token(bounties[_bountyId].token).transfer(_to, _amount));
-    } else if (bounties[_bountyId].tokenVersion == 721) {
+    } else if (bounties[_bountyId].tokenVersion == 721){
       require(tokenBalances[_bountyId][_amount]);
 
       tokenBalances[_bountyId][_amount] = false; // Removes the 721 token from the balance of the bounty
