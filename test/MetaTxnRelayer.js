@@ -446,43 +446,43 @@ contract("BountiesMetaTxRelayer", function(accounts) {
     let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
     let signature = await web3.eth.sign(paramsHash, accounts[3]);
 
-    try {
-      // Meta issue first bounty to increase replayNonce
-      await relayer.metaIssueBounty(
-        signature,
+    // Meta issue first bounty to increase replayNonce
+    await relayer.metaIssueBounty(
+      signature,
+      [accounts[3], accounts[4]],
+      [accounts[3]],
+      "data",
+      2528821098,
+      "0x0000000000000000000000000000000000000000",
+      0,
+      nonce,
+      { from: accounts[2] }
+    );
+    // Sign again with new nonce so that the frontrunned metaIssueBounty transaction recovered signer does not have an equal replayNonce
+    // Expecting a revert due to `require(_nonce == replayNonce[signer]);`
+    latestNonce = await relayer.replayNonce.call(accounts[3]);
+    nonce = web3.utils.hexToNumber(latestNonce);
+
+    let firstNonce = nonce;
+
+    params = [
+      ["address", "string", "address[]", "address[]", "string", "uint", "address", "uint", "uint"],
+      [
+        web3.utils.toChecksumAddress(relayer.address),
+        "metaIssueBounty",
         [accounts[3], accounts[4]],
         [accounts[3]],
         "data",
         2528821098,
         "0x0000000000000000000000000000000000000000",
         0,
-        nonce,
-        { from: accounts[2] }
-      );
+        nonce
+      ]
+    ];
 
-      // Sign again with new nonce so that the frontrunned metaIssueBounty transaction recovered signer does not have an equal replayNonce
-      // Expecting a revert due to `require(_nonce == replayNonce[signer]);`
-      latestNonce = await relayer.replayNonce.call(accounts[3]);
-      nonce = web3.utils.hexToNumber(latestNonce);
-
-      params = [
-        ["address", "string", "address[]", "address[]", "string", "uint", "address", "uint", "uint"],
-        [
-          web3.utils.toChecksumAddress(relayer.address),
-          "metaIssueBounty",
-          [accounts[3], accounts[4]],
-          [accounts[3]],
-          "data",
-          2528821098,
-          "0x0000000000000000000000000000000000000000",
-          0,
-          nonce
-        ]
-      ];
-  
-      paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
-      signature = await web3.eth.sign(paramsHash, accounts[3]);
-
+    paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
+    signature = await web3.eth.sign(paramsHash, accounts[3]);
+    try {
       await relayer.metaIssueBounty(
         signature,
         [accounts[3]],
@@ -496,6 +496,11 @@ contract("BountiesMetaTxRelayer", function(accounts) {
       );
 
     } catch (error) {
+      let nonceAfter = await relayer.replayNonce.call(accounts[3]);
+      let lastNonce = web3.utils.hexToNumber(nonceAfter);
+
+      assert(firstNonce == lastNonce); // Checks to ensure the nonce didn't increment
+
       return utils.ensureException(error);
     }
     assert(false, "Error thrown because I am able to use one param as another to take advantage of encodePacked");
