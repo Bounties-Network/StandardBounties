@@ -1,7 +1,9 @@
-pragma solidity 0.5.0;
+pragma solidity 0.5.8;
 pragma experimental ABIEncoderV2;
 
 import "./StandardBounties.sol";
+
+
 
 contract BountiesMetaTxRelayer {
 
@@ -17,8 +19,8 @@ contract BountiesMetaTxRelayer {
 
   function metaIssueBounty(
     bytes memory signature,
-    address payable [] memory _issuers,
-    address [] memory _approvers,
+    address payable[] memory _issuers,
+    address[] memory _approvers,
     string memory _data,
     uint _deadline,
     address _token,
@@ -55,8 +57,8 @@ contract BountiesMetaTxRelayer {
 
   function metaIssueAndContribute(
     bytes memory signature,
-    address payable [] memory _issuers,
-    address [] memory _approvers,
+    address payable[] memory _issuers,
+    address[] memory _approvers,
     string memory _data,
     uint _deadline,
     address _token,
@@ -165,7 +167,7 @@ contract BountiesMetaTxRelayer {
   function metaRefundMyContributions(
     bytes memory _signature,
     uint _bountyId,
-    uint [] memory _contributionIds,
+    uint[] memory _contributionIds,
     uint _nonce)
     public
     {
@@ -190,7 +192,7 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    uint [] memory _contributionIds,
+    uint[] memory _contributionIds,
     uint _nonce)
     public
     {
@@ -216,7 +218,7 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    uint [] memory _amounts,
+    uint[] memory _amounts,
     uint _nonce)
     public
     {
@@ -264,7 +266,7 @@ contract BountiesMetaTxRelayer {
   function metaFulfillBounty(
     bytes memory _signature,
     uint _bountyId,
-    address payable [] memory  _fulfillers,
+    address payable[] memory  _fulfillers,
     string memory _data,
     uint256 _nonce)
     public
@@ -290,7 +292,7 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _fulfillmentId,
-    address payable [] memory  _fulfillers,
+    address payable[] memory  _fulfillers,
     string memory _data,
     uint256 _nonce)
     public
@@ -318,7 +320,7 @@ contract BountiesMetaTxRelayer {
     uint _bountyId,
     uint _fulfillmentId,
     uint _approverId,
-    uint [] memory _tokenAmounts,
+    uint[] memory _tokenAmounts,
     uint256 _nonce)
     public
     {
@@ -347,10 +349,10 @@ contract BountiesMetaTxRelayer {
   function metaFulfillAndAccept(
     bytes memory _signature,
     uint _bountyId,
-    address payable [] memory _fulfillers,
+    address payable[] memory _fulfillers,
     string memory _data,
     uint _approverId,
-    uint [] memory _tokenAmounts,
+    uint[] memory _tokenAmounts,
     uint256 _nonce)
     public
     {
@@ -382,8 +384,8 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    address payable [] memory _issuers,
-    address payable [] memory _approvers,
+    address payable[] memory _issuers,
+    address payable[] memory _approvers,
     string memory _data,
     uint _deadline,
     uint256 _nonce)
@@ -537,7 +539,7 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    address payable [] memory _issuers,
+    address payable[] memory _issuers,
     uint256 _nonce)
     public
     {
@@ -565,7 +567,7 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    address payable [] memory _issuers,
+    address payable[] memory _issuers,
     uint256 _nonce)
     public
     {
@@ -593,7 +595,7 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    address payable [] memory _approvers,
+    address payable[] memory _approvers,
     uint256 _nonce)
     public
     {
@@ -621,7 +623,7 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    address payable [] memory _approvers,
+    address payable[] memory _approvers,
     uint256 _nonce)
     public
     {
@@ -655,7 +657,7 @@ contract BountiesMetaTxRelayer {
     bytes32 r;
     bytes32 s;
     uint8 v;
-    if (_signature.length != 65) {
+    if (_signature.length != 65){
       return address(0);
     }
     assembly {
@@ -663,15 +665,13 @@ contract BountiesMetaTxRelayer {
       s := mload(add(_signature, 64))
       v := byte(0, mload(add(_signature, 96)))
     }
-    if (v < 27) {
+    if (v < 27){
       v += 27;
     }
-    if (v != 27 && v != 28) {
+    if (v != 27 && v != 28){
       return address(0);
     } else {
-      return ecrecover(keccak256(
-        abi.encode("\x19Ethereum Signed Message:\n32", _hash)
-      ), v, r, s);
+        return ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)), v, r, s );
     }
   }
 }

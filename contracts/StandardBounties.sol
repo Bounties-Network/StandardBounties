@@ -1,4 +1,4 @@
-pragma solidity 0.5.0;
+pragma solidity 0.5.8;
 pragma experimental ABIEncoderV2;
 
 import "./inherited/ERC20Token.sol";
@@ -17,19 +17,19 @@ contract StandardBounties {
    */
 
   struct Bounty {
-    address payable [] issuers; // An array of individuals who have complete control over the bounty, and can edit any of its parameters
-    address [] approvers; // An array of individuals who are allowed to accept the fulfillments for a particular bounty
+    address payable[] issuers; // An array of individuals who have complete control over the bounty, and can edit any of its parameters
+    address[] approvers; // An array of individuals who are allowed to accept the fulfillments for a particular bounty
     uint deadline; // The Unix timestamp before which all submissions must be made, and after which refunds may be processed
     address token; // The address of the token associated with the bounty (should be disregarded if the tokenVersion is 0)
     uint tokenVersion; // The version of the token being used for the bounty (0 for ETH, 20 for ERC20, 721 for ERC721)
     uint balance; // The number of tokens which the bounty is able to pay out or refund
     bool hasPaidOut; // A boolean storing whether or not the bounty has paid out at least once, meaning refunds are no longer allowed
-    Fulfillment [] fulfillments; // An array of Fulfillments which store the various submissions which have been made to the bounty
-    Contribution [] contributions; // An array of Contributions which store the contributions which have been made to the bounty
+    Fulfillment[] fulfillments; // An array of Fulfillments which store the various submissions which have been made to the bounty
+    Contribution[] contributions; // An array of Contributions which store the contributions which have been made to the bounty
   }
 
   struct Fulfillment {
-    address payable [] fulfillers; // An array of addresses who should receive payouts for a given submission
+    address payable[] fulfillers; // An array of addresses who should receive payouts for a given submission
     address submitter; // The address of the individual who submitted the fulfillment, who is able to update the submission as needed
   }
 
@@ -192,8 +192,8 @@ contract StandardBounties {
   /// @param _tokenVersion the version of the token being used for the bounty (0 for ETH, 20 for ERC20, 721 for ERC721)
   function issueBounty(
     address payable _sender,
-    address payable [] memory _issuers,
-    address [] memory _approvers,
+    address payable[] memory _issuers,
+    address[] memory _approvers,
     string memory _data,
     uint _deadline,
     address _token,
@@ -213,7 +213,7 @@ contract StandardBounties {
     newBounty.deadline = _deadline;
     newBounty.tokenVersion = _tokenVersion;
 
-    if (_tokenVersion != 0) {
+    if (_tokenVersion != 0){
       newBounty.token = _token;
     }
 
@@ -236,8 +236,8 @@ contract StandardBounties {
 
   function issueAndContribute(
     address payable _sender,
-    address payable [] memory _issuers,
-    address [] memory _approvers,
+    address payable[] memory _issuers,
+    address[] memory _approvers,
     string memory _data,
     uint _deadline,
     address _token,
@@ -285,7 +285,7 @@ contract StandardBounties {
       bounties[_bountyId].balance = bounties[_bountyId].balance.add(_amount); // Increments the balance of the bounty
 
       require(msg.value == _amount);
-    } else if (bounties[_bountyId].tokenVersion == 20) {
+    } else if (bounties[_bountyId].tokenVersion == 20){
 
       bounties[_bountyId].balance = bounties[_bountyId].balance.add(_amount); // Increments the balance of the bounty
 
@@ -293,7 +293,7 @@ contract StandardBounties {
       require(ERC20Token(bounties[_bountyId].token).transferFrom(_sender,
                                                                  address(this),
                                                                  _amount));
-    } else if (bounties[_bountyId].tokenVersion == 721) {
+    } else if (bounties[_bountyId].tokenVersion == 721){
       tokenBalances[_bountyId][_amount] = true; // Adds the 721 token to the balance of the bounty
 
 
@@ -332,8 +332,7 @@ contract StandardBounties {
   {
     require(now > bounties[_bountyId].deadline); // Refunds may only be processed after the deadline has elapsed
 
-    Contribution storage contribution =
-      bounties[_bountyId].contributions[_contributionId];
+    Contribution storage contribution = bounties[_bountyId].contributions[_contributionId];
 
     contribution.refunded = true;
 
@@ -349,12 +348,12 @@ contract StandardBounties {
   function refundMyContributions(
     address _sender,
     uint _bountyId,
-    uint [] memory _contributionIds)
+    uint[] memory _contributionIds)
     public
     senderIsValid(_sender)
   {
     for (uint i = 0; i < _contributionIds.length; i++){
-      refundContribution(_sender, _bountyId, _contributionIds[i]);
+        refundContribution(_sender, _bountyId, _contributionIds[i]);
     }
   }
 
@@ -367,7 +366,7 @@ contract StandardBounties {
     address _sender,
     uint _bountyId,
     uint _issuerId,
-    uint [] memory _contributionIds)
+    uint[] memory _contributionIds)
     public
     senderIsValid(_sender)
     validateBountyArrayIndex(_bountyId)
@@ -377,8 +376,7 @@ contract StandardBounties {
     for (uint i = 0; i < _contributionIds.length; i++){
       require(_contributionIds[i] < bounties[_bountyId].contributions.length);
 
-      Contribution storage contribution =
-        bounties[_bountyId].contributions[_contributionIds[i]];
+      Contribution storage contribution = bounties[_bountyId].contributions[_contributionIds[i]];
 
       require(!contribution.refunded);
 
@@ -400,7 +398,7 @@ contract StandardBounties {
     address payable _sender,
     uint _bountyId,
     uint _issuerId,
-    uint [] memory _amounts)
+    uint[] memory _amounts)
     public
     senderIsValid(_sender)
     validateBountyArrayIndex(_bountyId)
@@ -445,7 +443,7 @@ contract StandardBounties {
   function fulfillBounty(
     address _sender,
     uint _bountyId,
-    address payable [] memory  _fulfillers,
+    address payable[] memory  _fulfillers,
     string memory _data)
     public
     senderIsValid(_sender)
@@ -473,7 +471,7 @@ contract StandardBounties {
   address _sender,
   uint _bountyId,
   uint _fulfillmentId,
-  address payable [] memory _fulfillers,
+  address payable[] memory _fulfillers,
   string memory _data)
   public
   senderIsValid(_sender)
@@ -514,13 +512,12 @@ contract StandardBounties {
     // now that the bounty has paid out at least once, refunds are no longer possible
     bounties[_bountyId].hasPaidOut = true;
 
-    Fulfillment storage fulfillment =
-      bounties[_bountyId].fulfillments[_fulfillmentId];
+    Fulfillment storage fulfillment = bounties[_bountyId].fulfillments[_fulfillmentId];
 
     require(_tokenAmounts.length == fulfillment.fulfillers.length); // Each fulfiller should get paid some amount of tokens (this can be 0)
 
     for (uint256 i = 0; i < fulfillment.fulfillers.length; i++){
-        if (_tokenAmounts[i] > 0) {
+        if (_tokenAmounts[i] > 0){
           // for each fulfiller associated with the submission
           transferTokens(_bountyId, fulfillment.fulfillers[i], _tokenAmounts[i]);
         }
@@ -545,7 +542,7 @@ contract StandardBounties {
   function fulfillAndAccept(
     address _sender,
     uint _bountyId,
-    address payable [] memory _fulfillers,
+    address payable[] memory _fulfillers,
     string memory _data,
     uint _approverId,
     uint[] memory _tokenAmounts)
@@ -577,8 +574,8 @@ contract StandardBounties {
     address _sender,
     uint _bountyId,
     uint _issuerId,
-    address payable [] memory _issuers,
-    address payable [] memory _approvers,
+    address payable[] memory _issuers,
+    address payable[] memory _approvers,
     string memory _data,
     uint _deadline)
     public
@@ -698,7 +695,7 @@ contract StandardBounties {
     address _sender,
     uint _bountyId,
     uint _issuerId,
-    address payable [] memory _issuers)
+    address payable[] memory _issuers)
     public
     senderIsValid(_sender)
     validateBountyArrayIndex(_bountyId)
@@ -721,7 +718,7 @@ contract StandardBounties {
     address _sender,
     uint _bountyId,
     uint _issuerId,
-    address payable [] memory _issuers)
+    address payable[] memory _issuers)
     public
     senderIsValid(_sender)
     validateBountyArrayIndex(_bountyId)
@@ -744,7 +741,7 @@ contract StandardBounties {
     address _sender,
     uint _bountyId,
     uint _issuerId,
-    address [] memory _approvers)
+    address[] memory _approvers)
     public
     senderIsValid(_sender)
     validateBountyArrayIndex(_bountyId)
@@ -767,7 +764,7 @@ contract StandardBounties {
     address _sender,
     uint _bountyId,
     uint _issuerId,
-    address [] memory _approvers)
+    address[] memory _approvers)
     public
     senderIsValid(_sender)
     validateBountyArrayIndex(_bountyId)
@@ -802,14 +799,14 @@ contract StandardBounties {
       bounties[_bountyId].balance = bounties[_bountyId].balance.sub(_amount);
 
       _to.transfer(_amount);
-    } else if (bounties[_bountyId].tokenVersion == 20) {
+    } else if (bounties[_bountyId].tokenVersion == 20){
       require(_amount > 0); // Sending 0 tokens should throw
       require(bounties[_bountyId].balance >= _amount);
 
       bounties[_bountyId].balance = bounties[_bountyId].balance.sub(_amount);
 
       require(ERC20Token(bounties[_bountyId].token).transfer(_to, _amount));
-    } else if (bounties[_bountyId].tokenVersion == 721) {
+    } else if (bounties[_bountyId].tokenVersion == 721){
       require(tokenBalances[_bountyId][_amount]);
 
       tokenBalances[_bountyId][_amount] = false; // Removes the 721 token from the balance of the bounty
@@ -826,18 +823,18 @@ contract StandardBounties {
    * Events
    */
 
-  event BountyIssued(uint _bountyId, address payable _creator, address payable [] _issuers, address [] _approvers, string _data, uint _deadline, address _token, uint _tokenVersion);
+  event BountyIssued(uint _bountyId, address payable _creator, address payable[] _issuers, address[] _approvers, string _data, uint _deadline, address _token, uint _tokenVersion);
   event ContributionAdded(uint _bountyId, uint _contributionId, address payable _contributor, uint _amount);
   event ContributionRefunded(uint _bountyId, uint _contributionId);
-  event ContributionsRefunded(uint _bountyId, address _issuer, uint [] _contributionIds);
-  event BountyDrained(uint _bountyId, address _issuer, uint [] _amounts);
+  event ContributionsRefunded(uint _bountyId, address _issuer, uint[] _contributionIds);
+  event BountyDrained(uint _bountyId, address _issuer, uint[] _amounts);
   event ActionPerformed(uint _bountyId, address _fulfiller, string _data);
-  event BountyFulfilled(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data, address _submitter);
-  event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId, address payable [] _fulfillers, string _data);
+  event BountyFulfilled(uint _bountyId, uint _fulfillmentId, address payable[] _fulfillers, string _data, address _submitter);
+  event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId, address payable[] _fulfillers, string _data);
   event FulfillmentAccepted(uint _bountyId, uint  _fulfillmentId, address _approver, uint[] _tokenAmounts);
-  event BountyChanged(uint _bountyId, address _changer, address payable [] _issuers, address payable [] _approvers, string _data, uint _deadline);
-  event BountyIssuersUpdated(uint _bountyId, address _changer, address payable [] _issuers);
-  event BountyApproversUpdated(uint _bountyId, address _changer, address [] _approvers);
+  event BountyChanged(uint _bountyId, address _changer, address payable[] _issuers, address payable[] _approvers, string _data, uint _deadline);
+  event BountyIssuersUpdated(uint _bountyId, address _changer, address payable[] _issuers);
+  event BountyApproversUpdated(uint _bountyId, address _changer, address[] _approvers);
   event BountyDataChanged(uint _bountyId, address _changer, string _data);
   event BountyDeadlineChanged(uint _bountyId, address _changer, uint _deadline);
 }

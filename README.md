@@ -2,7 +2,7 @@
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bounties-network/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [ ![Codeship Status for ConsenSys/StandardBounties](https://app.codeship.com/projects/1e2726c0-ac83-0135-5579-52b4614bface/status?branch=master)](https://app.codeship.com/projects/257018)
 
-`Version 2.1`
+`Version 2.2`
 
 To read about `Version 1.0`, please see [the documentation](./docs/documentation_v1.md).
 To read about `Version 2.0`, please see [the documentation](./docs/documentation_v2.md).
@@ -57,10 +57,10 @@ Alongside the ability to perform any of these actions natively within the Standa
 
 Any application can take advantage of the Bounties Network registry, which is currently deployed on both the Main Ethereum Network and the Rinkeby Testnet.
 
-- On Mainnet, the StandardBounties contract is deployed at `0x43ee232734097B07803Ea605b49C6eE6Bf10f8cc`, and the BountiesMetaTxRelayer is deployed at `0x68643f7e257a4cdadb9e7293e6aa0abc82c34547`
+- On Mainnet, the StandardBounties contract is deployed at `0x6e77f91ba0ae5278763ec3f044a1f0e5f85fac0a`, and the BountiesMetaTxRelayer is deployed at `0xf7fc27202bc20ce95ef28340d8e542346cb56b6d`
 
-- On Rinkeby, the StandardBounties contract is deployed at `0x38f1886081759f7d352c28984908d04e8d2205a6`, and the BountiesMetaTxRelayer is deployed at `0x0d12b3fa96b3aacedd06aba62c17cb5fc0e17627`
+- On Rinkeby, the StandardBounties contract is deployed at `0x9142dd986fe36952c1f8f5d68b814217dee45186`, and the BountiesMetaTxRelayer is deployed at `0x0d45e1f2cb1f28c05c9feee7d771a5acb2f237f5`
 
 ## 4. Documentation
 
-For thorough documentation of all functionality, see [the documentation](./docs/documentation_v2.1.md)
+For thorough documentation of all functionality, see [the documentation](./docs/documentation_v2.2.md)
