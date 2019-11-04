@@ -1,4 +1,4 @@
-pragma solidity 0.5.8;
+pragma solidity 0.5.12;
 pragma experimental ABIEncoderV2;
 
 import "./StandardBounties.sol";
@@ -613,7 +613,7 @@ contract BountiesMetaTxRelayer {
     //increase the nonce to prevent replay attacks
     replayNonce[signer]++;
 
-    bountiesContract.addIssuers(signer,
+    bountiesContract.addApprovers(signer,
                 _bountyId,
                 _issuerId,
                 _approvers);
@@ -641,7 +641,7 @@ contract BountiesMetaTxRelayer {
     //increase the nonce to prevent replay attacks
     replayNonce[signer]++;
 
-    bountiesContract.replaceIssuers(signer,
+    bountiesContract.replaceApprovers(signer,
                     _bountyId,
                     _issuerId,
                     _approvers);
