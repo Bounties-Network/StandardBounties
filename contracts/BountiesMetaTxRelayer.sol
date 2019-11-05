@@ -1,4 +1,4 @@
-pragma solidity 0.5.12;
+pragma solidity 0.5.8;
 pragma experimental ABIEncoderV2;
 
 import "./StandardBounties.sol";
@@ -595,7 +595,7 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    address payable[] memory _approvers,
+    address[] memory _approvers,
     uint256 _nonce)
     public
     {
@@ -623,7 +623,7 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    address payable[] memory _approvers,
+    address[] memory _approvers,
     uint256 _nonce)
     public
     {
