@@ -595,7 +595,7 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    address payable[] memory _approvers,
+    address[] memory _approvers,
     uint256 _nonce)
     public
     {
@@ -613,7 +613,7 @@ contract BountiesMetaTxRelayer {
     //increase the nonce to prevent replay attacks
     replayNonce[signer]++;
 
-    bountiesContract.addIssuers(signer,
+    bountiesContract.addApprovers(signer,
                 _bountyId,
                 _issuerId,
                 _approvers);
@@ -623,7 +623,7 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    address payable[] memory _approvers,
+    address[] memory _approvers,
     uint256 _nonce)
     public
     {
@@ -641,7 +641,7 @@ contract BountiesMetaTxRelayer {
     //increase the nonce to prevent replay attacks
     replayNonce[signer]++;
 
-    bountiesContract.replaceIssuers(signer,
+    bountiesContract.replaceApprovers(signer,
                     _bountyId,
                     _issuerId,
                     _approvers);
