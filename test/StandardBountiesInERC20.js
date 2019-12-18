@@ -840,6 +840,22 @@ contract('StandardBounties', function(accounts) {
 
   });
 
+  it("[ERC20] Verifies that I can accept a fulfillment after a bounty is transferred to me", async () => {
+    let registry = await StandardBounties.new();
+    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
+
+    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
+
+    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[0], accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
+
+    await registry.fulfillBounty(accounts[0], 0, [accounts[1], accounts[2]], "data");
+
+    await registry.changeIssuerAndApprover(accounts[0], 0, 0, 0, 0, accounts[1])
+
+    await registry.acceptFulfillment(accounts[1], 0, 0, 0,[5,5], {from: accounts[1]})
+
+  });
+
   it("[ERC20] Verifies that I can accept a fulfillment paying different amounts to different fulfillers", async () => {
     let registry = await StandardBounties.new();
     let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
@@ -1502,90 +1518,6 @@ await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], acco
     });
   });
 
-  it("[ERC20] Verifies that I can replace the issuers of my bounty", async () => {
-    let registry = await StandardBounties.new();
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-
-    await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
-
-
-    await registry.replaceIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
-
-    var bounty = await registry.getBounty(0);
-
-    assert(bounty.issuers[0] == accounts[5]);
-    assert(bounty.issuers[1] == accounts[6]);
-
-
-  });
-
-  it("[ERC20] Verifies that I can't replace issuers for an out of bounds bounty", async () => {
-    let registry = await StandardBounties.new();
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-
-await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
-
-    try {
-      await registry.replaceIssuers(accounts[0], 1, 0, [accounts[5], accounts[6]]);
-    } catch (error){
-      return utils.ensureException(error);
-    }
-    assert(false, "Should have thrown an error");
-  });
-
-  it("[ERC20] Verifies that I can't replace issuers for a bounty if I didn't issue it", async () => {
-    let registry = await StandardBounties.new();
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-
-await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
-
-    try {
-      await registry.replaceIssuers(accounts[1], 0, 0, [accounts[5], accounts[6]], {from: accounts[1]});
-    } catch (error){
-      return utils.ensureException(error);
-    }
-    assert(false, "Should have thrown an error");
-  });
-
-  it("[ERC20] Verifies that I can't replace issuers with an out of bounds issuer ID", async () => {
-    let registry = await StandardBounties.new();
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-
-await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
-
-    try {
-      await registry.replaceIssuers(accounts[0], 0, 1, [accounts[5], accounts[6]], {from: accounts[0]});
-    } catch (error){
-      return utils.ensureException(error);
-    }
-    assert(false, "Should have thrown an error");
-  });
-
-  it("[ERC20] Verifies that replacing issuers of a bounty emits an event", async () => {
-    let registry = await StandardBounties.new();
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-
-await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
-
-    await registry.replaceIssuers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
-      assert.strictEqual('BountyIssuersUpdated', status.logs[0].event, 'did not emit the BountyIssuersUpdated event');
-    });
-  });
-
 
   it("[ERC20] Verifies that I can add approvers to my bounty", async () => {
     let registry = await StandardBounties.new();
@@ -1671,90 +1603,6 @@ await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], acco
     });
   });
 
-  it("[ERC20] Verifies that I can replace the approvers of my bounty", async () => {
-    let registry = await StandardBounties.new();
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-
-await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
-
-
-    await registry.replaceApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]);
-
-    var bounty = await registry.getBounty(0);
-
-    assert(bounty.approvers[0] == accounts[5]);
-    assert(bounty.approvers[1] == accounts[6]);
-
-
-  });
-
-  it("[ERC20] Verifies that I can't replace approvers for an out of bounds bounty", async () => {
-    let registry = await StandardBounties.new();
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-
-await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
-
-    try {
-      await registry.replaceApprovers(accounts[0], 1, 0, [accounts[5], accounts[6]]);
-    } catch (error){
-      return utils.ensureException(error);
-    }
-    assert(false, "Should have thrown an error");
-  });
-
-  it("[ERC20] Verifies that I can't replace approvers for a bounty if I didn't issue it", async () => {
-    let registry = await StandardBounties.new();
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-
-await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
-
-    try {
-      await registry.replaceApprovers(accounts[1], 0, 0, [accounts[5], accounts[6]], {from: accounts[1]});
-    } catch (error){
-      return utils.ensureException(error);
-    }
-    assert(false, "Should have thrown an error");
-  });
-
-  it("[ERC20] Verifies that I can't replace approvers with an out of bounds issuer ID", async () => {
-    let registry = await StandardBounties.new();
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-
-await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
-
-    try {
-      await registry.replaceApprovers(accounts[0], 0, 1, [accounts[5], accounts[6]], {from: accounts[0]});
-    } catch (error){
-      return utils.ensureException(error);
-    }
-    assert(false, "Should have thrown an error");
-  });
-
-  it("[ERC20] Verifies that replacing approvers of a bounty emits an event", async () => {
-    let registry = await StandardBounties.new();
-    let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");
-
-
-    await bountyToken.approve(registry.address, 1000, {from: accounts[0]});
-
-await registry.issueAndContribute(accounts[0], [accounts[0]], [accounts[1], accounts[2]], "data", 2528821098, bountyToken.address, 20, 10);
-
-    await registry.replaceApprovers(accounts[0], 0, 0, [accounts[5], accounts[6]]).then((status) => {
-      assert.strictEqual('BountyApproversUpdated', status.logs[0].event, 'did not emit the BountyApproversUpdated event');
-    });
-  });
   it("[ERC20] Verifies that I can't accept a fulfillment, and still try to refund everyone's contributions", async () => {
     let registry = await StandardBounties.new();
     let bountyToken = await HumanStandardToken.new(1000000000, "Bounty Token", 18, "BOUNT");

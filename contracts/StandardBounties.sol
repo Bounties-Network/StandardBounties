@@ -1,4 +1,4 @@
-pragma solidity 0.5.8;
+pragma solidity 0.5.12;
 pragma experimental ABIEncoderV2;
 
 import "./inherited/ERC20Token.sol";
@@ -646,6 +646,35 @@ contract StandardBounties {
     emit BountyApproversUpdated(_bountyId, _sender, bounties[_bountyId].approvers);
   }
 
+  /// @dev changeIssuerAndApprover(): Allows any of the issuers to change a particular approver of the bounty
+  /// @param _sender the sender of the transaction issuing the bounty (should be the same as msg.sender unless the txn is called by the meta tx relayer)
+  /// @param _bountyId the index of the bounty
+  /// @param _issuerId the index of the issuer who is calling the function
+  /// @param _issuerIdToChange the index of the issuer who is being changed
+  /// @param _approverIdToChange the index of the approver who is being changed
+  /// @param _issuer the address of the new approver
+  function changeIssuerAndApprover(
+    address _sender,
+    uint _bountyId,
+    uint _issuerId,
+    uint _issuerIdToChange,
+    uint _approverIdToChange,
+    address payable _issuer)
+    external
+    senderIsValid(_sender)
+    onlyIssuer(_sender, _bountyId, _issuerId)
+  {
+    require(_bountyId < numBounties);
+    require(_approverIdToChange < bounties[_bountyId].approvers.length);
+    require(_issuerIdToChange < bounties[_bountyId].issuers.length);
+
+    bounties[_bountyId].issuers[_issuerIdToChange] = _issuer;
+    bounties[_bountyId].approvers[_approverIdToChange] = _issuer;
+
+    emit BountyIssuersUpdated(_bountyId, _sender, bounties[_bountyId].issuers);
+    emit BountyApproversUpdated(_bountyId, _sender, bounties[_bountyId].approvers);
+  }
+
   /// @dev changeData(): Allows any of the issuers to change the data the bounty
   /// @param _sender the sender of the transaction issuing the bounty (should be the same as msg.sender unless the txn is called by the meta tx relayer)
   /// @param _bountyId the index of the bounty
@@ -709,29 +738,6 @@ contract StandardBounties {
     emit BountyIssuersUpdated(_bountyId, _sender, bounties[_bountyId].issuers);
   }
 
-  /// @dev replaceIssuers(): Allows any of the issuers to replace the issuers of the bounty
-  /// @param _sender the sender of the transaction issuing the bounty (should be the same as msg.sender unless the txn is called by the meta tx relayer)
-  /// @param _bountyId the index of the bounty
-  /// @param _issuerId the index of the issuer who is calling the function
-  /// @param _issuers the array of addresses to replace the list of valid issuers
-  function replaceIssuers(
-    address _sender,
-    uint _bountyId,
-    uint _issuerId,
-    address payable[] memory _issuers)
-    public
-    senderIsValid(_sender)
-    validateBountyArrayIndex(_bountyId)
-    validateIssuerArrayIndex(_bountyId, _issuerId)
-    onlyIssuer(_sender, _bountyId, _issuerId)
-  {
-    require(_issuers.length > 0 || bounties[_bountyId].approvers.length > 0); // Ensures there's at least 1 issuer or approver, so funds don't get stuck
-
-    bounties[_bountyId].issuers = _issuers;
-
-    emit BountyIssuersUpdated(_bountyId, _sender, bounties[_bountyId].issuers);
-  }
-
   /// @dev addApprovers(): Allows any of the issuers to add more approvers to the bounty
   /// @param _sender the sender of the transaction issuing the bounty (should be the same as msg.sender unless the txn is called by the meta tx relayer)
   /// @param _bountyId the index of the bounty
@@ -751,28 +757,6 @@ contract StandardBounties {
     for (uint i = 0; i < _approvers.length; i++){
       bounties[_bountyId].approvers.push(_approvers[i]);
     }
-
-    emit BountyApproversUpdated(_bountyId, _sender, bounties[_bountyId].approvers);
-  }
-
-  /// @dev replaceApprovers(): Allows any of the issuers to replace the approvers of the bounty
-  /// @param _sender the sender of the transaction issuing the bounty (should be the same as msg.sender unless the txn is called by the meta tx relayer)
-  /// @param _bountyId the index of the bounty
-  /// @param _issuerId the index of the issuer who is calling the function
-  /// @param _approvers the array of addresses to replace the list of valid approvers
-  function replaceApprovers(
-    address _sender,
-    uint _bountyId,
-    uint _issuerId,
-    address[] memory _approvers)
-    public
-    senderIsValid(_sender)
-    validateBountyArrayIndex(_bountyId)
-    validateIssuerArrayIndex(_bountyId, _issuerId)
-    onlyIssuer(_sender, _bountyId, _issuerId)
-  {
-    require(bounties[_bountyId].issuers.length > 0 || _approvers.length > 0); // Ensures there's at least 1 issuer or approver, so funds don't get stuck
-    bounties[_bountyId].approvers = _approvers;
 
     emit BountyApproversUpdated(_bountyId, _sender, bounties[_bountyId].approvers);
   }

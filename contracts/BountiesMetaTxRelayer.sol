@@ -1,4 +1,4 @@
-pragma solidity 0.5.8;
+pragma solidity 0.5.12;
 pragma experimental ABIEncoderV2;
 
 import "./StandardBounties.sol";
@@ -563,34 +563,6 @@ contract BountiesMetaTxRelayer {
                 _issuers);
   }
 
-  function metaReplaceIssuers(
-    bytes memory _signature,
-    uint _bountyId,
-    uint _issuerId,
-    address payable[] memory _issuers,
-    uint256 _nonce)
-    public
-    {
-    bytes32 metaHash = keccak256(abi.encode(address(this),
-                                                  "metaReplaceIssuers",
-                                                  _bountyId,
-                                                  _issuerId,
-                                                  _issuers,
-                                                  _nonce));
-    address signer = getSigner(metaHash, _signature);
-    //make sure signer doesn't come back as 0x0
-    require(signer != address(0));
-    require(_nonce == replayNonce[signer]);
-
-    //increase the nonce to prevent replay attacks
-    replayNonce[signer]++;
-
-    bountiesContract.replaceIssuers(signer,
-                    _bountyId,
-                    _issuerId,
-                    _issuers);
-  }
-
   function metaAddApprovers(
     bytes memory _signature,
     uint _bountyId,
@@ -617,34 +589,6 @@ contract BountiesMetaTxRelayer {
                 _bountyId,
                 _issuerId,
                 _approvers);
-  }
-
-  function metaReplaceApprovers(
-    bytes memory _signature,
-    uint _bountyId,
-    uint _issuerId,
-    address[] memory _approvers,
-    uint256 _nonce)
-    public
-    {
-    bytes32 metaHash = keccak256(abi.encode(address(this),
-                                                  "metaReplaceApprovers",
-                                                  _bountyId,
-                                                  _issuerId,
-                                                  _approvers,
-                                                  _nonce));
-    address signer = getSigner(metaHash, _signature);
-    //make sure signer doesn't come back as 0x0
-    require(signer != address(0));
-    require(_nonce == replayNonce[signer]);
-
-    //increase the nonce to prevent replay attacks
-    replayNonce[signer]++;
-
-    bountiesContract.replaceApprovers(signer,
-                    _bountyId,
-                    _issuerId,
-                    _approvers);
   }
 
   function getSigner(
