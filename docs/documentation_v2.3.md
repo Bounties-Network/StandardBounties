@@ -1,6 +1,6 @@
 # StandardBounties Complete Documentation
 
-`Version 2.1`
+`Version 2.3`
 
 ## Actors
 There are several key types of users within a bounty:

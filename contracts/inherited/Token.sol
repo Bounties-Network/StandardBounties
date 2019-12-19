@@ -1,6 +1,6 @@
 // Abstract contract for the full ERC 20 Token standard
 // https://github.com/ethereum/EIPs/issues/20
-pragma solidity 0.5.8;
+pragma solidity 0.5.12;
 
 contract Token {
     /* This is a slight change to the ERC20 base standard.

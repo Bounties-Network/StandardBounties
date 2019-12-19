@@ -13,7 +13,7 @@ Machine-based, rapid creation of many tokens would not necessarily need these ex
 
 import "../inherited/ERC20Token.sol";
 
-pragma solidity 0.5.8;
+pragma solidity 0.5.12;
 
 contract HumanStandardToken is ERC20Token {
 
