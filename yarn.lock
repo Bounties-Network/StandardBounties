@@ -2479,9 +2479,10 @@ truffle-hdwallet-provider@0.0.3:
     web3 "^0.18.2"
     web3-provider-engine "^8.4.0"
 
-truffle@5.0.41:
-  version "5.0.41"
-  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.0.41.tgz#a7ef0b6e97d3a22aaf5da2cc4ef6a13f39596ffb"
+truffle@5.1.4:
+  version "5.1.4"
+  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.1.4.tgz#1cf22d46e8ef3eae9ba39f13f4fc1b11fc36d3ba"
+  integrity sha512-HlefSmFCK/vd5jrGNpsJvsAhFdR3XPJH63ERQ1BHmVs8u1kt8OomExEov5HsWKqYCZIyERS/XNL2p/PYFJlmiQ==
   dependencies:
     app-module-path "^2.2.0"
     mocha "5.2.0"
