@@ -8,6 +8,9 @@ A bounty is a simple mechanism for individuals or groups to pay out for the comp
 
 
 ## Contract Details
+The V1 of StandardBounties can be found [here](../deprecated/v1/StandardBounties.sol).
+
+Any application can take advantage of the Bounties Network registry, which is currently deployed on the Main Ethereum Network at `0x2af47a65da8cd66729b4209c22017d6a5c2d2400`, and on the Rinkeby network at `0xf209d2b723b6417cbf04c07e733bee776105a073`.
 
 ### Storage
 
@@ -20,25 +23,7 @@ A bounty can only be contributed to, activated, or fulfilled before the given de
 `string public data`
 All data representing the requirements are stored off-chain on IPFS, and their hash is updated here. Requirements and auxiliary data are mutable while the bounty is in the `Draft` stage, but becomes immutable when the bounty is activated, thereby "locking in" the terms of the contract, the requirements for acceptance for each milestone. These should be as rich as possible from the outset, to avoid conflicts stemming from task fulfillers believing they merited the bounty reward.
 
-The schema for the bounty data field is:
-```
-{
-  title: // A string representing the title of the bounty
-  description: // A string representing the description of the bounty, including all requirements
-  sourceFileName: // A string representing the name of the file
-  sourceFileHash: // The IPFS hash of the file associated with the bounty
-  contact: // A string representing the preferred contact method of the issuer of the bounty
-  categories: // an array of strings, representing the categories of tasks which are being requested
-  githubLink: // The link to the relevant repository
-}
-```
-
-The current set of categories in use is:
-```
-['Code', 'Bugs', 'Questions', 'Graphic Design', 'Social Media', 'Content Creation', 'Translations', 'Surveys']
-```
-
-If you would like to add or amend fields in the data schema presented, please open a github issue and they will be added.
+The schema for the bounty data field can be found at [the schema](./standardSchemas.md)
 
 `uint public fulfillmentAmount`
 The number of units which the bounty pays out for successful completion, either in wei or in token units for the relevant contract.
@@ -80,7 +65,7 @@ function StandardBounties(address _owner)
 ```
 
 #### issueBounty()
-Issues the bounty and instantiates state variables, initializing it in the draft stage. The bounty deadline must be after the time of issuance (contract deployment), and none of the milestones can pay out 0 tokens.
+Issues the bounty and instantiates state variables, initializing it in the draft stage. The bounty deadline must be after the time of issuance (contract deployment), and none of the milestones can pay out 0 tokens. The `data` field represents the IPFS hash for a JSON object, whose schema can be found at [the schema](./standardSchemas.md).
 ```
 function issueBounty(
     address _issuer,
@@ -188,7 +173,7 @@ function activateBounty(uint _bountyId, uint _value)
 ```
 
 #### FulfillBounty()
-Once the bounty is active, anyone can fulfill it and submit the necessary deliverables (as long as the deadline has not passed). Anyone can fulfill the bounty, except for the issuer and arbiter, who are disallowed from doing so.
+Once the bounty is active, anyone can fulfill it and submit the necessary deliverables (as long as the deadline has not passed). Anyone can fulfill the bounty, except for the issuer and arbiter, who are disallowed from doing so. The `data` field represents the IPFS hash for a JSON object, whose schema can be found at [the schema](./standardSchemas.md).
 
 ```
 function fulfillBounty(uint _bountyId, string _data)
@@ -352,32 +337,6 @@ function changeBountyArbiter(uint _bountyId, address _newArbiter)
 }
 ```
 
-#### changeBountyPaysTokens()
-The issuer of the bounty can change whether the bounty pays in tokens or ETH, or change the token contract, while the bounty is in the `Draft` stage. This is not allowed when the bounty is in the `Active` or `Dead` stage. If the balance of the contract is non-zero, it will return all contributed funds to the issuer.
-```
-function changeBountyPaysTokens(uint _bountyId, bool _newPaysTokens, address _newTokenContract)
-    public
-    validateBountyArrayIndex(_bountyId)
-    onlyIssuer(_bountyId)
-    isAtStage(_bountyId, BountyStages.Draft)
-{
-    HumanStandardToken oldToken = tokenContracts[_bountyId];
-    bool oldPaysTokens = bounties[_bountyId].paysTokens;
-    bounties[_bountyId].paysTokens = _newPaysTokens;
-    tokenContracts[_bountyId] = HumanStandardToken(_newTokenContract);
-    if (bounties[_bountyId].balance > 0){
-      uint oldBalance = bounties[_bountyId].balance;
-      bounties[_bountyId].balance = 0;
-      if (oldPaysTokens){
-          require(oldToken.transfer(bounties[_bountyId].issuer, oldBalance));
-      } else {
-          bounties[_bountyId].issuer.transfer(oldBalance);
-      }
-    }
-    BountyChanged(_bountyId);
-}
-```
-
 #### increasePayout()
 The issuer of the bounty can increase the payout of the bounty even in the `Active` stage, as long as the balance of their bounty is sufficient to pay out any accepted fulfillments.
 ```
@@ -401,7 +360,7 @@ Returns all of the information describing a given fulfillment for a given bounty
 ```
 function getFulfillment(uint _bountyId, uint _fulfillmentId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     validateFulfillmentArrayIndex(_bountyId, _fulfillmentId)
     returns (bool, address, string)
@@ -417,7 +376,7 @@ Returns a tuple of the variables describing the bounty, except for the arbiter, 
 ```
 function getBounty(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (address, uint, uint, bool, uint, uint)
 {
@@ -435,7 +394,7 @@ Returns an address of the arbiter for the given bounty.
 ```
 function getBountyArbiter(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (address)
 {
@@ -448,7 +407,7 @@ Returns a string of the data for the given bounty.
 ```
 function getBountyData(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (string)
 {
@@ -461,7 +420,7 @@ Returns an address of the token for the given bounty.
 ```
 function getBountyToken(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (address)
 {
@@ -474,7 +433,7 @@ Returns the number of bounties which exist on the registry
 ```
 function getNumBounties()
     public
-    constant
+    pure
     returns (uint)
 {
     return bounties.length;
@@ -486,7 +445,7 @@ Returns the number of fulfillments which have been submitted for a given bounty
 ```
 function getNumFulfillments(uint _bountyId)
     public
-    constant
+    pure
     validateBountyArrayIndex(_bountyId)
     returns (uint)
 {
