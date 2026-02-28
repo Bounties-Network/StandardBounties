@@ -1,7 +1,9 @@
-pragma solidity 0.5.0;
+pragma solidity 0.5.12;
 pragma experimental ABIEncoderV2;
 
 import "./StandardBounties.sol";
+
+
 
 contract BountiesMetaTxRelayer {
 
@@ -17,8 +19,8 @@ contract BountiesMetaTxRelayer {
 
   function metaIssueBounty(
     bytes memory signature,
-    address payable [] memory _issuers,
-    address [] memory _approvers,
+    address payable[] memory _issuers,
+    address[] memory _approvers,
     string memory _data,
     uint _deadline,
     address _token,
@@ -27,7 +29,7 @@ contract BountiesMetaTxRelayer {
     public
     returns (uint)
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaIssueBounty",
                                                   _issuers,
                                                   _approvers,
@@ -55,8 +57,8 @@ contract BountiesMetaTxRelayer {
 
   function metaIssueAndContribute(
     bytes memory signature,
-    address payable [] memory _issuers,
-    address [] memory _approvers,
+    address payable[] memory _issuers,
+    address[] memory _approvers,
     string memory _data,
     uint _deadline,
     address _token,
@@ -67,7 +69,7 @@ contract BountiesMetaTxRelayer {
     payable
     returns (uint)
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaIssueAndContribute",
                                                   _issuers,
                                                   _approvers,
@@ -116,7 +118,7 @@ contract BountiesMetaTxRelayer {
     public
     payable
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaContribute",
                                                   _bountyId,
                                                   _amount,
@@ -145,7 +147,7 @@ contract BountiesMetaTxRelayer {
     uint _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaRefundContribution",
                                                   _bountyId,
                                                   _contributionId,
@@ -165,11 +167,11 @@ contract BountiesMetaTxRelayer {
   function metaRefundMyContributions(
     bytes memory _signature,
     uint _bountyId,
-    uint [] memory _contributionIds,
+    uint[] memory _contributionIds,
     uint _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaRefundMyContributions",
                                                   _bountyId,
                                                   _contributionIds,
@@ -190,11 +192,11 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    uint [] memory _contributionIds,
+    uint[] memory _contributionIds,
     uint _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaRefundContributions",
                                                   _bountyId,
                                                   _issuerId,
@@ -216,11 +218,11 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    uint [] memory _amounts,
+    uint[] memory _amounts,
     uint _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaDrainBounty",
                                                   _bountyId,
                                                   _issuerId,
@@ -245,7 +247,7 @@ contract BountiesMetaTxRelayer {
     uint256 _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaPerformAction",
                                                   _bountyId,
                                                   _data,
@@ -264,12 +266,12 @@ contract BountiesMetaTxRelayer {
   function metaFulfillBounty(
     bytes memory _signature,
     uint _bountyId,
-    address payable [] memory  _fulfillers,
+    address payable[] memory  _fulfillers,
     string memory _data,
     uint256 _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaFulfillBounty",
                                                   _bountyId,
                                                   _fulfillers,
@@ -290,12 +292,12 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _fulfillmentId,
-    address payable [] memory  _fulfillers,
+    address payable[] memory  _fulfillers,
     string memory _data,
     uint256 _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaUpdateFulfillment",
                                                   _bountyId,
                                                   _fulfillmentId,
@@ -318,11 +320,11 @@ contract BountiesMetaTxRelayer {
     uint _bountyId,
     uint _fulfillmentId,
     uint _approverId,
-    uint [] memory _tokenAmounts,
+    uint[] memory _tokenAmounts,
     uint256 _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaAcceptFulfillment",
                                                   _bountyId,
                                                   _fulfillmentId,
@@ -347,14 +349,14 @@ contract BountiesMetaTxRelayer {
   function metaFulfillAndAccept(
     bytes memory _signature,
     uint _bountyId,
-    address payable [] memory _fulfillers,
+    address payable[] memory _fulfillers,
     string memory _data,
     uint _approverId,
-    uint [] memory _tokenAmounts,
+    uint[] memory _tokenAmounts,
     uint256 _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaFulfillAndAccept",
                                                   _bountyId,
                                                   _fulfillers,
@@ -382,14 +384,14 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    address payable [] memory _issuers,
-    address payable [] memory _approvers,
+    address payable[] memory _issuers,
+    address payable[] memory _approvers,
     string memory _data,
     uint _deadline,
     uint256 _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaChangeBounty",
                                                   _bountyId,
                                                   _issuerId,
@@ -424,7 +426,7 @@ contract BountiesMetaTxRelayer {
     uint256 _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaChangeIssuer",
                                                   _bountyId,
                                                   _issuerId,
@@ -455,7 +457,7 @@ contract BountiesMetaTxRelayer {
     uint256 _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaChangeApprover",
                                                   _bountyId,
                                                   _issuerId,
@@ -485,7 +487,7 @@ contract BountiesMetaTxRelayer {
     uint256 _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaChangeData",
                                                   _bountyId,
                                                   _issuerId,
@@ -513,7 +515,7 @@ contract BountiesMetaTxRelayer {
     uint256 _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaChangeDeadline",
                                                   _bountyId,
                                                   _issuerId,
@@ -537,11 +539,11 @@ contract BountiesMetaTxRelayer {
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    address payable [] memory _issuers,
+    address payable[] memory _issuers,
     uint256 _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaAddIssuers",
                                                   _bountyId,
                                                   _issuerId,
@@ -561,43 +563,15 @@ contract BountiesMetaTxRelayer {
                 _issuers);
   }
 
-  function metaReplaceIssuers(
-    bytes memory _signature,
-    uint _bountyId,
-    uint _issuerId,
-    address payable [] memory _issuers,
-    uint256 _nonce)
-    public
-    {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
-                                                  "metaReplaceIssuers",
-                                                  _bountyId,
-                                                  _issuerId,
-                                                  _issuers,
-                                                  _nonce));
-    address signer = getSigner(metaHash, _signature);
-    //make sure signer doesn't come back as 0x0
-    require(signer != address(0));
-    require(_nonce == replayNonce[signer]);
-
-    //increase the nonce to prevent replay attacks
-    replayNonce[signer]++;
-
-    bountiesContract.replaceIssuers(signer,
-                    _bountyId,
-                    _issuerId,
-                    _issuers);
-  }
-
   function metaAddApprovers(
     bytes memory _signature,
     uint _bountyId,
     uint _issuerId,
-    address payable [] memory _approvers,
+    address[] memory _approvers,
     uint256 _nonce)
     public
     {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
+    bytes32 metaHash = keccak256(abi.encode(address(this),
                                                   "metaAddApprovers",
                                                   _bountyId,
                                                   _issuerId,
@@ -611,38 +585,10 @@ contract BountiesMetaTxRelayer {
     //increase the nonce to prevent replay attacks
     replayNonce[signer]++;
 
-    bountiesContract.addIssuers(signer,
+    bountiesContract.addApprovers(signer,
                 _bountyId,
                 _issuerId,
                 _approvers);
-  }
-
-  function metaReplaceApprovers(
-    bytes memory _signature,
-    uint _bountyId,
-    uint _issuerId,
-    address payable [] memory _approvers,
-    uint256 _nonce)
-    public
-    {
-    bytes32 metaHash = keccak256(abi.encodePacked(address(this),
-                                                  "metaReplaceApprovers",
-                                                  _bountyId,
-                                                  _issuerId,
-                                                  _approvers,
-                                                  _nonce));
-    address signer = getSigner(metaHash, _signature);
-    //make sure signer doesn't come back as 0x0
-    require(signer != address(0));
-    require(_nonce == replayNonce[signer]);
-
-    //increase the nonce to prevent replay attacks
-    replayNonce[signer]++;
-
-    bountiesContract.replaceIssuers(signer,
-                    _bountyId,
-                    _issuerId,
-                    _approvers);
   }
 
   function getSigner(
@@ -655,7 +601,7 @@ contract BountiesMetaTxRelayer {
     bytes32 r;
     bytes32 s;
     uint8 v;
-    if (_signature.length != 65) {
+    if (_signature.length != 65){
       return address(0);
     }
     assembly {
@@ -663,15 +609,13 @@ contract BountiesMetaTxRelayer {
       s := mload(add(_signature, 64))
       v := byte(0, mload(add(_signature, 96)))
     }
-    if (v < 27) {
+    if (v < 27){
       v += 27;
     }
-    if (v != 27 && v != 28) {
+    if (v != 27 && v != 28){
       return address(0);
     } else {
-      return ecrecover(keccak256(
-        abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
-      ), v, r, s);
+        return ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)), v, r, s );
     }
   }
 }
